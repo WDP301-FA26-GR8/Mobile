@@ -1,0 +1,13 @@
+---
+description: SaaS-Sentry Mobile verification, scope, and generated-code rules
+globs: "**/*"
+alwaysApply: true
+---
+
+Use pnpm, exact Expo SDK 54 guidance, strict TypeScript, and the quality gates in
+`AGENTS.md`. Do not manually edit lockfiles/build output/generated API. Keep Faker
+out of production imports. Read `SECURITY.md` before adding CSS tooling or binary
+assets, and never import an unreviewed external/AI-provided image. Remember Mobile
+is research scope.
+All UI/accessibility/native prompt copy uses typed vi/en i18n resources. Preserve the
+scoped UUID override, image-size patch/test, and exact audit exceptions.

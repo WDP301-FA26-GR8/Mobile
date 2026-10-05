@@ -1,0 +1,9 @@
+---
+description: SaaS-Sentry Mobile architecture and Expo Router boundaries
+globs: "{app,src}/**/*.{ts,tsx}"
+alwaysApply: true
+---
+
+Read `AGENTS.md` and `ARCHITECTURE.md`. Keep `app/` route-only, never create
+`src/app/`, and preserve `app routes -> features -> entities -> shared`. Never edit
+generated API files; update OpenAPI/Orval inputs and run `pnpm api:generate`.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "SaaS-Sentry Mobile"
+  short_description: "Build and verify the SaaS-Sentry Expo client"
+  default_prompt: "Use $saas-sentry-mobile to implement this Expo task within the documented architecture and run its quality gates."

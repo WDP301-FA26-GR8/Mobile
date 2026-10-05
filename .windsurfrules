@@ -1,0 +1,6 @@
+Read AGENTS.md and ARCHITECTURE.md before changing code. Keep app/ route-only and
+never create src/app/. Obey app routes -> features -> entities -> shared. Generate
+src/shared/api/generated with pnpm api:generate; never edit generated files or the
+lockfile manually. Keep Faker out of production imports and run relevant checks.
+Use Expo SDK 54 guidance and typed vi/en i18n keys for all UI/accessibility copy.
+Preserve the security patch/override/test and exact audit exceptions in SECURITY.md.

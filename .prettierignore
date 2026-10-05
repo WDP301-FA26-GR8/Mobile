@@ -1,0 +1,6 @@
+
+.agents/skills/
+.expo/
+coverage/
+dist/
+node_modules/
