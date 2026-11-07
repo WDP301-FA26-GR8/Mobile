@@ -14,8 +14,11 @@ Mobile shares backend business rules, authorization, and separation of duties.
 Push notifications, offline mode, biometrics, file downloads, phone usage
 collection, and IT Admin/Finance/Super Admin workflows are outside mobile scope.
 The current committed OpenAPI snapshot has only a System status operation, so
-business screens and authentication cannot be connected until the backend
-contract is supplied. The home screen currently presents the scoped tasks.
+business screens use an in-memory demo session (`src/features/session`) and typed
+records under `src/entities`. Sign-in picks a persona and does not call the API.
+The employee slice covers the software vault, catalog requests, request tracking,
+and the in-app inbox. Manager and spending-approver tabs are placeholders until
+those slices are built.
 
 ## Runtime view
 
@@ -147,6 +150,11 @@ available. Clear ownership is more useful than preinstalling optional libraries.
   receive typed domain inputs rather than reading global router state everywhere.
 - Deep links, universal links, authenticated redirects, and notification routes need
   a documented URL contract plus cold-start/background tests before production.
+- Until the business contract exists, `app/_layout.tsx` mounts `SessionProvider`
+  beside `AppProviders`. Employee routes are `software`, `requests`, and `inbox`.
+  `manager-queue` and `spend-queue` stay visible only for their persona. Demo
+  mutations (submit, withdraw) stay in that session and call pure helpers in
+  `src/entities`.
 
 ### Feature shape and public interfaces
 

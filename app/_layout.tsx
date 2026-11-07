@@ -1,15 +1,16 @@
 import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 
+import { SessionProvider } from '@/features/session'
 import { AppProviders } from '@/providers/app-providers'
 
 export default function RootLayout() {
   return (
     <AppProviders>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name='index' />
-      </Stack>
-      <StatusBar style='dark' />
+      <SessionProvider>
+        <Stack screenOptions={{ headerShown: false }} />
+        <StatusBar style='dark' />
+      </SessionProvider>
     </AppProviders>
   )
 }

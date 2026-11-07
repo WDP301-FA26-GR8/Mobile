@@ -10,7 +10,7 @@ module.exports = defineConfig([
   ...query.configs['flat/recommended'],
   prettierRecommended,
   {
-    ignores: ['dist/*', '.expo/*', 'coverage/*', 'node_modules/*', 'src/shared/api/generated/**']
+    ignores: ['dist/*', '.expo/*', 'coverage/*', 'node_modules/*', 'src/shared/api/generated/**', 'expo-env.d.ts']
   },
   {
     files: ['**/*.{ts,tsx}'],
