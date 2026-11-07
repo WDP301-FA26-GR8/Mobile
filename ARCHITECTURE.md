@@ -1,17 +1,21 @@
 # SaaS-Sentry Mobile architecture
 
-Status: accepted research foundation, 2026-08-11.
+Status: Expo foundation updated for BRD 3.53 mobile scope, 2026-10-24.
 
 ## Context and scope boundary
 
-The SaaS-Sentry BRD defines a responsive Web-only MVP and explicitly lists a mobile
-application as out of scope. This repository is retained as an executable research
-client so the team can evaluate native workflows without coupling the MVP to a
-second delivery surface.
+BRD 3.53 includes a native iOS/Android companion for four tasks: employees view
+their software and requests and submit or withdraw simple requests for software
+already in the catalog; managers approve the need step for their department;
+spending approvers decide individual items against a read-only budget snapshot;
+and users read an in-app inbox. The web client remains the full capability surface.
+Mobile shares backend business rules, authorization, and separation of duties.
 
-That distinction matters: the project has production-quality engineering boundaries,
-but it does not promise feature parity, app-store delivery, or native-specific product
-requirements until the BRD changes.
+Push notifications, offline mode, biometrics, file downloads, phone usage
+collection, and IT Admin/Finance/Super Admin workflows are outside mobile scope.
+The current committed OpenAPI snapshot has only a System status operation, so
+business screens and authentication cannot be connected until the backend
+contract is supplied. The home screen currently presents the scoped tasks.
 
 ## Runtime view
 
@@ -130,9 +134,9 @@ is what keeps generated folders understandable as the API grows.
 
 ## Reusable production architecture
 
-The current product scope is research, but these boundaries are intentionally ready
-to carry a future production React Native project. Production readiness means clear
-places and decisions, not preinstalling every possible library.
+These boundaries support the native companion in the current BRD. Add each
+business workflow only after its API contract and authorization behavior are
+available. Clear ownership is more useful than preinstalling optional libraries.
 
 ### Navigation and composition
 
@@ -404,9 +408,10 @@ files, or providers.
   in root `__tests__/`. No tests belong under `app/`.
 - `src/shared/native/` contains small typed wrappers around device APIs, not a generic
   service locator. Feature policy stays in the feature.
-- Start flat for a tiny feature such as the current `home-screen.tsx`. Expand into
-  `screens/`, `components/`, `hooks/`, and `model/` once those categories have real
-  members. Do not create empty folders.
+- Start flat for a tiny feature. Expand into `screens/`, `components/`, `hooks/`,
+  and `model/` once those categories have real members. The current `home` feature
+  has a screen, presentation component, and pure capability model. Do not create
+  empty folders.
 - Root template folders `components/`, `hooks/`, and `constants/` are deprecated
   locations. Move any useful template code into the correct `src` owner before use;
   do not add new imports to those roots.
@@ -473,7 +478,7 @@ Contract update workflow:
 ## Environment model
 
 `EXPO_PUBLIC_API_BASE_URL` is statically referenced so Expo can inline it. It defaults
-to `http://localhost:3000` for local web/iOS-simulator research. Android emulators
+to `http://localhost:3000` for local web/iOS-simulator development. Android emulators
 usually need `http://10.0.2.2:3000`; physical devices need a host address they can
 reach.
 
@@ -526,8 +531,8 @@ upgrade/removal procedure.
 
 ## Deferred decisions
 
-- Production Mobile scope, supported platforms, EAS profiles, store identities, and
-  release channels await a BRD/product decision.
+- The BRD defines a native iOS/Android companion; EAS profiles, store identities,
+  and release channels still await technical and delivery decisions.
 - OIDC redirect, token storage, biometrics, push notifications, deep links, and
   offline conflict handling await security and product requirements.
 - Remove unused create-expo-app sample dependencies when production scope starts;

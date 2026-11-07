@@ -1,50 +1,39 @@
-# Welcome to your Expo app 👋
+# SaaS-Sentry Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+React Native app built with Expo SDK 54 and Expo Router. BRD 3.53 defines a
+native iOS/Android companion for four workflows: an employee's software and
+simple requests, manager need approval, individual spending approval, and an
+in-app inbox. Web remains the full capability surface.
 
-## Get started
+The current source includes navigation/provider boundaries, typed Vietnamese
+and English copy, TanStack Query setup, and an Orval-generated API client.
+The committed OpenAPI snapshot currently exposes only a System status endpoint.
+The home screen shows the agreed mobile scope; business actions are not wired
+until the backend publishes their contracts and authorization behavior.
 
-1. Install dependencies
+## Setup
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Use Node.js 22.13 or newer and pnpm 11.1.3.
 
 ```bash
-npm run reset-project
+pnpm install --frozen-lockfile
+pnpm api:validate
+pnpm check
+pnpm start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+For an Android emulator, set `EXPO_PUBLIC_API_BASE_URL` to an address reachable
+from the emulator, commonly `http://10.0.2.2:3000`. Do not put secrets in
+`EXPO_PUBLIC_*` values. See `.env.example` and `ARCHITECTURE.md`.
 
-## Learn more
+## Source ownership
 
-To learn more about developing your project with Expo, look at the following resources:
+- `app/`: Expo Router route declarations and parameter handoff only.
+- `src/providers/`: application-wide framework providers.
+- `src/features/`: mobile screens, components, orchestration hooks, and models.
+- `src/entities/`: shared domain display logic only when multiple features need it.
+- `src/shared/`: API client, configuration, i18n, and generic native UI.
+- `openapi/`: committed backend contract snapshot; regenerate after changes.
+- `__tests__/`: route and integration tests outside the route manifest.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Read `AGENTS.md`, `ARCHITECTURE.md`, and `SECURITY.md` before extending the app.

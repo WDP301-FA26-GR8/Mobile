@@ -13,15 +13,31 @@ export const resources = {
         }
       },
       home: {
-        description:
-          'The current BRD defines Web as the MVP. This client remains buildable for research without creating a production-scope dependency.',
-        foundationHeading: 'Architecture foundations',
-        foundations: {
-          api: 'Orval generates the API client from OpenAPI',
-          query: 'TanStack Query owns server state',
-          router: 'Expo Router only owns navigation'
+        capabilitiesHeading: 'Mobile scope',
+        capabilities: {
+          myRequests: {
+            title: 'My software and requests',
+            description:
+              'Employees view their software and requests, and submit or withdraw a simple request for catalog software.'
+          },
+          needApproval: {
+            title: 'Need approval',
+            description: 'Managers decide the need approval step for requests from their department.'
+          },
+          spendApproval: {
+            title: 'Spending approval',
+            description:
+              'The spending approver decides one item at a time using a read-only budget snapshot, and handles the need step when a manager submits their own request.'
+          },
+          inbox: {
+            title: 'In-app inbox',
+            description: 'Users read workflow updates in the app without push notifications.'
+          }
         },
-        title: 'The Mobile foundation is ready for the research phase.'
+        contractNote:
+          'These are the four mobile tasks in BRD 3.53. The current OpenAPI snapshot only defines a system status endpoint, so business actions are not connected yet.',
+        description: 'Native iOS and Android companion for the four workflows defined in the BRD.',
+        title: 'SaaS-Sentry on mobile'
       }
     }
   },
@@ -39,15 +55,31 @@ export const resources = {
         }
       },
       home: {
-        description:
-          'BRD hiện xác định Web là MVP. Client này giữ cấu trúc buildable để nghiên cứu mà không tạo phụ thuộc cho phạm vi production.',
-        foundationHeading: 'Nền tảng kiến trúc',
-        foundations: {
-          api: 'Orval sinh API client từ OpenAPI',
-          query: 'TanStack Query quản lý server state',
-          router: 'Expo Router chỉ quản lý điều hướng'
+        capabilitiesHeading: 'Phạm vi Mobile',
+        capabilities: {
+          myRequests: {
+            title: 'Phần mềm và yêu cầu của tôi',
+            description:
+              'Nhân viên xem phần mềm, yêu cầu của mình và gửi hoặc rút yêu cầu đơn giản cho phần mềm đã có trong danh mục.'
+          },
+          needApproval: {
+            title: 'Duyệt nhu cầu',
+            description: 'Trưởng phòng quyết định bước duyệt nhu cầu cho yêu cầu của phòng mình.'
+          },
+          spendApproval: {
+            title: 'Duyệt chi',
+            description:
+              'Người duyệt chi quyết định từng mục trên snapshot ngân sách chỉ đọc, đồng thời duyệt bước nhu cầu khi trưởng phòng tự gửi yêu cầu.'
+          },
+          inbox: {
+            title: 'Hộp thông báo trong ứng dụng',
+            description: 'Người dùng xem cập nhật quy trình trong ứng dụng, không dùng thông báo đẩy.'
+          }
         },
-        title: 'Nền tảng Mobile đã sẵn sàng cho giai đoạn nghiên cứu.'
+        contractNote:
+          'Đây là bốn tác vụ mobile của BRD 3.53. OpenAPI hiện chỉ có endpoint trạng thái hệ thống nên các thao tác nghiệp vụ chưa được kết nối.',
+        description: 'Ứng dụng native iOS và Android cho bốn luồng được xác định trong BRD.',
+        title: 'SaaS-Sentry trên di động'
       }
     }
   }

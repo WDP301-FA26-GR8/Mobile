@@ -3,7 +3,7 @@
 Last reviewed: 2026-08-11. Next review: 2026-09-11, or immediately after an
 Expo/Metro, `image-size`, `xcode`, or pnpm patch update.
 
-This repository is a research client under the current BRD. Build-time findings still
+This repository is the native companion included in BRD 3.53. Build-time findings still
 affect developer machines and CI, so they are fixed and verified even when they are
 not reachable from a released application.
 
