@@ -4,7 +4,7 @@ import { ManagerApprovalsScreen } from '@/features/manager'
 import { setAppLanguage } from '@/shared/i18n/i18n'
 
 const mockRouter = {
-  back: jest.fn()
+  push: jest.fn()
 }
 
 jest.mock('expo-router', () => ({
@@ -13,7 +13,7 @@ jest.mock('expo-router', () => ({
 
 describe('<ManagerApprovalsScreen />', () => {
   beforeEach(async () => {
-    mockRouter.back.mockClear()
+    mockRouter.push.mockClear()
     await setAppLanguage('vi', false)
   })
 
@@ -22,6 +22,9 @@ describe('<ManagerApprovalsScreen />', () => {
 
     screen.getByRole('button', { name: 'Xem yêu cầu BM01-2102 cho Claude Team AI' })
     screen.getByRole('button', { name: 'Xem yêu cầu BM01-2091 cho Raycast Pro' })
+    expect(screen.queryByText('BM01-2088')).toBeNull()
+
+    await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Phòng ban' }))
     screen.getByText('BM01-2088')
     screen.getByText('BM01-2103')
     screen.getByText(/Finance đang rà soát; yêu cầu chưa vào hàng đợi Người duyệt chi/)
@@ -40,6 +43,18 @@ describe('<ManagerApprovalsScreen />', () => {
     await fireEvent.changeText(screen.getByLabelText('Tìm theo nhân viên, phần mềm hoặc mã yêu cầu'), 'Claude')
     screen.getByRole('button', { name: 'Xem yêu cầu BM01-2102 cho Claude Team AI' })
     expect(screen.queryByRole('button', { name: /BM01-2091/ })).toBeNull()
+  })
+
+  test('uses the bottom tabs to switch between the assigned queue and department context', async () => {
+    const screen = await render(<ManagerApprovalsScreen />)
+
+    await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Phòng ban' }))
+    screen.getByText('Phạm vi phòng ban · không được giao')
+    screen.getByText('BM01-2088')
+    expect(screen.queryByRole('button', { name: /BM01-2102/ })).toBeNull()
+
+    await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Hàng đợi' }))
+    screen.getByRole('button', { name: 'Xem yêu cầu BM01-2102 cho Claude Team AI' })
   })
 
   test('requires explicit OI-07a confirmation before approving a long-term request', async () => {

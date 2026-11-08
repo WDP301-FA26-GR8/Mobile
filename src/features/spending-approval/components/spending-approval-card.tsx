@@ -82,10 +82,11 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: mobileColors.surface,
     borderColor: mobileColors.border,
-    borderRadius: 15,
+    borderRadius: 17,
     borderWidth: 1,
     gap: 12,
-    padding: 14
+    padding: 14,
+    boxShadow: '0px 3px 7px rgba(93, 59, 32, 0.035)'
   },
   cost: {
     color: mobileColors.foreground,
@@ -125,9 +126,14 @@ const styles = StyleSheet.create({
     marginTop: 2
   },
   sla: {
+    backgroundColor: mobileColors.warningBackground,
+    borderRadius: 9,
     color: mobileColors.warning,
     fontSize: 11,
-    fontWeight: '600'
+    fontWeight: '700',
+    overflow: 'hidden',
+    paddingHorizontal: 9,
+    paddingVertical: 6
   },
   softwareCopy: {
     flex: 1
@@ -139,11 +145,11 @@ const styles = StyleSheet.create({
   },
   softwareMark: {
     alignItems: 'center',
-    backgroundColor: mobileColors.surfaceSubtle,
-    borderRadius: 11,
-    height: 36,
+    backgroundColor: mobileColors.primarySoft,
+    borderRadius: 12,
+    height: 40,
     justifyContent: 'center',
-    width: 36
+    width: 40
   },
   softwareName: {
     color: mobileColors.foreground,

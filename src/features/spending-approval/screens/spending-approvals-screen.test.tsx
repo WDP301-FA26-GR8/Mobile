@@ -4,7 +4,7 @@ import { SpendingApprovalsScreen } from '@/features/spending-approval'
 import { setAppLanguage } from '@/shared/i18n/i18n'
 
 const mockRouter = {
-  back: jest.fn()
+  push: jest.fn()
 }
 
 jest.mock('expo-router', () => ({
@@ -13,7 +13,7 @@ jest.mock('expo-router', () => ({
 
 describe('<SpendingApprovalsScreen />', () => {
   beforeEach(async () => {
-    mockRouter.back.mockClear()
+    mockRouter.push.mockClear()
     await setAppLanguage('vi', false)
   })
 
@@ -65,6 +65,19 @@ describe('<SpendingApprovalsScreen />', () => {
     screen.getByText('Đã ghi nhận quyết định override cho BM01-2095.')
     screen.getByText('Ưu tiên dự án')
     expect(screen.queryByRole('button', { name: /BM01-2095/ })).toBeNull()
+  })
+
+  test('records an approved task in the session-only decision history tab', async () => {
+    const screen = await render(<SpendingApprovalsScreen />)
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Xem BM01-2104 cho Slack Pro' }))
+    await fireEvent.press(screen.getByRole('button', { name: 'Duyệt chi' }))
+    screen.getByText('Đã ghi nhận quyết định cho BM01-2104.')
+
+    await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Đã xử lý' }))
+    screen.getByText('Quyết định gần đây')
+    screen.getByText('Slack Pro')
+    screen.getByText('Đã duyệt')
   })
 
   test('localizes the spending queue in English', async () => {

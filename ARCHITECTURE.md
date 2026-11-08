@@ -22,6 +22,10 @@ contract is still needed before these workflows can be connected.
 Manager and spending demos have separate direct route entry points; there is no
 in-session role switcher. Production login routing must follow the backend-authenticated
 role once that contract is available.
+The manager demo uses bottom tabs for assigned approvals, department-visible context,
+and the shared in-app inbox. The spending demo uses assigned decisions, session-only
+decision history, and the shared in-app inbox; budget snapshots remain inside the
+relevant request detail and are not a separate tab.
 
 ## Runtime view
 

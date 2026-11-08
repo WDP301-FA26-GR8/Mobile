@@ -158,6 +158,10 @@ export const resources = {
         standardTool: 'Standard toolset',
         subtitle: 'Review your department’s software needs and take assigned actions.',
         suggestionsTitle: 'Suggested reasons',
+        tabs: {
+          department: 'Department',
+          queue: 'Queue'
+        },
         title: 'Need approval queue',
         unplannedBudget: 'Outside the approved plan · demo',
         visibility: {
@@ -177,8 +181,9 @@ export const resources = {
         amountVnd: '{{amount}} VND',
         approveNeed: 'Approve need step',
         approveSpending: 'Approve spending',
-        approverRole: 'Spending approver',
-        approverScope: 'Individual assigned tasks · CC-TECH',
+        approverHeaderMeta: 'Spending approver · CC-TECH',
+        approverInitials: 'TB',
+        approverName: 'Trần Quốc Bảo',
         assignedCount: 'Assigned items',
         availableAfter: 'Available after decision',
         availableBefore: 'Available before decision',
@@ -194,6 +199,11 @@ export const resources = {
         department: 'Cost center',
         demoActionNote: 'Demo only · this action stays on this screen and is not sent to an API.',
         demoNote: 'Static demo values · budget snapshot and SLA are illustrative; amounts are not live.',
+        decisionStatus: {
+          approved: 'Approved',
+          override: 'Override',
+          rejected: 'Rejected'
+        },
         emptyQueue: 'No spending tasks are assigned to you.',
         emptyQueueHint: 'Completed demo decisions are removed from this queue.',
         emptySearch: 'No items match these filters.',
@@ -204,6 +214,9 @@ export const resources = {
           need: 'Need step',
           spending: 'Spending step'
         },
+        historyEmpty: 'No demo decisions have been recorded yet.',
+        historyHint: 'Completed demo actions are shown here for this session only.',
+        historyTitle: 'Recent decisions',
         kicker: 'Individual decisions · no batch submission',
         needStep: 'Need step',
         needStepCount: 'Need approval steps',
@@ -248,6 +261,10 @@ export const resources = {
         readOnly: 'Read-only',
         reason: 'Reason',
         subtitle: 'Review each assigned item and its read-only budget context.',
+        tabs: {
+          history: 'History',
+          queue: 'Approvals'
+        },
         title: 'Spending approval queue',
         withinBudget: 'Within budget · reference only'
       },
@@ -605,6 +622,10 @@ export const resources = {
         standardTool: 'Bộ công cụ chuẩn',
         subtitle: 'Rà soát nhu cầu phần mềm của phòng và xử lý các mục được giao.',
         suggestionsTitle: 'Lý do gợi ý',
+        tabs: {
+          department: 'Phòng ban',
+          queue: 'Hàng đợi'
+        },
         title: 'Hàng đợi duyệt nhu cầu',
         unplannedBudget: 'Ngoài kế hoạch đã duyệt · demo',
         visibility: {
@@ -624,8 +645,9 @@ export const resources = {
         amountVnd: '{{amount}} VNĐ',
         approveNeed: 'Duyệt bước nhu cầu',
         approveSpending: 'Duyệt chi',
-        approverRole: 'Người duyệt chi',
-        approverScope: 'Việc được giao riêng lẻ · CC-TECH',
+        approverHeaderMeta: 'Duyệt chi · CC-TECH',
+        approverInitials: 'TB',
+        approverName: 'Trần Quốc Bảo',
         assignedCount: 'Mục được giao',
         availableAfter: 'Khả dụng sau quyết định',
         availableBefore: 'Khả dụng trước quyết định',
@@ -641,6 +663,11 @@ export const resources = {
         department: 'Cost center',
         demoActionNote: 'Chỉ là demo · thao tác lưu trong màn hình này, chưa gửi lên API.',
         demoNote: 'Số liệu tĩnh · snapshot ngân sách và SLA chỉ để minh họa, không phải dữ liệu thật.',
+        decisionStatus: {
+          approved: 'Đã duyệt',
+          override: 'Override',
+          rejected: 'Đã từ chối'
+        },
         emptyQueue: 'Không có việc duyệt chi được giao cho bạn.',
         emptyQueueHint: 'Quyết định demo đã xử lý sẽ được gỡ khỏi hàng đợi này.',
         emptySearch: 'Không có mục nào khớp bộ lọc.',
@@ -651,6 +678,9 @@ export const resources = {
           need: 'Bước nhu cầu',
           spending: 'Bước duyệt chi'
         },
+        historyEmpty: 'Chưa có quyết định demo nào được ghi nhận.',
+        historyHint: 'Các thao tác demo đã xử lý chỉ hiển thị trong phiên này.',
+        historyTitle: 'Quyết định gần đây',
         kicker: 'Quyết định từng mục · không trình lô',
         needStep: 'Bước nhu cầu',
         needStepCount: 'Bước duyệt nhu cầu',
@@ -694,6 +724,10 @@ export const resources = {
         readOnly: 'Chỉ đọc',
         reason: 'Lý do',
         subtitle: 'Rà soát từng mục được giao cùng bối cảnh ngân sách chỉ đọc.',
+        tabs: {
+          history: 'Đã xử lý',
+          queue: 'Duyệt chi'
+        },
         title: 'Hàng đợi duyệt chi',
         withinBudget: 'Trong hạn mức · chỉ để tham khảo'
       },

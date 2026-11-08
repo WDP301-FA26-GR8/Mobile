@@ -94,6 +94,7 @@ export function InboxScreen() {
           tabs={[
             {
               accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') }),
+              icon: 'grid',
               id: 'software',
               label: t('navigation.software'),
               onPress: () => router.push('/my-software'),
@@ -101,6 +102,7 @@ export function InboxScreen() {
             },
             {
               accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
+              icon: 'plus-circle',
               id: 'create',
               label: t('navigation.createRequest'),
               onPress: () => router.push('/my-requests/new'),
@@ -108,6 +110,7 @@ export function InboxScreen() {
             },
             {
               accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') }),
+              icon: 'clock',
               id: 'requests',
               label: t('navigation.requests'),
               onPress: () => router.push('/my-requests/index'),
@@ -115,6 +118,7 @@ export function InboxScreen() {
             },
             {
               accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') }),
+              icon: 'bell',
               id: 'inbox',
               label: t('navigation.inbox'),
               onPress: () => router.replace('/inbox'),

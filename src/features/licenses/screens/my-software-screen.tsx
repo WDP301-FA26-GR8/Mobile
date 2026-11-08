@@ -53,6 +53,7 @@ export function MySoftwareScreen() {
           tabs={[
             {
               accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') }),
+              icon: 'grid',
               id: 'software',
               label: t('navigation.software'),
               onPress: () => router.replace('/my-software'),
@@ -60,6 +61,7 @@ export function MySoftwareScreen() {
             },
             {
               accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
+              icon: 'plus-circle',
               id: 'create',
               label: t('navigation.createRequest'),
               onPress: () => router.push('/my-requests/new'),
@@ -67,6 +69,7 @@ export function MySoftwareScreen() {
             },
             {
               accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') }),
+              icon: 'clock',
               id: 'requests',
               label: t('navigation.requests'),
               onPress: () => router.push('/my-requests/index'),
@@ -74,6 +77,7 @@ export function MySoftwareScreen() {
             },
             {
               accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') }),
+              icon: 'bell',
               id: 'inbox',
               label: t('navigation.inbox'),
               onPress: () => router.push('/inbox'),

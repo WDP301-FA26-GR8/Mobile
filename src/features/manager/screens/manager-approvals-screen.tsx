@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { mobileColors } from '@/shared/theme/colors'
+import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 
 import { DepartmentVisibleCard } from '../components/department-visible-card'
 import { ManagerApprovalCard } from '../components/manager-approval-card'
@@ -17,6 +18,8 @@ import {
   type ManagerApproval,
   type ManagerApprovalFilter
 } from '../model/manager-approvals'
+
+type ManagerTab = 'queue' | 'department'
 
 interface ManagerDecision {
   kind: 'approved' | 'rejected'
@@ -30,6 +33,7 @@ export function ManagerApprovalsScreen() {
   const [filter, setFilter] = useState<ManagerApprovalFilter>('all')
   const [search, setSearch] = useState('')
   const [selectedRequestId, setSelectedRequestId] = useState<string>()
+  const [activeTab, setActiveTab] = useState<ManagerTab>('queue')
   const [decisions, setDecisions] = useState<Record<string, ManagerDecision['kind']>>({})
   const [lastDecision, setLastDecision] = useState<ManagerDecision>()
   const pendingRequests = useMemo(() => managerApprovals.filter((request) => !decisions[request.id]), [decisions])
@@ -65,161 +69,191 @@ export function ManagerApprovalsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps='handled'>
-        <Pressable
-          accessibilityLabel={t('manager.backToHome')}
-          accessibilityRole='button'
-          onPress={() => router.back()}
-          style={styles.backButton}
-        >
-          <Feather
-            accessibilityElementsHidden
-            color={mobileColors.primaryInk}
-            importantForAccessibility='no'
-            name='arrow-left'
-            size={18}
-          />
-          <Text style={styles.backLabel}>{t('manager.backToHome')}</Text>
-        </Pressable>
-
-        <View style={styles.profile}>
-          <View style={styles.profileAvatar}>
-            <Text style={styles.profileInitials}>{t('manager.initials')}</Text>
-          </View>
-          <View style={styles.profileCopy}>
-            <Text style={styles.profileName}>{t('manager.managerName')}</Text>
-            <Text style={styles.profileMeta}>{t('manager.managerMeta')}</Text>
-          </View>
-          <Text style={styles.demoBadge}>{t('common.demo')}</Text>
-        </View>
-
-        <View style={styles.pageHeading}>
-          <Text style={styles.kicker}>{t('manager.kicker')}</Text>
-          <Text accessibilityRole='header' style={styles.title}>
-            {t('manager.title')}
-          </Text>
-          <Text style={styles.subtitle}>{t('manager.subtitle')}</Text>
-        </View>
-
-        <View style={styles.metrics}>
-          <View style={styles.metricCard}>
-            <Text style={styles.metricValue}>{pendingRequests.length}</Text>
-            <Text style={styles.metricLabel}>{t('manager.assignedCount')}</Text>
-          </View>
-          <View style={styles.metricCard}>
-            <Text style={styles.metricValue}>{departmentVisibleRequests.length}</Text>
-            <Text style={styles.metricLabel}>{t('manager.departmentVisibleCount')}</Text>
-          </View>
-        </View>
-
-        <Text style={styles.demoNote}>{t('manager.demoNote')}</Text>
-
-        {lastDecision ? (
-          <View accessibilityRole='alert' style={styles.result}>
-            <Text style={styles.resultTitle}>
-              {t(lastDecision.kind === 'approved' ? 'manager.approvedResult' : 'manager.rejectedResult', {
-                id: lastDecision.requestId
-              })}
-            </Text>
-            {lastDecision.reason ? <Text style={styles.resultReason}>{lastDecision.reason}</Text> : null}
-            <Text style={styles.resultNote}>{t('manager.demoActionNote')}</Text>
-          </View>
-        ) : null}
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeading}>
-            <View style={styles.sectionCopy}>
-              <Text style={styles.sectionTitle}>{t('manager.queueTitle')}</Text>
-              <Text style={styles.sectionHint}>{t('manager.queueHint')}</Text>
+      <View style={styles.screen}>
+        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps='handled'>
+          <View style={styles.profile}>
+            <View style={styles.profileAvatar}>
+              <Text style={styles.profileInitials}>{t('manager.initials')}</Text>
             </View>
-            <Text style={styles.countBadge}>{pendingRequests.length}</Text>
+            <View style={styles.profileCopy}>
+              <Text style={styles.profileName}>{t('manager.managerName')}</Text>
+              <Text style={styles.profileMeta}>{t('manager.managerMeta')}</Text>
+            </View>
+            <Pressable
+              accessibilityLabel={t('navigation.openTab', { tab: t('navigation.inbox') })}
+              accessibilityRole='button'
+              onPress={() => router.push('/inbox')}
+              style={styles.notificationButton}
+            >
+              <Feather
+                accessibilityElementsHidden
+                color={mobileColors.foreground}
+                importantForAccessibility='no'
+                name='bell'
+                size={18}
+              />
+            </Pressable>
           </View>
 
-          <View style={styles.search}>
-            <Feather
-              accessibilityElementsHidden
-              color={mobileColors.muted}
-              importantForAccessibility='no'
-              name='search'
-              size={17}
-            />
-            <TextInput
-              accessibilityLabel={t('manager.searchLabel')}
-              onChangeText={setSearch}
-              placeholder={t('manager.searchPlaceholder')}
-              placeholderTextColor={mobileColors.muted}
-              returnKeyType='search'
-              style={styles.searchInput}
-              value={search}
-            />
+          <View style={styles.pageHeading}>
+            <Text style={styles.kicker}>{t('manager.kicker')}</Text>
+            <Text accessibilityRole='header' style={styles.title}>
+              {t('manager.title')}
+            </Text>
+            <Text style={styles.subtitle}>{t('manager.subtitle')}</Text>
           </View>
 
-          <View accessibilityLabel={t('manager.filters.label')} style={styles.filters}>
-            {filters.map((item) => {
-              const selected = filter === item.id
-
-              return (
-                <Pressable
-                  accessibilityRole='button'
-                  accessibilityState={{ selected }}
-                  key={item.id}
-                  onPress={() => setFilter(item.id)}
-                  style={[styles.filterButton, selected && styles.selectedFilter]}
-                >
-                  <Text style={[styles.filterLabel, selected && styles.selectedFilterLabel]}>{item.label}</Text>
-                </Pressable>
-              )
-            })}
-          </View>
-
-          <View style={styles.requestList}>
-            {filteredRequests.map((request) => (
-              <ManagerApprovalCard key={request.id} onPress={({ id }) => setSelectedRequestId(id)} request={request} />
-            ))}
-            {filteredRequests.length === 0 ? (
-              <View style={styles.emptyState}>
-                <Text style={styles.emptyTitle}>
-                  {t(pendingRequests.length ? 'manager.emptySearch' : 'manager.emptyQueue')}
-                </Text>
-                <Text style={styles.emptyBody}>
-                  {t(pendingRequests.length ? 'manager.emptySearchHint' : 'manager.emptyQueueHint')}
-                </Text>
+          <View style={styles.metrics}>
+            <View style={styles.metricCard}>
+              <View style={[styles.metricIcon, styles.metricIconPrimary]}>
+                <Feather color={mobileColors.primaryInk} name='check-circle' size={16} />
               </View>
-            ) : null}
+              <Text style={styles.metricValue}>{pendingRequests.length}</Text>
+              <Text style={styles.metricLabel}>{t('manager.assignedCount')}</Text>
+            </View>
+            <View style={styles.metricCard}>
+              <View style={[styles.metricIcon, styles.metricIconNeutral]}>
+                <Feather color={mobileColors.success} name='users' size={16} />
+              </View>
+              <Text style={styles.metricValue}>{departmentVisibleRequests.length}</Text>
+              <Text style={styles.metricLabel}>{t('manager.departmentVisibleCount')}</Text>
+            </View>
           </View>
-        </View>
 
-        <View style={styles.visibilitySection}>
-          <View style={styles.sectionCopy}>
-            <Text style={styles.sectionTitle}>{t('manager.departmentVisibilityTitle')}</Text>
-            <Text style={styles.sectionHint}>{t('manager.departmentVisibilityHint')}</Text>
-          </View>
-          {departmentVisibleRequests.map((request) => (
-            <DepartmentVisibleCard key={request.id} request={request} />
-          ))}
-        </View>
-      </ScrollView>
+          <Text style={styles.demoNote}>{t('manager.demoNote')}</Text>
+
+          {lastDecision ? (
+            <View accessibilityRole='alert' style={styles.result}>
+              <Text style={styles.resultTitle}>
+                {t(lastDecision.kind === 'approved' ? 'manager.approvedResult' : 'manager.rejectedResult', {
+                  id: lastDecision.requestId
+                })}
+              </Text>
+              {lastDecision.reason ? <Text style={styles.resultReason}>{lastDecision.reason}</Text> : null}
+              <Text style={styles.resultNote}>{t('manager.demoActionNote')}</Text>
+            </View>
+          ) : null}
+
+          {activeTab === 'queue' ? (
+            <View style={styles.section}>
+              <View style={styles.sectionHeading}>
+                <View style={styles.sectionCopy}>
+                  <Text style={styles.sectionTitle}>{t('manager.queueTitle')}</Text>
+                  <Text style={styles.sectionHint}>{t('manager.queueHint')}</Text>
+                </View>
+                <Text style={styles.countBadge}>{pendingRequests.length}</Text>
+              </View>
+
+              <View style={styles.search}>
+                <Feather
+                  accessibilityElementsHidden
+                  color={mobileColors.muted}
+                  importantForAccessibility='no'
+                  name='search'
+                  size={17}
+                />
+                <TextInput
+                  accessibilityLabel={t('manager.searchLabel')}
+                  onChangeText={setSearch}
+                  placeholder={t('manager.searchPlaceholder')}
+                  placeholderTextColor={mobileColors.muted}
+                  returnKeyType='search'
+                  style={styles.searchInput}
+                  value={search}
+                />
+              </View>
+
+              <View accessibilityLabel={t('manager.filters.label')} style={styles.filters}>
+                {filters.map((item) => {
+                  const selected = filter === item.id
+
+                  return (
+                    <Pressable
+                      accessibilityRole='button'
+                      accessibilityState={{ selected }}
+                      key={item.id}
+                      onPress={() => setFilter(item.id)}
+                      style={[styles.filterButton, selected && styles.selectedFilter]}
+                    >
+                      <Text style={[styles.filterLabel, selected && styles.selectedFilterLabel]}>{item.label}</Text>
+                    </Pressable>
+                  )
+                })}
+              </View>
+
+              <View style={styles.requestList}>
+                {filteredRequests.map((request) => (
+                  <ManagerApprovalCard
+                    key={request.id}
+                    onPress={({ id }) => setSelectedRequestId(id)}
+                    request={request}
+                  />
+                ))}
+                {filteredRequests.length === 0 ? (
+                  <View style={styles.emptyState}>
+                    <Text style={styles.emptyTitle}>
+                      {t(pendingRequests.length ? 'manager.emptySearch' : 'manager.emptyQueue')}
+                    </Text>
+                    <Text style={styles.emptyBody}>
+                      {t(pendingRequests.length ? 'manager.emptySearchHint' : 'manager.emptyQueueHint')}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            </View>
+          ) : null}
+
+          {activeTab === 'department' ? (
+            <View style={styles.visibilitySection}>
+              <View style={styles.sectionCopy}>
+                <Text style={styles.sectionTitle}>{t('manager.departmentVisibilityTitle')}</Text>
+                <Text style={styles.sectionHint}>{t('manager.departmentVisibilityHint')}</Text>
+              </View>
+              {departmentVisibleRequests.map((request) => (
+                <DepartmentVisibleCard key={request.id} request={request} />
+              ))}
+            </View>
+          ) : null}
+        </ScrollView>
+        <MobileTabBar
+          accessibilityLabel={t('navigation.tabs')}
+          tabs={[
+            {
+              accessibilityLabel: t('navigation.openTab', { tab: t('manager.tabs.queue') }),
+              icon: 'check-square',
+              id: 'manager-queue',
+              label: t('manager.tabs.queue'),
+              onPress: () => setActiveTab('queue'),
+              selected: activeTab === 'queue'
+            },
+            {
+              accessibilityLabel: t('navigation.openTab', { tab: t('manager.tabs.department') }),
+              icon: 'users',
+              id: 'manager-department',
+              label: t('manager.tabs.department'),
+              onPress: () => setActiveTab('department'),
+              selected: activeTab === 'department'
+            },
+            {
+              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') }),
+              icon: 'bell',
+              id: 'manager-inbox',
+              label: t('navigation.inbox'),
+              onPress: () => router.push('/inbox'),
+              selected: false
+            }
+          ]}
+        />
+      </View>
     </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
-  backButton: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    gap: 7,
-    minHeight: 40
-  },
-  backLabel: {
-    color: mobileColors.primaryInk,
-    fontSize: 12,
-    fontWeight: '600'
-  },
   content: {
-    gap: 16,
-    padding: 18,
-    paddingBottom: 28
+    gap: 15,
+    padding: 16,
+    paddingBottom: 20
   },
   countBadge: {
     backgroundColor: mobileColors.primarySoft,
@@ -232,16 +266,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 5,
     textAlign: 'center'
-  },
-  demoBadge: {
-    backgroundColor: mobileColors.surfaceSubtle,
-    borderRadius: 7,
-    color: mobileColors.muted,
-    fontSize: 10,
-    fontWeight: '600',
-    overflow: 'hidden',
-    paddingHorizontal: 8,
-    paddingVertical: 5
   },
   demoNote: {
     color: mobileColors.muted,
@@ -274,11 +298,11 @@ const styles = StyleSheet.create({
   filterButton: {
     alignItems: 'center',
     borderColor: 'transparent',
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
     justifyContent: 'center',
-    minHeight: 38,
-    paddingHorizontal: 10
+    minHeight: 36,
+    paddingHorizontal: 12
   },
   filterLabel: {
     color: mobileColors.muted,
@@ -286,8 +310,8 @@ const styles = StyleSheet.create({
     fontWeight: '500'
   },
   filters: {
-    backgroundColor: mobileColors.surfaceSubtle,
-    borderRadius: 10,
+    backgroundColor: '#f6eee6',
+    borderRadius: 14,
     flexDirection: 'row',
     gap: 3,
     padding: 4
@@ -300,22 +324,37 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase'
   },
   metricCard: {
-    backgroundColor: mobileColors.surface,
+    backgroundColor: mobileColors.white,
     borderColor: mobileColors.border,
-    borderRadius: 13,
+    borderRadius: 17,
     borderWidth: 1,
     flex: 1,
-    gap: 4,
-    padding: 13
+    gap: 5,
+    padding: 13,
+    boxShadow: '0px 3px 8px rgba(93, 59, 32, 0.04)'
+  },
+  metricIcon: {
+    alignItems: 'center',
+    borderRadius: 12,
+    height: 30,
+    justifyContent: 'center',
+    marginBottom: 2,
+    width: 34
+  },
+  metricIconNeutral: {
+    backgroundColor: '#e5f7ed'
+  },
+  metricIconPrimary: {
+    backgroundColor: mobileColors.primarySoft
   },
   metricLabel: {
     color: mobileColors.muted,
-    fontSize: 11,
+    fontSize: 10,
     lineHeight: 16
   },
   metricValue: {
     color: mobileColors.foreground,
-    fontSize: 22,
+    fontSize: 21,
     fontWeight: '700'
   },
   metrics: {
@@ -323,25 +362,23 @@ const styles = StyleSheet.create({
     gap: 9
   },
   pageHeading: {
-    gap: 4
+    gap: 5,
+    paddingHorizontal: 2
   },
   profile: {
     alignItems: 'center',
-    backgroundColor: mobileColors.surface,
-    borderColor: mobileColors.border,
-    borderRadius: 15,
-    borderWidth: 1,
     flexDirection: 'row',
-    gap: 10,
-    padding: 12
+    gap: 11,
+    minHeight: 54,
+    paddingHorizontal: 2
   },
   profileAvatar: {
     alignItems: 'center',
     backgroundColor: mobileColors.primarySoft,
     borderRadius: 20,
-    height: 40,
+    height: 42,
     justifyContent: 'center',
-    width: 40
+    width: 42
   },
   profileCopy: {
     flex: 1,
@@ -363,6 +400,16 @@ const styles = StyleSheet.create({
   },
   requestList: {
     gap: 10
+  },
+  notificationButton: {
+    alignItems: 'center',
+    backgroundColor: mobileColors.white,
+    borderColor: mobileColors.border,
+    borderRadius: 19,
+    borderWidth: 1,
+    height: 38,
+    justifyContent: 'center',
+    width: 38
   },
   result: {
     backgroundColor: mobileColors.surfaceSubtle,
@@ -391,6 +438,9 @@ const styles = StyleSheet.create({
     backgroundColor: mobileColors.background,
     flex: 1
   },
+  screen: {
+    flex: 1
+  },
   search: {
     alignItems: 'center',
     backgroundColor: mobileColors.surface,
@@ -410,10 +460,13 @@ const styles = StyleSheet.create({
     paddingVertical: 0
   },
   section: {
-    backgroundColor: mobileColors.surfaceSubtle,
-    borderRadius: 16,
+    backgroundColor: mobileColors.white,
+    borderColor: mobileColors.border,
+    borderRadius: 19,
+    borderWidth: 1,
     gap: 13,
-    padding: 13
+    padding: 14,
+    boxShadow: '0px 4px 10px rgba(93, 59, 32, 0.035)'
   },
   sectionCopy: {
     flex: 1,
@@ -436,11 +489,11 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   },
   selectedFilter: {
-    backgroundColor: mobileColors.surface,
-    borderColor: mobileColors.border
+    backgroundColor: mobileColors.primary,
+    borderColor: mobileColors.primary
   },
   selectedFilterLabel: {
-    color: mobileColors.foreground,
+    color: mobileColors.white,
     fontWeight: '700'
   },
   subtitle: {
@@ -455,6 +508,11 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5
   },
   visibilitySection: {
-    gap: 10
+    backgroundColor: mobileColors.white,
+    borderColor: mobileColors.border,
+    borderRadius: 19,
+    borderWidth: 1,
+    gap: 12,
+    padding: 15
   }
 })

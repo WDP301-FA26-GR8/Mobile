@@ -42,10 +42,10 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: mobileColors.surface,
     borderColor: mobileColors.border,
-    borderRadius: 13,
+    borderRadius: 16,
     borderWidth: 1,
-    gap: 8,
-    padding: 13
+    gap: 9,
+    padding: 14
   },
   copy: {
     flex: 1,

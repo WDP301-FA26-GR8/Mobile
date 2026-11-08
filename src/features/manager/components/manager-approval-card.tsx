@@ -64,8 +64,8 @@ export function ManagerApprovalCard({ onPress, request }: ManagerApprovalCardPro
       </View>
 
       <View style={styles.badges}>
-        <View style={[styles.badge, !request.isStandard && styles.warningBadge]}>
-          <Text style={[styles.badgeText, !request.isStandard && styles.warningText]}>
+        <View style={[styles.badge, request.isStandard ? styles.standardBadge : styles.warningBadge]}>
+          <Text style={[styles.badgeText, request.isStandard ? styles.standardText : styles.warningText]}>
             {t(request.isStandard ? 'manager.standardTool' : 'manager.outsideStandard')}
           </Text>
         </View>
@@ -117,10 +117,11 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: mobileColors.surface,
     borderColor: mobileColors.border,
-    borderRadius: 15,
+    borderRadius: 17,
     borderWidth: 1,
     gap: 12,
-    padding: 14
+    padding: 14,
+    boxShadow: '0px 3px 7px rgba(93, 59, 32, 0.035)'
   },
   cardTop: {
     alignItems: 'center',
@@ -133,7 +134,7 @@ const styles = StyleSheet.create({
   },
   duration: {
     color: mobileColors.foreground,
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600'
   },
   footer: {
@@ -146,10 +147,10 @@ const styles = StyleSheet.create({
     gap: 2
   },
   longTermBadge: {
-    backgroundColor: mobileColors.warningBackground
+    backgroundColor: '#fff0e3'
   },
   longTermText: {
-    color: mobileColors.warning
+    color: mobileColors.primaryInk
   },
   requestId: {
     color: mobileColors.muted,
@@ -166,17 +167,22 @@ const styles = StyleSheet.create({
     fontSize: 11
   },
   sla: {
+    backgroundColor: mobileColors.warningBackground,
+    borderRadius: 9,
     color: mobileColors.warning,
     fontSize: 11,
-    fontWeight: '600'
+    fontWeight: '700',
+    overflow: 'hidden',
+    paddingHorizontal: 9,
+    paddingVertical: 6
   },
   softwareIcon: {
     alignItems: 'center',
-    backgroundColor: mobileColors.surfaceSubtle,
-    borderRadius: 11,
-    height: 34,
+    backgroundColor: mobileColors.primarySoft,
+    borderRadius: 12,
+    height: 38,
     justifyContent: 'center',
-    width: 34
+    width: 38
   },
   softwareInfo: {
     flex: 1
@@ -197,9 +203,15 @@ const styles = StyleSheet.create({
     gap: 10
   },
   warningBadge: {
-    backgroundColor: mobileColors.primarySoft
+    backgroundColor: mobileColors.warningBackground
   },
   warningText: {
-    color: mobileColors.primaryInk
+    color: mobileColors.warning
+  },
+  standardBadge: {
+    backgroundColor: '#e5f7ed'
+  },
+  standardText: {
+    color: mobileColors.success
   }
 })
