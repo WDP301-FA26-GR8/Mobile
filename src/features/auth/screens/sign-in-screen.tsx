@@ -5,10 +5,9 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 
 import { demoActors, type PersonaId } from '@/entities/actors'
 import { homeHref, useSession } from '@/features/session'
-import { LanguageSwitch } from '@/shared/ui/language-switch'
 import { AppButton } from '@/shared/ui/app-button'
+import { LanguageSwitch } from '@/shared/ui/language-switch'
 import { Screen } from '@/shared/ui/screen'
-import { Surface } from '@/shared/ui/surface'
 import { theme } from '@/shared/ui/theme'
 
 const personaIds: PersonaId[] = ['employee', 'manager', 'approver']
@@ -45,12 +44,25 @@ export function SignInScreen() {
       }
     >
       <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.hero}>
+          <View style={styles.mark}>
+            <Text style={styles.markText}>{t('auth.mark')}</Text>
+          </View>
+          <Text accessibilityRole='header' style={styles.title}>
+            {t('auth.title')}
+          </Text>
+          <Text style={styles.subtitle}>{t('auth.subtitle')}</Text>
+        </View>
+        <View style={styles.field}>
+          <Text style={styles.fieldLabel}>{t('auth.emailLabel')}</Text>
+          <Text style={styles.fieldValue}>{selected.email}</Text>
+        </View>
+        <View style={styles.field}>
+          <Text style={styles.fieldLabel}>{t('auth.passwordLabel')}</Text>
+          <Text style={styles.fieldValue}>{t('auth.passwordMask')}</Text>
+        </View>
+        <Text style={styles.note}>{t('auth.scopeNote')}</Text>
         <LanguageSwitch />
-        <Text style={styles.brand}>{t('common.brand')}</Text>
-        <Text accessibilityRole='header' style={styles.title}>
-          {t('auth.title')}
-        </Text>
-        <Text style={styles.subtitle}>{t('auth.subtitle')}</Text>
         <View style={styles.personas}>
           {personaIds.map((personaId) => {
             const actor = demoActors[personaId]
@@ -61,25 +73,14 @@ export function SignInScreen() {
                 accessibilityState={{ selected: selectedPersona }}
                 key={personaId}
                 onPress={() => setSelectedId(personaId)}
+                style={[styles.persona, selectedPersona && styles.personaSelected]}
               >
-                <Surface>
-                  <Text style={styles.name}>{actor.name}</Text>
-                  <Text style={styles.meta}>{roleLabel(personaId)}</Text>
-                  <Text style={styles.meta}>{actor.department}</Text>
-                </Surface>
+                <Text style={styles.personaName}>{actor.name}</Text>
+                <Text style={styles.personaMeta}>{roleLabel(personaId)}</Text>
               </Pressable>
             )
           })}
         </View>
-        <View style={styles.field}>
-          <Text style={styles.fieldLabel}>{t('auth.emailLabel')}</Text>
-          <Text style={styles.fieldValue}>{selected.email}</Text>
-        </View>
-        <View style={styles.field}>
-          <Text style={styles.fieldLabel}>{t('auth.passwordLabel')}</Text>
-          <Text style={styles.fieldValue}>{t('auth.passwordMask')}</Text>
-        </View>
-        <Text style={styles.note}>{t('auth.forgotPassword')}</Text>
       </ScrollView>
     </Screen>
   )
@@ -87,56 +88,81 @@ export function SignInScreen() {
 
 const styles = StyleSheet.create({
   content: {
-    gap: theme.spacing.md,
-    padding: theme.spacing.lg
+    gap: 16,
+    padding: 24
   },
-  brand: {
-    color: theme.colors.primaryInk,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1
+  hero: {
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12
+  },
+  mark: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.primary,
+    borderRadius: 16,
+    height: 56,
+    justifyContent: 'center',
+    width: 56
+  },
+  markText: {
+    color: theme.colors.primaryForeground,
+    fontSize: 18,
+    fontWeight: '700'
   },
   title: {
     color: theme.colors.foreground,
-    fontSize: 32,
+    fontSize: 22,
     fontWeight: '700'
   },
   subtitle: {
     color: theme.colors.mutedForeground,
-    fontSize: 16
-  },
-  personas: {
-    gap: theme.spacing.sm
-  },
-  name: {
-    color: theme.colors.foreground,
-    fontSize: 16,
-    fontWeight: '700'
-  },
-  meta: {
-    color: theme.colors.mutedForeground,
-    fontSize: 14
+    fontSize: 13,
+    textAlign: 'center'
   },
   field: {
-    gap: theme.spacing.xs
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 4,
+    padding: 14
   },
   fieldLabel: {
     color: theme.colors.mutedForeground,
-    fontSize: 12,
-    fontWeight: '700'
+    fontSize: 11
   },
   fieldValue: {
-    backgroundColor: theme.colors.surfaceSubtle,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.md,
-    borderWidth: 1,
     color: theme.colors.foreground,
-    fontSize: 16,
-    padding: theme.spacing.md
+    fontSize: 14,
+    fontWeight: '500'
   },
   note: {
     color: theme.colors.mutedForeground,
-    fontSize: 13,
-    lineHeight: 18
+    fontSize: 11,
+    lineHeight: 16,
+    textAlign: 'center'
+  },
+  personas: {
+    flexDirection: 'row',
+    gap: 8
+  },
+  persona: {
+    backgroundColor: theme.colors.surfaceSubtle,
+    borderRadius: 12,
+    flex: 1,
+    gap: 2,
+    padding: 10
+  },
+  personaSelected: {
+    backgroundColor: theme.colors.primarySoft
+  },
+  personaName: {
+    color: theme.colors.foreground,
+    fontSize: 12,
+    fontWeight: '700'
+  },
+  personaMeta: {
+    color: theme.colors.mutedForeground,
+    fontSize: 10
   }
 })

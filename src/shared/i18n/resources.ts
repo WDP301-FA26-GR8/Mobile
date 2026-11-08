@@ -11,8 +11,10 @@ export const resources = {
           employee: 'Employee',
           manager: 'Department head'
         },
-        submit: 'Sign in',
-        subtitle: 'Sign in with your company email',
+        mark: 'SS',
+        scopeNote: 'QĐ-61 MVP: no biometrics and no offline mode.',
+        submit: 'Sign in with company SSO',
+        subtitle: 'Software licenses and technology cost',
         title: 'SaaS-Sentry'
       },
       common: {
@@ -33,8 +35,11 @@ export const resources = {
         empty: 'No notifications yet.',
         groups: {
           earlier: 'Earlier',
+          thisWeek: 'This week',
           today: 'Today'
         },
+        markRead: 'Mark as read',
+        section: 'MOBILE NOTIFICATIONS (DEEP-LINK)',
         licenseReady: '{{name}} is ready in your software vault.',
         pending: '{{name}} is waiting for your department head.',
         rejected: '{{name}} was rejected.',
@@ -43,9 +48,12 @@ export const resources = {
       nav: {
         inbox: 'Inbox',
         managerQueue: 'Need queue',
+        newRequest: 'New request',
+        progress: 'Progress',
         requests: 'Requests',
         software: 'Software',
-        spendQueue: 'Spend queue'
+        spendQueue: 'Spend queue',
+        vault: 'Software vault'
       },
       placeholders: {
         approver: {
@@ -101,10 +109,16 @@ export const resources = {
           blockedBody:
             'You already have an active license for {{name}}. Open it in your vault instead of requesting another.',
           blockedTitle: 'Duplicate license blocked',
+          catalogHeading: 'CHOOSE FROM THE SOFTWARE CATALOG',
           catalogTitle: 'Choose software',
           chooseSoftware: 'Choose {{name}}',
           detailsTitle: 'Request details',
+          freeSeats: 'No charge ({{count}} seats in stock)',
+          monthlyPrice: '{{amount}} / month (incl. VAT)',
+          outsidePrice: '{{amount}} / month (outside the standard toolset)',
           outsideStandard: 'Outside the standard toolset. State the business reason clearly.',
+          pinned: 'Standard tools first',
+          alreadyAssigned: 'Already assigned to you',
           reasonLabel: 'Business reason',
           reasonPlaceholder: 'Example: needed for project WDP',
           reviewTitle: 'Review the approval route',
@@ -113,6 +127,9 @@ export const resources = {
           sla: 'Estimated completion: 2 business days.',
           standardBadge: 'Standard toolset',
           step: 'Step {{current}} of {{total}}',
+          stepCatalog: '1. Catalog',
+          stepDetails: '2. Details',
+          stepReview: '3. Approval route',
           submit: 'Submit BM-01',
           termLabel: 'Term',
           termMonths: '{{count}} months',
@@ -136,7 +153,14 @@ export const resources = {
         filters: {
           all: 'All',
           design: 'Design',
-          development: 'Development'
+          development: 'Development',
+          productivity: 'Productivity'
+        },
+        daysLeft: '{{count}} days left',
+        kinds: {
+          licenseKey: 'Key K4',
+          shared: 'Shared',
+          ssoSeat: 'SSO Seat'
         },
         granted: 'Granted {{date}}',
         hideKey: 'Hide key',
@@ -148,9 +172,14 @@ export const resources = {
         searchLabel: 'Search software',
         searchPlaceholder: 'Search by name',
         ssoUnavailable: 'SSO sign-in is not connected in this static build.',
+        sharedNote: 'This is a shared team login. Follow the IT policy and do not change the shared password.',
         summary: {
           active: '{{count}} active',
-          expiring: '{{count}} expiring soon'
+          activeCaption: 'Active',
+          activeValue: '{{count}} apps',
+          expiring: '{{count}} expiring soon',
+          expiringCaption: 'Expiring soon',
+          expiringValue: '{{count}} license'
         },
         title: 'My software',
         usage: 'Usage {{percent}}%',
@@ -184,8 +213,10 @@ export const resources = {
           employee: 'Nhân viên',
           manager: 'Trưởng phòng'
         },
-        submit: 'Đăng nhập',
-        subtitle: 'Đăng nhập bằng email công ty',
+        mark: 'SS',
+        scopeNote: 'QĐ-61 MVP: không sinh trắc học, không chế độ offline.',
+        submit: 'Đăng nhập SSO công ty',
+        subtitle: 'Quản lý bản quyền & chi phí phần mềm',
         title: 'SaaS-Sentry'
       },
       common: {
@@ -206,8 +237,11 @@ export const resources = {
         empty: 'Chưa có thông báo.',
         groups: {
           earlier: 'Trước đó',
+          thisWeek: 'Tuần này',
           today: 'Hôm nay'
         },
+        markRead: 'Đánh dấu đã đọc',
+        section: 'THÔNG BÁO DI ĐỘNG (DEEP-LINK)',
         licenseReady: '{{name}} đã sẵn sàng trong kho phần mềm.',
         pending: '{{name}} đang chờ trưởng phòng.',
         rejected: '{{name}} đã bị từ chối.',
@@ -216,9 +250,12 @@ export const resources = {
       nav: {
         inbox: 'Thông báo',
         managerQueue: 'Hàng đợi',
+        newRequest: 'Tạo yêu cầu',
+        progress: 'Tiến trình',
         requests: 'Yêu cầu',
         software: 'Phần mềm',
-        spendQueue: 'Duyệt chi'
+        spendQueue: 'Duyệt chi',
+        vault: 'Kho phần mềm'
       },
       placeholders: {
         approver: {
@@ -273,10 +310,16 @@ export const resources = {
         wizard: {
           blockedBody: 'Bạn đã có bản quyền còn hiệu lực cho {{name}}. Mở trong kho thay vì gửi thêm một đơn.',
           blockedTitle: 'Đã chặn vì trùng bản quyền',
+          catalogHeading: 'CHỌN TỪ DANH MỤC PHẦN MỀM',
           catalogTitle: 'Chọn phần mềm',
           chooseSoftware: 'Chọn {{name}}',
           detailsTitle: 'Chi tiết yêu cầu',
+          freeSeats: 'Miễn phí (Còn {{count}} seat kho)',
+          monthlyPrice: '{{amount}} / tháng (Gồm VAT)',
+          outsidePrice: '{{amount}} / tháng (Ngoài bộ chuẩn)',
           outsideStandard: 'Ngoài bộ công cụ chuẩn. Cần ghi rõ lý do nghiệp vụ.',
+          pinned: 'Bộ chuẩn ghim đầu',
+          alreadyAssigned: 'Đã cấp phát cho bạn',
           reasonLabel: 'Lý do nghiệp vụ',
           reasonPlaceholder: 'Ví dụ: phục vụ dự án WDP',
           reviewTitle: 'Xem lại tuyến duyệt',
@@ -285,6 +328,9 @@ export const resources = {
           sla: 'SLA ước tính hoàn thành: 2 ngày làm việc.',
           standardBadge: 'Bộ công cụ chuẩn',
           step: 'Bước {{current}}/{{total}}',
+          stepCatalog: '1. Danh mục',
+          stepDetails: '2. Chi tiết',
+          stepReview: '3. Tuyến duyệt',
           submit: 'Xác nhận gửi phiếu BM-01',
           termLabel: 'Thời hạn sử dụng',
           termMonths: '{{count}} tháng',
@@ -308,7 +354,14 @@ export const resources = {
         filters: {
           all: 'Tất cả',
           design: 'Thiết kế',
-          development: 'Lập trình'
+          development: 'Lập trình',
+          productivity: 'Năng suất'
+        },
+        daysLeft: 'Còn {{count}} ngày',
+        kinds: {
+          licenseKey: 'Key K4',
+          shared: 'Dùng chung',
+          ssoSeat: 'SSO Seat'
         },
         granted: 'Được cấp {{date}}',
         hideKey: 'Ẩn khóa',
@@ -320,9 +373,14 @@ export const resources = {
         searchLabel: 'Tìm phần mềm',
         searchPlaceholder: 'Tìm theo tên',
         ssoUnavailable: 'Đăng nhập SSO chưa được nối trong bản giao diện tĩnh.',
+        sharedNote: 'Đây là tài khoản dùng chung của nhóm. Làm theo chính sách IT và không tự đổi mật khẩu chung.',
         summary: {
           active: '{{count}} đang dùng',
-          expiring: '{{count}} sắp hết hạn'
+          activeCaption: 'Đang hiệu lực',
+          activeValue: '{{count}} phần mềm',
+          expiring: '{{count}} sắp hết hạn',
+          expiringCaption: 'Sắp hết hạn',
+          expiringValue: '{{count}} license'
         },
         title: 'Phần mềm của tôi',
         usage: 'Mức dùng {{percent}}%',
@@ -336,7 +394,7 @@ export const resources = {
         inStock: 'Còn seat trong kho',
         info: 'Đang xử lý',
         outsideStandard: 'Ngoài bộ chuẩn',
-        owned: 'Đã được cấp',
+        owned: 'Đã cấp',
         pending: 'Chờ duyệt',
         purchase: 'Cần mua mới',
         rejected: 'Bị từ chối',

@@ -16,15 +16,15 @@ describe('<SignInScreen />', () => {
       </SessionProvider>
     )
 
-    screen.getByText('Đăng nhập bằng email công ty')
-    screen.getByText('an.nguyen@company.com')
-    screen.getByText(/ngoài mobile MVP/i)
+    screen.getByText('Quản lý bản quyền & chi phí phần mềm')
+    screen.getByText('nguyen.van.a@company.com')
+    screen.getByText(/không sinh trắc học/i)
 
     fireEvent.press(screen.getByLabelText('Chuyển sang Tiếng Anh'))
 
     await waitFor(() => {
-      screen.getByText('Sign in with your company email')
-      screen.getByText(/outside the mobile MVP/i)
+      screen.getByText('Software licenses and technology cost')
+      screen.getByText(/no biometrics/i)
     })
   })
 })

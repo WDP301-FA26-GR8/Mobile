@@ -23,23 +23,20 @@ export function FilterChip({ label, onPress, selected }: FilterChipProps) {
 
 const styles = StyleSheet.create({
   chip: {
-    backgroundColor: theme.colors.surface,
-    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.surfaceSubtle,
     borderRadius: theme.radii.pill,
-    borderWidth: 1,
     paddingHorizontal: 12,
-    paddingVertical: 8
+    paddingVertical: 6
   },
   chipSelected: {
-    backgroundColor: theme.colors.primarySoft,
-    borderColor: theme.colors.primary
+    backgroundColor: theme.colors.primary
   },
   label: {
     color: theme.colors.mutedForeground,
-    fontSize: 13,
-    fontWeight: '700'
+    fontSize: 12,
+    fontWeight: '600'
   },
   labelSelected: {
-    color: theme.colors.primaryInk
+    color: theme.colors.primaryForeground
   }
 })

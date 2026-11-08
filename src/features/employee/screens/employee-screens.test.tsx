@@ -25,14 +25,16 @@ describe('employee screens', () => {
 
     screen.getByText('GitHub Enterprise')
     screen.getByText('Figma Professional')
+    screen.getByText('JetBrains All Products')
+    screen.getByText('Miro Team Board')
 
     await fireEvent.press(screen.getAllByText('Thiết kế')[0])
     expect(screen.queryByText('GitHub Enterprise')).toBeNull()
     screen.getByText('Figma Professional')
 
     await fireEvent.press(screen.getByText('Tất cả'))
-    await fireEvent.changeText(screen.getByLabelText('Tìm phần mềm'), 'khong-co')
-    screen.getByText('Không có phần mềm phù hợp')
+    screen.getByText('4 phần mềm')
+    screen.getByText('Còn 14 ngày')
   })
 
   test('reveals a masked license key', async () => {
@@ -54,7 +56,7 @@ describe('employee screens', () => {
       </SessionProvider>
     )
 
-    await fireEvent.press(screen.getByLabelText('Chọn GitHub Enterprise'))
+    await fireEvent.press(screen.getByLabelText('Chọn Figma Professional'))
     screen.getByText('Đã chặn vì trùng bản quyền')
   })
 
@@ -66,12 +68,12 @@ describe('employee screens', () => {
       </SessionProvider>
     )
 
-    await fireEvent.press(screen.getByLabelText('Chọn Jira Standard'))
-    await fireEvent.changeText(screen.getByLabelText('Lý do nghiệp vụ'), 'Cần Jira cho dự án WDP')
+    await fireEvent.press(screen.getByLabelText('Chọn Linear Plus'))
+    await fireEvent.changeText(screen.getByLabelText('Lý do nghiệp vụ'), 'Cần Linear cho dự án WDP')
     await fireEvent.press(screen.getByText('Tiếp tục'))
     await fireEvent.press(screen.getByText('Xác nhận gửi phiếu BM-01'))
 
-    screen.getByText('Jira Standard|Slack Business+|Adobe Illustrator')
+    screen.getByText('Linear Plus|Slack Business+|Adobe Illustrator')
   })
 
   test('withdraws a pending request and shows a rejection reason', async () => {

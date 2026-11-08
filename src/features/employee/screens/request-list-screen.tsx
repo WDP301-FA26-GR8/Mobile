@@ -7,8 +7,8 @@ import { requestsForFilter, type RequestStatus } from '@/entities/access-request
 import { formatDate } from '@/shared/lib/format'
 import { AppButton } from '@/shared/ui/app-button'
 import { FilterChip } from '@/shared/ui/filter-chip'
+import { PersonaHeader } from '@/shared/ui/persona-header'
 import { Screen } from '@/shared/ui/screen'
-import { ScreenHeader } from '@/shared/ui/screen-header'
 import { StatusBadge } from '@/shared/ui/status-badge'
 import { Surface } from '@/shared/ui/surface'
 import { theme } from '@/shared/ui/theme'
@@ -19,7 +19,7 @@ const filters: RequestStatus[] = ['pending', 'approved', 'rejected', 'completed'
 export function RequestListScreen() {
   const { i18n, t } = useTranslation()
   const router = useRouter()
-  const { requests, signOut } = useSession()
+  const { persona, requests, signOut } = useSession()
   const [filter, setFilter] = useState<RequestStatus>('pending')
   const visible = requestsForFilter(requests, filter)
 
@@ -31,8 +31,19 @@ export function RequestListScreen() {
   return (
     <RequirePersona personaId='employee'>
       <Screen footer={<AppButton fullWidth label={t('requests.new')} onPress={() => router.push('/requests/new')} />}>
+        {persona ? (
+          <PersonaHeader
+            avatarLabel={t('common.signOut')}
+            bellLabel={t('nav.inbox')}
+            departmentLine={persona.departmentLine}
+            initials={persona.initials}
+            jobTitle={persona.jobTitle}
+            name={persona.name}
+            onPressAvatar={leave}
+            onPressBell={() => router.push('/inbox')}
+          />
+        ) : null}
         <ScrollView contentContainerStyle={styles.content}>
-          <ScreenHeader onSignOut={leave} signOutLabel={t('common.signOut')} title={t('requests.title')} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
             {filters.map((item) => (
               <FilterChip

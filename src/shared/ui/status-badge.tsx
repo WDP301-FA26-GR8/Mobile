@@ -18,6 +18,7 @@ export type BadgeStatus =
   | 'info'
 
 interface StatusBadgeProps {
+  label?: string
   status: BadgeStatus
 }
 
@@ -44,20 +45,20 @@ const tone = {
   inStock: { background: theme.colors.infoSoft, text: theme.colors.infoInk },
   info: { background: theme.colors.infoSoft, text: theme.colors.infoInk },
   outsideStandard: { background: theme.colors.warningSoft, text: theme.colors.warningInk },
-  owned: { background: theme.colors.primarySoft, text: theme.colors.primaryInk },
+  owned: { background: theme.colors.dangerSoft, text: theme.colors.dangerInk },
   pending: { background: theme.colors.warningSoft, text: theme.colors.warningInk },
   purchase: { background: theme.colors.primarySoft, text: theme.colors.primaryInk },
   rejected: { background: theme.colors.dangerSoft, text: theme.colors.dangerInk },
   withdrawn: { background: theme.colors.surfaceSubtle, text: theme.colors.mutedForeground }
 } as const
 
-export function StatusBadge({ status }: StatusBadgeProps) {
+export function StatusBadge({ label, status }: StatusBadgeProps) {
   const { t } = useTranslation()
   const colors = tone[status]
 
   return (
     <View style={[styles.badge, { backgroundColor: colors.background }]}>
-      <Text style={[styles.label, { color: colors.text }]}>{t(labelKey[status])}</Text>
+      <Text style={[styles.label, { color: colors.text }]}>{label ?? t(labelKey[status])}</Text>
     </View>
   )
 }

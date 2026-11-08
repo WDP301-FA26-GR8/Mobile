@@ -72,6 +72,12 @@ export function SoftwareDetailScreen({ softwareId }: SoftwareDetailScreenProps) 
                     variant='primary'
                   />
                 </>
+              ) : software.kind === 'shared' ? (
+                <>
+                  <Text style={styles.label}>{t('software.workspaceLabel')}</Text>
+                  <Text style={styles.body}>{software.workspace}</Text>
+                  <Text style={styles.body}>{t('software.sharedNote')}</Text>
+                </>
               ) : (
                 <>
                   <Text style={styles.label}>{t('software.keyLabel')}</Text>

@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ScrollView, StyleSheet, Text, TextInput } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 
 import { catalogForWizard, type CatalogItem } from '@/entities/software'
 import { demoActors } from '@/entities/actors'
@@ -9,8 +9,8 @@ import type { TermMonths } from '@/entities/access-request'
 import { formatVnd } from '@/shared/lib/format'
 import { AppButton } from '@/shared/ui/app-button'
 import { FilterChip } from '@/shared/ui/filter-chip'
+import { PersonaHeader } from '@/shared/ui/persona-header'
 import { Screen } from '@/shared/ui/screen'
-import { ScreenHeader } from '@/shared/ui/screen-header'
 import { Surface } from '@/shared/ui/surface'
 import { theme } from '@/shared/ui/theme'
 import { RequirePersona, useSession } from '@/features/session'
@@ -24,7 +24,7 @@ type WizardStep = 'catalog' | 'details' | 'review' | 'blocked'
 export function RequestWizardScreen() {
   const { i18n, t } = useTranslation()
   const router = useRouter()
-  const { submitRequest } = useSession()
+  const { persona, signOut, submitRequest } = useSession()
   const [step, setStep] = useState<WizardStep>('catalog')
   const [selected, setSelected] = useState<CatalogItem | null>(null)
   const [termMonths, setTermMonths] = useState<TermMonths>(12)
@@ -45,6 +45,18 @@ export function RequestWizardScreen() {
       termMonths
     })
     router.replace({ pathname: '/requests/[id]', params: { id: created.id } })
+  }
+
+  function leave() {
+    signOut()
+    router.replace('/sign-in')
+  }
+
+  function priceLabel(item: CatalogItem) {
+    if (item.ownedSoftwareId) return t('requests.wizard.alreadyAssigned')
+    if (item.freeSeats) return t('requests.wizard.freeSeats', { count: item.freeSeats })
+    const amount = formatVnd(item.estimatedCostVnd, i18n.language)
+    return t(item.standardToolset ? 'requests.wizard.monthlyPrice' : 'requests.wizard.outsidePrice', { amount })
   }
 
   const stepNumber = step === 'details' ? 2 : step === 'review' ? 3 : 1
@@ -81,34 +93,63 @@ export function RequestWizardScreen() {
           ) : null
         }
       >
-        <ScrollView contentContainerStyle={styles.content}>
-          <ScreenHeader
-            backLabel={t('common.back')}
-            onBack={() => {
-              if (step === 'catalog') router.back()
-              else if (step === 'details') setStep('catalog')
-              else setStep(step === 'review' ? 'details' : 'catalog')
-            }}
-            title={title}
+        {persona ? (
+          <PersonaHeader
+            avatarLabel={t('common.signOut')}
+            bellLabel={t('nav.inbox')}
+            departmentLine={persona.departmentLine}
+            initials={persona.initials}
+            jobTitle={persona.jobTitle}
+            name={persona.name}
+            onPressAvatar={leave}
+            onPressBell={() => router.push('/inbox')}
           />
-          <Text style={styles.step}>{t('requests.wizard.step', { current: stepNumber, total: 3 })}</Text>
-          {step === 'catalog'
-            ? catalogForWizard().map((item) => (
+        ) : null}
+        <ScrollView contentContainerStyle={styles.content}>
+          {step !== 'catalog' ? <Text style={styles.name}>{title}</Text> : null}
+          <View style={styles.steps}>
+            {(['catalog', 'details', 'review'] as const).map((item, index) => {
+              const active = stepNumber === index + 1
+              const label =
+                item === 'catalog'
+                  ? t('requests.wizard.stepCatalog')
+                  : item === 'details'
+                    ? t('requests.wizard.stepDetails')
+                    : t('requests.wizard.stepReview')
+              return (
+                <View key={item} style={styles.stepItem}>
+                  <View style={[styles.stepCircle, active && styles.stepCircleActive]}>
+                    <Text style={[styles.stepNumber, active && styles.stepNumberActive]}>{index + 1}</Text>
+                  </View>
+                  <Text style={[styles.stepLabel, active && styles.stepLabelActive]}>{label}</Text>
+                </View>
+              )
+            })}
+          </View>
+          {step !== 'catalog' ? (
+            <Pressable accessibilityRole='button' onPress={() => setStep(step === 'review' ? 'details' : 'catalog')}>
+              <Text style={styles.back}>{t('common.back')}</Text>
+            </Pressable>
+          ) : null}
+          {step === 'catalog' ? (
+            <>
+              <View style={styles.sectionRow}>
+                <Text style={styles.section}>{t('requests.wizard.catalogHeading')}</Text>
+                <Text style={styles.pinned}>{t('requests.wizard.pinned')}</Text>
+              </View>
+              {catalogForWizard().map((item) => (
                 <CatalogCard
                   accessibilityLabel={t('requests.wizard.chooseSoftware', { name: item.name })}
-                  availabilityLabel={t(item.availability === 'in-stock' ? 'status.inStock' : 'status.purchase')}
-                  costLabel={
-                    item.estimatedCostVnd === 0
-                      ? t('requests.costFree')
-                      : t('requests.cost', { amount: formatVnd(item.estimatedCostVnd, i18n.language) })
-                  }
+                  costLabel={priceLabel(item)}
                   item={item}
                   key={item.id}
                   onPress={() => choose(item)}
+                  ownedLabel={t('status.owned')}
                   standardLabel={t('requests.wizard.standardBadge')}
                 />
-              ))
-            : null}
+              ))}
+            </>
+          ) : null}
           {step === 'blocked' && selected ? (
             <Surface>
               <Text style={styles.body}>{t('requests.wizard.blockedBody', { name: selected.name })}</Text>
@@ -177,10 +218,67 @@ const styles = StyleSheet.create({
     gap: theme.spacing.md,
     padding: theme.spacing.lg
   },
-  step: {
+  stepCircle: {
+    alignItems: 'center',
+    backgroundColor: theme.colors.surfaceSubtle,
+    borderRadius: 99,
+    height: 20,
+    justifyContent: 'center',
+    width: 20
+  },
+  stepCircleActive: {
+    backgroundColor: theme.colors.primary
+  },
+  stepItem: {
+    alignItems: 'center',
+    flex: 1,
+    gap: 6
+  },
+  stepLabel: {
     color: theme.colors.mutedForeground,
+    fontSize: 11,
+    fontWeight: '600',
+    textAlign: 'center'
+  },
+  stepLabelActive: {
+    color: theme.colors.foreground
+  },
+  stepNumber: {
+    color: theme.colors.mutedForeground,
+    fontSize: 11,
+    fontWeight: '700'
+  },
+  stepNumberActive: {
+    color: theme.colors.primaryForeground
+  },
+  steps: {
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.border,
+    borderRadius: 16,
+    borderWidth: 1,
+    flexDirection: 'row',
+    padding: 12
+  },
+  back: {
+    color: theme.colors.primary,
     fontSize: 13,
     fontWeight: '700'
+  },
+  sectionRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  section: {
+    color: theme.colors.mutedForeground,
+    flex: 1,
+    fontSize: 11,
+    fontWeight: '700'
+  },
+  pinned: {
+    color: theme.colors.primary,
+    fontSize: 11,
+    fontWeight: '600'
   },
   name: {
     color: theme.colors.foreground,

@@ -3,6 +3,7 @@ import { Redirect, Tabs } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 
 import { homeRouteName, useSession } from '@/features/session'
+import { EmployeeTabBar } from '@/shared/ui/employee-tab-bar'
 import { theme } from '@/shared/ui/theme'
 
 export default function AppLayout() {
@@ -25,21 +26,43 @@ export default function AppLayout() {
           borderTopColor: theme.colors.border
         }
       }}
+      tabBar={
+        role === 'employee'
+          ? (props) => (
+              <EmployeeTabBar
+                {...props}
+                labels={{
+                  inbox: t('nav.inbox'),
+                  'request-new': t('nav.newRequest'),
+                  requests: t('nav.progress'),
+                  software: t('nav.vault')
+                }}
+              />
+            )
+          : undefined
+      }
     >
       <Tabs.Screen
         name='software'
         options={{
           href: role === 'employee' ? undefined : null,
           tabBarIcon: ({ color, size }) => <Ionicons color={color} name='grid-outline' size={size} />,
-          title: t('nav.software')
+          title: t('nav.vault')
+        }}
+      />
+      <Tabs.Screen
+        name='request-new'
+        options={{
+          href: role === 'employee' ? undefined : null,
+          title: t('nav.newRequest')
         }}
       />
       <Tabs.Screen
         name='requests'
         options={{
           href: role === 'employee' ? undefined : null,
-          tabBarIcon: ({ color, size }) => <Ionicons color={color} name='document-text-outline' size={size} />,
-          title: t('nav.requests')
+          tabBarIcon: ({ color, size }) => <Ionicons color={color} name='time-outline' size={size} />,
+          title: t('nav.progress')
         }}
       />
       <Tabs.Screen
