@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { LanguageSwitch } from '@/shared/ui/language-switch'
+import { mobileColors } from '@/shared/theme/colors'
 
 import { CapabilityCard } from '../components/capability-card'
 import { mobileCapabilities } from '../model/mobile-capabilities'
@@ -40,20 +41,20 @@ export function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f7f9fb'
+    backgroundColor: mobileColors.background
   },
   content: {
     paddingHorizontal: 24,
     paddingVertical: 32
   },
   eyebrow: {
-    color: '#0f766e',
+    color: mobileColors.primaryInk,
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 2
   },
   title: {
-    color: '#102a43',
+    color: mobileColors.foreground,
     fontSize: 32,
     fontWeight: '700',
     letterSpacing: -1,
@@ -61,7 +62,7 @@ const styles = StyleSheet.create({
     marginTop: 14
   },
   description: {
-    color: '#52677a',
+    color: mobileColors.muted,
     fontSize: 16,
     lineHeight: 24,
     marginTop: 12
@@ -71,14 +72,14 @@ const styles = StyleSheet.create({
     marginTop: 28
   },
   contractNote: {
-    color: '#52677a',
+    color: mobileColors.muted,
     fontSize: 13,
     lineHeight: 20,
     marginTop: 24
   },
   demoButton: {
     alignItems: 'center',
-    backgroundColor: '#ff7020',
+    backgroundColor: mobileColors.primary,
     borderRadius: 14,
     justifyContent: 'center',
     marginTop: 24,
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20
   },
   demoButtonLabel: {
-    color: '#ffffff',
+    color: mobileColors.white,
     fontSize: 15,
     fontWeight: '700'
   }

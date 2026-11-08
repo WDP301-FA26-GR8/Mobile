@@ -15,9 +15,13 @@ Push notifications, offline mode, biometrics, file downloads, phone usage
 collection, and IT Admin/Finance/Super Admin workflows are outside mobile scope.
 The current committed OpenAPI snapshot has only a System status operation, so
 business screens and authentication cannot be connected until the backend
-contract is supplied. The client currently contains local-only login, employee
-software/request, and in-app inbox prototype screens; manager and spending approval
-flows still need implementation and an API contract.
+contract is supplied. The client contains local-only login, employee software/request, in-app inbox,
+manager need-approval, and spending-approval prototype screens. Prototype decisions
+are local to their demo screen and are not submitted to a backend. The business API
+contract is still needed before these workflows can be connected.
+Manager and spending demos have separate direct route entry points; there is no
+in-session role switcher. Production login routing must follow the backend-authenticated
+role once that contract is available.
 
 ## Runtime view
 
@@ -42,6 +46,8 @@ app/
   index.tsx                thin route entry
   inbox.tsx                in-app inbox handoff
   my-software.tsx          employee software handoff
+  manager.tsx              manager need-approval demo handoff
+  spending-approvals.tsx   spending-approver demo handoff
   my-requests/             employee request routes
 src/
   providers/               application-wide framework providers
@@ -49,6 +55,8 @@ src/
     auth/                   local-only login prototype
     inbox/                  static in-app notifications
     licenses/               employee software screens and models
+    manager/                static department need-approval queue and decisions
+    spending-approval/      static per-item spending queue and budget snapshots
     requests/               employee request screens and session mocks
     <capability>/           screens, components, hooks, feature-local tests/models
   entities/
