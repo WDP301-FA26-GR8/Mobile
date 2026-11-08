@@ -1,192 +1,137 @@
 import { useRouter } from 'expo-router'
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { SoftwareCard } from '../components/software-card'
-import { mySoftwareItems, type SoftwareCategoryFilter } from '../model/my-software'
+import { EmployeeProfileHeader } from '@/shared/ui/employee-profile-header'
+import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 
-const categoryFilters: SoftwareCategoryFilter[] = ['all', 'development', 'design', 'productivity']
+import { SoftwareCard } from '../components/software-card'
+import { mySoftwareItems } from '../model/my-software'
 
 export function MySoftwareScreen() {
   const { t } = useTranslation()
   const router = useRouter()
-  const [selectedCategory, setSelectedCategory] = useState<SoftwareCategoryFilter>('all')
-  const activeCount = mySoftwareItems.filter((software) => software.status.type === 'active').length
+  const activeCount = mySoftwareItems.length
   const expiringCount = mySoftwareItems.filter((software) => software.status.type === 'expiring').length
-  const visibleSoftware = mySoftwareItems.filter(
-    (software) => selectedCategory === 'all' || software.category === selectedCategory
-  )
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.profile}>
-          <View style={styles.avatar} />
-          <View style={styles.profileCopy}>
-            <Text style={styles.employeeName}>{t('licenses.employeeName')}</Text>
-            <Text style={styles.employeeRole}>
-              {t('licenses.employeeDepartment')} · {t('licenses.employeeRole')}
-            </Text>
+      <View style={styles.screen}>
+        <ScrollView contentContainerStyle={styles.content}>
+          <EmployeeProfileHeader
+            initials='VA'
+            meta={`${t('licenses.employeeDepartment')} · ${t('common.demo')}`}
+            name={t('licenses.employeeName')}
+          />
+
+          <View style={styles.summary}>
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryLabel}>{t('licenses.summary.active')}</Text>
+              <Text style={styles.summaryValue}>{t('licenses.activeCount', { count: activeCount })}</Text>
+            </View>
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryLabel}>{t('licenses.summary.expiring')}</Text>
+              <Text style={styles.summaryValue}>{t('licenses.expiringCount', { count: expiringCount })}</Text>
+            </View>
           </View>
-        </View>
 
-        <Text accessibilityRole='header' style={styles.title}>
-          {t('licenses.screenTitle')}
-        </Text>
-        <Text style={styles.subtitle}>{t('licenses.screenSubtitle')}</Text>
-        <Text style={styles.demoNote}>{t('licenses.demoData')}</Text>
+          <Text style={styles.securityNote}>{t('licenses.securityNote')}</Text>
 
-        <View style={styles.summary}>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>{t('licenses.summary.active')}</Text>
-            <Text style={styles.summaryValue}>{t('licenses.activeCount', { count: activeCount })}</Text>
-          </View>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryLabel}>{t('licenses.summary.expiring')}</Text>
-            <Text style={styles.summaryValue}>{t('licenses.expiringCount', { count: expiringCount })}</Text>
-          </View>
-        </View>
-
-        <View style={styles.filters}>
-          {categoryFilters.map((category) => (
-            <Pressable
-              accessibilityRole='button'
-              accessibilityState={{ selected: selectedCategory === category }}
-              key={category}
-              onPress={() => setSelectedCategory(category)}
-              style={[styles.filter, selectedCategory === category && styles.filterSelected]}
-            >
-              <Text style={[styles.filterLabel, selectedCategory === category && styles.filterLabelSelected]}>
-                {t(`licenses.categories.${category}`)}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
-        <View style={styles.list}>
-          {visibleSoftware.length ? (
-            visibleSoftware.map((software) => (
+          <View style={styles.list}>
+            {mySoftwareItems.map((software) => (
               <SoftwareCard
                 key={software.id}
                 onPress={(softwareId) => router.push({ pathname: '/my-software/[softwareId]', params: { softwareId } })}
                 software={software}
               />
-            ))
-          ) : (
-            <Text style={styles.empty}>{t('licenses.empty')}</Text>
-          )}
-        </View>
-      </ScrollView>
+            ))}
+          </View>
+        </ScrollView>
+        <MobileTabBar
+          accessibilityLabel={t('navigation.tabs')}
+          tabs={[
+            {
+              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') }),
+              id: 'software',
+              label: t('navigation.software'),
+              onPress: () => router.replace('/my-software'),
+              selected: true
+            },
+            {
+              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
+              id: 'create',
+              label: t('navigation.createRequest'),
+              onPress: () => router.push('/my-requests/new'),
+              selected: false
+            },
+            {
+              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') }),
+              id: 'requests',
+              label: t('navigation.requests'),
+              onPress: () => router.push('/my-requests/index'),
+              selected: false
+            },
+            {
+              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') }),
+              id: 'inbox',
+              label: t('navigation.inbox'),
+              onPress: () => router.push('/inbox'),
+              selected: false
+            }
+          ]}
+        />
+      </View>
     </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
-  avatar: {
-    alignItems: 'center',
-    backgroundColor: '#fdf3e7',
-    borderRadius: 999,
-    height: 40,
-    justifyContent: 'center',
-    width: 40
-  },
   content: {
-    gap: 14,
-    padding: 20
-  },
-  employeeName: {
-    color: '#241c18',
-    fontSize: 14,
-    fontWeight: '700'
-  },
-  employeeRole: {
-    color: '#7c7068',
-    fontSize: 11,
-    marginTop: 3
-  },
-  demoNote: {
-    color: '#a33700',
-    fontSize: 12,
-    fontWeight: '600'
-  },
-  empty: {
-    color: '#7c7068',
-    fontSize: 14,
-    paddingVertical: 20,
-    textAlign: 'center'
-  },
-  filter: {
-    borderColor: '#efe3d7',
-    borderRadius: 999,
-    borderWidth: 1,
-    minHeight: 36,
-    justifyContent: 'center',
-    paddingHorizontal: 13
-  },
-  filterLabel: {
-    color: '#7c7068',
-    fontSize: 12,
-    fontWeight: '600'
-  },
-  filterLabelSelected: {
-    color: '#ffffff'
-  },
-  filterSelected: {
-    backgroundColor: '#ff7020',
-    borderColor: '#ff7020'
-  },
-  filters: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8
+    gap: 16,
+    padding: 18
   },
   list: {
-    gap: 10
-  },
-  profile: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 4
-  },
-  profileCopy: {
-    flex: 1
+    gap: 9
   },
   safeArea: {
     backgroundColor: '#fef7ef',
     flex: 1
   },
-  subtitle: {
+  screen: {
+    flex: 1
+  },
+  securityNote: {
+    backgroundColor: '#fffaf4',
+    borderColor: '#f1e4d8',
+    borderRadius: 12,
+    borderWidth: 1,
     color: '#7c7068',
-    fontSize: 13
+    fontSize: 12,
+    lineHeight: 18,
+    padding: 12
   },
   summary: {
     flexDirection: 'row',
-    gap: 10
+    gap: 9
   },
   summaryCard: {
-    backgroundColor: '#fefbf6',
-    borderColor: '#efe3d7',
-    borderRadius: 16,
+    backgroundColor: '#ffffff',
+    borderColor: '#f0e2d5',
+    borderRadius: 14,
     borderWidth: 1,
     flex: 1,
-    gap: 4,
-    padding: 12
+    gap: 6,
+    padding: 13
   },
   summaryLabel: {
-    color: '#7c7068',
-    fontSize: 11
+    color: '#8a786a',
+    fontSize: 11,
+    fontWeight: '500'
   },
   summaryValue: {
     color: '#241c18',
-    fontSize: 14,
-    fontWeight: '700'
-  },
-  title: {
-    color: '#241c18',
-    fontSize: 24,
+    fontSize: 15,
     fontWeight: '700'
   }
 })

@@ -15,7 +15,9 @@ Push notifications, offline mode, biometrics, file downloads, phone usage
 collection, and IT Admin/Finance/Super Admin workflows are outside mobile scope.
 The current committed OpenAPI snapshot has only a System status operation, so
 business screens and authentication cannot be connected until the backend
-contract is supplied. The home screen currently presents the scoped tasks.
+contract is supplied. The client currently contains local-only login, employee
+software/request, and in-app inbox prototype screens; manager and spending approval
+flows still need implementation and an API contract.
 
 ## Runtime view
 
@@ -38,9 +40,16 @@ persistence, jobs, and financial/access decisions.
 app/
   _layout.tsx              root route/provider attachment
   index.tsx                thin route entry
+  inbox.tsx                in-app inbox handoff
+  my-software.tsx          employee software handoff
+  my-requests/             employee request routes
 src/
   providers/               application-wide framework providers
   features/
+    auth/                   local-only login prototype
+    inbox/                  static in-app notifications
+    licenses/               employee software screens and models
+    requests/               employee request screens and session mocks
     <capability>/           screens, components, hooks, feature-local tests/models
   entities/
     <domain-concept>/       reusable domain presentation logic, only when needed

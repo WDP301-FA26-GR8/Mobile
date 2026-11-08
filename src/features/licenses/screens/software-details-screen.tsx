@@ -28,8 +28,8 @@ export function SoftwareDetailsScreen({ software }: SoftwareDetailsScreenProps) 
         </Pressable>
 
         <View style={styles.heading}>
-          <View style={styles.icon}>
-            <Text style={styles.iconLabel}>{software.name.slice(0, 2)}</Text>
+          <View style={[styles.icon, { backgroundColor: software.iconBackground }]}>
+            <Text style={styles.iconLabel}>{software.shortName}</Text>
           </View>
           <Text accessibilityRole='header' style={styles.title}>
             {software.name}
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     width: 56
   },
   iconLabel: {
-    color: '#a33700',
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '700'
   },

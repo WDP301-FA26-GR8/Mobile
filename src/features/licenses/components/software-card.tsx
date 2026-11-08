@@ -25,8 +25,8 @@ export function SoftwareCard({ onPress, software }: SoftwareCardProps) {
       onPress={() => onPress(software.id)}
       style={styles.card}
     >
-      <View style={styles.icon}>
-        <Text style={styles.iconLabel}>{software.name.slice(0, 2)}</Text>
+      <View style={[styles.icon, { backgroundColor: software.iconBackground }]}>
+        <Text style={styles.iconLabel}>{software.shortName}</Text>
       </View>
       <View style={styles.copy}>
         <Text style={styles.name}>{software.name}</Text>
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     width: 44
   },
   iconLabel: {
-    color: '#a33700',
+    color: '#ffffff',
     fontSize: 13,
     fontWeight: '700'
   },

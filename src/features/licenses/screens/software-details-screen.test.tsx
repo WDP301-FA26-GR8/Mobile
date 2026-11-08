@@ -9,7 +9,7 @@ jest.mock('expo-router', () => ({
 }))
 
 describe('<SoftwareDetailsScreen />', () => {
-  beforeEach(async () => {
+  beforeAll(async () => {
     await setAppLanguage('vi', false)
   })
 
@@ -20,8 +20,8 @@ describe('<SoftwareDetailsScreen />', () => {
 
     const screen = await render(<SoftwareDetailsScreen software={software} />)
 
-    screen.getByText('nguyen.van.a@example.com')
-    screen.getByText('SaaS-Sentry')
+    screen.getByText('nguyen.van.a@company.tech')
+    screen.getByText('Company Tech Org')
     screen.getByText('Ứng dụng không hiển thị mật khẩu.')
   })
 
