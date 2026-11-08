@@ -37,7 +37,48 @@ export const resources = {
         contractNote:
           'These are the four mobile tasks in BRD 3.53. The current OpenAPI snapshot only defines a system status endpoint, so business actions are not connected yet.',
         description: 'Native iOS and Android companion for the four workflows defined in the BRD.',
+        openEmployeeDemo: 'Open employee demo',
         title: 'SaaS-Sentry on mobile'
+      },
+      licenses: {
+        accessTypes: {
+          licenseKey: 'License key (K4)',
+          workspaceSeat: 'Workspace seat'
+        },
+        back: 'Back to my software',
+        categories: {
+          all: 'All',
+          design: 'Design',
+          development: 'Development',
+          productivity: 'Productivity'
+        },
+        detail: {
+          account: 'Company account',
+          email: 'Company email',
+          key: 'License key',
+          keyMasked: 'Masked license key',
+          noPassword: 'Passwords are not shown in this app.',
+          status: 'Status',
+          workspace: 'Workspace'
+        },
+        demoData: 'Demo data · not connected to live accounts',
+        empty: 'No software found in this category.',
+        activeCount: '{{count}} active',
+        expiringCount: '{{count}} expiring soon',
+        employeeDepartment: 'CC-TECH · Technology',
+        employeeName: 'Nguyen Van A',
+        employeeRole: 'Product Dev',
+        openSoftware: 'Open {{name}} details',
+        screenTitle: 'My software',
+        screenSubtitle: 'Your company-provided software and access',
+        status: {
+          active: 'Active',
+          expiring: 'Expires in {{days}} days'
+        },
+        summary: {
+          active: 'Active',
+          expiring: 'Expiring soon'
+        }
       }
     }
   },
@@ -79,7 +120,48 @@ export const resources = {
         contractNote:
           'Đây là bốn tác vụ mobile của BRD 3.53. OpenAPI hiện chỉ có endpoint trạng thái hệ thống nên các thao tác nghiệp vụ chưa được kết nối.',
         description: 'Ứng dụng native iOS và Android cho bốn luồng được xác định trong BRD.',
+        openEmployeeDemo: 'Mở demo nhân viên',
         title: 'SaaS-Sentry trên di động'
+      },
+      licenses: {
+        accessTypes: {
+          licenseKey: 'Khóa bản quyền (K4)',
+          workspaceSeat: 'Workspace seat'
+        },
+        back: 'Quay lại phần mềm của tôi',
+        categories: {
+          all: 'Tất cả',
+          design: 'Thiết kế',
+          development: 'Lập trình',
+          productivity: 'Năng suất'
+        },
+        detail: {
+          account: 'Tài khoản công ty',
+          email: 'Email công ty',
+          key: 'Khóa bản quyền',
+          keyMasked: 'Khóa bản quyền đã che',
+          noPassword: 'Ứng dụng không hiển thị mật khẩu.',
+          status: 'Trạng thái',
+          workspace: 'Workspace'
+        },
+        demoData: 'Dữ liệu minh họa · chưa kết nối tài khoản thật',
+        empty: 'Không tìm thấy phần mềm trong danh mục này.',
+        activeCount: '{{count}} mục',
+        expiringCount: '{{count}} phần mềm sắp hết hạn',
+        employeeDepartment: 'CC-TECH · Khối Kỹ thuật',
+        employeeName: 'Nguyễn Văn A',
+        employeeRole: 'Product Dev',
+        openSoftware: 'Mở chi tiết {{name}}',
+        screenTitle: 'Phần mềm của tôi',
+        screenSubtitle: 'Phần mềm và quyền truy cập do công ty cấp',
+        status: {
+          active: 'Đang hiệu lực',
+          expiring: 'Còn {{days}} ngày'
+        },
+        summary: {
+          active: 'Đang hiệu lực',
+          expiring: 'Sắp hết hạn'
+        }
       }
     }
   }

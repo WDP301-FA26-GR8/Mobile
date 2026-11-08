@@ -1,5 +1,6 @@
+import { Link } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { LanguageSwitch } from '@/shared/ui/language-switch'
@@ -26,6 +27,11 @@ export function HomeScreen() {
           ))}
         </View>
         <Text style={styles.contractNote}>{t('home.contractNote')}</Text>
+        <Link asChild href='/my-software'>
+          <Pressable accessibilityRole='button' style={styles.demoButton}>
+            <Text style={styles.demoButtonLabel}>{t('home.openEmployeeDemo')}</Text>
+          </Pressable>
+        </Link>
       </ScrollView>
     </SafeAreaView>
   )
@@ -69,5 +75,19 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 20,
     marginTop: 24
+  },
+  demoButton: {
+    alignItems: 'center',
+    backgroundColor: '#ff7020',
+    borderRadius: 14,
+    justifyContent: 'center',
+    marginTop: 24,
+    minHeight: 48,
+    paddingHorizontal: 20
+  },
+  demoButtonLabel: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '700'
   }
 })
