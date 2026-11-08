@@ -7,6 +7,7 @@ interface PersonaHeaderProps {
   avatarLabel: string
   bellLabel: string
   departmentLine: string
+  hasAlert?: boolean
   initials: string
   jobTitle: string
   name: string
@@ -18,6 +19,7 @@ export function PersonaHeader({
   avatarLabel,
   bellLabel,
   departmentLine,
+  hasAlert = false,
   initials,
   jobTitle,
   name,
@@ -37,16 +39,23 @@ export function PersonaHeader({
         </View>
         <View style={styles.copy}>
           <View style={styles.nameRow}>
-            <Text style={styles.name}>{name}</Text>
+            <Text numberOfLines={1} style={styles.name}>
+              {name}
+            </Text>
             <View style={styles.jobPill}>
-              <Text style={styles.job}>{jobTitle}</Text>
+              <Text numberOfLines={1} style={styles.job}>
+                {jobTitle}
+              </Text>
             </View>
           </View>
-          <Text style={styles.department}>{departmentLine}</Text>
+          <Text numberOfLines={1} style={styles.department}>
+            {departmentLine}
+          </Text>
         </View>
       </Pressable>
       <Pressable accessibilityLabel={bellLabel} accessibilityRole='button' onPress={onPressBell} style={styles.bell}>
-        <Ionicons color={theme.colors.foreground} name='notifications-outline' size={16} />
+        <Ionicons color={theme.colors.foreground} name='notifications-outline' size={18} />
+        {hasAlert ? <View style={styles.dot} /> : null}
       </Pressable>
     </View>
   )
@@ -56,12 +65,10 @@ const styles = StyleSheet.create({
   bar: {
     alignItems: 'center',
     backgroundColor: theme.colors.background,
-    borderBottomColor: theme.colors.border,
-    borderBottomWidth: 1,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 10
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12
   },
   identity: {
     alignItems: 'center',
@@ -73,18 +80,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: theme.colors.primarySoft,
     borderRadius: 99,
-    height: 36,
+    height: 40,
     justifyContent: 'center',
-    width: 36
+    width: 40
   },
   initials: {
-    color: theme.colors.primaryInk,
-    fontSize: 12,
+    color: theme.colors.primary,
+    fontSize: 13,
     fontWeight: '700'
   },
   copy: {
     flex: 1,
-    gap: 2
+    gap: 3
   },
   nameRow: {
     alignItems: 'center',
@@ -93,19 +100,20 @@ const styles = StyleSheet.create({
   },
   name: {
     color: theme.colors.foreground,
-    fontSize: 14,
+    flexShrink: 1,
+    fontSize: 15,
     fontWeight: '700'
   },
   jobPill: {
     backgroundColor: theme.colors.surfaceSubtle,
     borderRadius: 99,
     paddingHorizontal: 8,
-    paddingVertical: 2
+    paddingVertical: 3
   },
   job: {
     color: theme.colors.primary,
     fontSize: 10,
-    fontWeight: '600'
+    fontWeight: '700'
   },
   department: {
     color: theme.colors.mutedForeground,
@@ -117,8 +125,19 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
     borderRadius: 99,
     borderWidth: 1,
-    height: 36,
+    height: 40,
     justifyContent: 'center',
-    width: 36
+    width: 40
+  },
+  dot: {
+    backgroundColor: theme.colors.primary,
+    borderColor: theme.colors.surface,
+    borderRadius: 99,
+    borderWidth: 2,
+    height: 10,
+    position: 'absolute',
+    right: 8,
+    top: 8,
+    width: 10
   }
 })

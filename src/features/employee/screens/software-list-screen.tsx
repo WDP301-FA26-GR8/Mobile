@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 
+import { demoInbox } from '@/entities/inbox'
 import { demoSoftware, filterSoftware, softwareSummary } from '@/entities/software'
 import { FilterChip } from '@/shared/ui/filter-chip'
 import { PersonaHeader } from '@/shared/ui/persona-header'
@@ -36,6 +37,7 @@ export function SoftwareListScreen() {
             avatarLabel={t('common.signOut')}
             bellLabel={t('nav.inbox')}
             departmentLine={persona.departmentLine}
+            hasAlert={demoInbox.length > 0}
             initials={persona.initials}
             jobTitle={persona.jobTitle}
             name={persona.name}
@@ -84,7 +86,9 @@ export function SoftwareListScreen() {
           ) : (
             visible.map((software) => (
               <SoftwareRow
-                badgeLabel={software.daysLeft ? t('software.daysLeft', { count: software.daysLeft }) : undefined}
+                badgeLabel={
+                  software.daysLeft ? t('software.daysLeft', { count: software.daysLeft }) : t('status.active')
+                }
                 key={software.id}
                 kindLabel={t(
                   software.kind === 'license-key'
@@ -115,49 +119,54 @@ const styles = StyleSheet.create({
   },
   stat: {
     alignItems: 'center',
-    backgroundColor: theme.colors.surface,
+    backgroundColor: '#fffdf9',
     borderColor: theme.colors.border,
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
     flex: 1,
     flexDirection: 'row',
     gap: 8,
-    height: 64,
-    padding: 12
+    minHeight: 72,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    shadowColor: '#241c18',
+    shadowOffset: { height: 2, width: 0 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8
   },
   statCopy: {
     flex: 1,
-    gap: 2
+    gap: 4
   },
   statCaption: {
     color: theme.colors.mutedForeground,
-    fontSize: 11
+    fontSize: 12
   },
   statValue: {
     color: theme.colors.foreground,
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700'
   },
   statValueWarning: {
     color: theme.colors.warningInk,
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700'
   },
   statIconActive: {
     alignItems: 'center',
     backgroundColor: '#dcfce7',
-    borderRadius: 12,
-    height: 32,
+    borderRadius: 14,
+    height: 34,
     justifyContent: 'center',
-    width: 32
+    width: 34
   },
   statIconWarning: {
     alignItems: 'center',
     backgroundColor: '#fef3c7',
-    borderRadius: 12,
-    height: 32,
+    borderRadius: 14,
+    height: 34,
     justifyContent: 'center',
-    width: 32
+    width: 34
   },
   filters: {
     flexDirection: 'row',

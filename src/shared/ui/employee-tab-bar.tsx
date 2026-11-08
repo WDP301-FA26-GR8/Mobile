@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { theme } from './theme'
 
 const tabs = [
-  { icon: 'albums-outline', name: 'software' },
+  { icon: 'key-outline', name: 'software' },
   { icon: 'add', name: 'request-new' },
   { icon: 'time-outline', name: 'requests' },
   { icon: 'notifications-outline', name: 'inbox' }
@@ -45,7 +45,9 @@ export function EmployeeTabBar({ descriptors, labels, navigation, state }: Emplo
             }}
             style={styles.item}
           >
-            <Ionicons color={color} name={tab.icon} size={20} />
+            <View style={[styles.iconWell, focused && styles.iconWellActive]}>
+              <Ionicons color={color} name={tab.icon} size={18} />
+            </View>
             <Text style={[styles.label, { color, fontWeight: focused ? '700' : '500' }]}>
               {options?.title ?? labels[tab.name]}
             </Text>
@@ -68,6 +70,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     gap: 4
+  },
+  iconWell: {
+    alignItems: 'center',
+    borderRadius: 12,
+    height: 28,
+    justifyContent: 'center',
+    width: 36
+  },
+  iconWellActive: {
+    backgroundColor: theme.colors.primarySoft
   },
   label: {
     fontSize: 10
