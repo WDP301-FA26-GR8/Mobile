@@ -30,6 +30,15 @@ export const resources = {
         email: 'Company email',
         emailPlaceholder: 'name@company.tech',
         forgotPassword: 'Forgot password?',
+        recoveryUnavailable: 'Password recovery is not available in the app yet. Please use the web application.',
+        loading: 'Please wait…',
+        errors: {
+          credentials: 'Check your email and password and try again.',
+          rateLimit: 'Too many attempts. Please wait before trying again.',
+          general: 'Could not sign in. Check your connection and try again.',
+          configuration: 'The application API address is invalid or insecure. Contact your administrator.',
+          restore: 'The previous session could not be restored. Please sign in again.'
+        },
         login: 'Sign in',
         loginTitle: 'Sign in to your internal account',
         password: 'Password',
@@ -345,6 +354,38 @@ export const resources = {
         unread: 'Unread · {{count}}'
       },
       licenses: {
+        live: {
+          description: 'Software rights held or starting later, from your account.',
+          noDepartment: 'No department assigned',
+          loading: 'Loading your account and software…',
+          error: 'Could not load your information. Please check your connection and try again.',
+          retry: 'Try again',
+          total: '{{count}} software rights',
+          empty: 'You do not have any current software rights.',
+          emptyPage: 'There are no rights on this page.',
+          dateUnavailable: 'Invalid date returned by the server',
+          plan: 'Plan: {{plan}}',
+          provisioning: 'Provisioning type: {{type}}',
+          unknownStatus: 'Unknown server status: {{status}}',
+          start: 'Effective from: {{date}}',
+          end: 'Expected end: {{date}}',
+          expiringSoon: 'Ending within seven days',
+          previous: 'Previous',
+          next: 'Next',
+          page: 'Page {{page}}',
+          otherFeatures: 'Requests, approvals and inbox are not connected to your account yet.',
+          logout: 'Sign out',
+          logoutError: 'Could not confirm sign out with the server. Check your connection and try again.',
+          status: {
+            UPCOMING: 'Upcoming',
+            PROVISIONING: 'Provisioning',
+            ACTIVE: 'Active',
+            EXPIRED: 'Expired',
+            REVOKING: 'Revoking',
+            ENDING: 'Ending',
+            ENDED: 'Ended'
+          }
+        },
         accessTypes: {
           licenseKey: 'License key (K4)',
           workspaceSeat: 'Workspace seat'
@@ -559,6 +600,15 @@ export const resources = {
         email: 'Email công ty',
         emailPlaceholder: 'ten@company.tech',
         forgotPassword: 'Quên mật khẩu?',
+        recoveryUnavailable: 'Đặt lại mật khẩu chưa có trên ứng dụng. Vui lòng sử dụng trang web.',
+        loading: 'Vui lòng đợi…',
+        errors: {
+          credentials: 'Vui lòng kiểm tra email và mật khẩu.',
+          rateLimit: 'Quá nhiều lần thử. Vui lòng đợi rồi thử lại.',
+          general: 'Không thể đăng nhập. Kiểm tra kết nối và thử lại.',
+          configuration: 'Địa chỉ API của ứng dụng không hợp lệ hoặc không an toàn. Vui lòng liên hệ quản trị viên.',
+          restore: 'Không thể khôi phục phiên trước. Vui lòng đăng nhập lại.'
+        },
         login: 'Đăng nhập',
         loginTitle: 'Đăng nhập tài khoản nội bộ',
         password: 'Mật khẩu',
@@ -872,6 +922,38 @@ export const resources = {
         unread: 'Chưa đọc · {{count}}'
       },
       licenses: {
+        live: {
+          description: 'Quyền phần mềm hiện có hoặc sắp bắt đầu của tài khoản bạn.',
+          noDepartment: 'Chưa có phòng ban',
+          loading: 'Đang tải tài khoản và phần mềm…',
+          error: 'Không thể tải thông tin. Vui lòng kiểm tra kết nối và thử lại.',
+          retry: 'Thử lại',
+          total: '{{count}} quyền phần mềm',
+          empty: 'Bạn chưa có quyền phần mềm hiện tại.',
+          emptyPage: 'Không có quyền phần mềm trên trang này.',
+          dateUnavailable: 'Ngày không hợp lệ từ máy chủ',
+          plan: 'Gói: {{plan}}',
+          provisioning: 'Loại cấp phát: {{type}}',
+          unknownStatus: 'Trạng thái máy chủ chưa được hỗ trợ: {{status}}',
+          start: 'Hiệu lực từ: {{date}}',
+          end: 'Dự kiến kết thúc: {{date}}',
+          expiringSoon: 'Sắp hết hạn trong bảy ngày',
+          previous: 'Trang trước',
+          next: 'Trang sau',
+          page: 'Trang {{page}}',
+          otherFeatures: 'Yêu cầu, duyệt và thông báo chưa được kết nối với tài khoản của bạn.',
+          logout: 'Đăng xuất',
+          logoutError: 'Chưa thể xác nhận đăng xuất với máy chủ. Vui lòng kiểm tra kết nối và thử lại.',
+          status: {
+            UPCOMING: 'Sắp bắt đầu',
+            PROVISIONING: 'Đang cấp',
+            ACTIVE: 'Đang hoạt động',
+            EXPIRED: 'Đã hết hạn',
+            REVOKING: 'Đang thu hồi',
+            ENDING: 'Sắp kết thúc',
+            ENDED: 'Đã kết thúc'
+          }
+        },
         accessTypes: {
           licenseKey: 'Khóa bản quyền (K4)',
           workspaceSeat: 'Workspace seat'

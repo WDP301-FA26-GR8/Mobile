@@ -13,16 +13,18 @@ Mobile shares backend business rules, authorization, and separation of duties.
 
 Push notifications, offline mode, biometrics, file downloads, phone usage
 collection, and IT Admin/Finance/Super Admin workflows are outside mobile scope.
-The committed OpenAPI snapshot contains the backend's business operations, but the
-client contains local-only login, employee software/request, in-app inbox,
-manager need-approval, and spending-approval prototype screens. They are not yet
-connected to those operations. Prototype decisions are stored only in the current
-app session and are not submitted to a backend. Contract availability alone does
-not resolve the differences between the current backend and newer proposed business
-decisions, nor does it provide an authenticated mobile session.
+The committed OpenAPI snapshot contains the backend's business operations. Login,
+the signed-in account and the current personal software-rights list use the backend.
+Employee requests, the in-app inbox, manager need-approval and spending-approval
+remain prototype screens. Their decisions are stored only in the current app session
+and are not submitted to a backend. Contract availability alone does not resolve
+the differences between the current backend and newer proposed business decisions.
 Manager and spending demos have separate direct route entry points; there is no
-in-session role switcher. Production login routing must follow the backend-authenticated
-role once that contract is available.
+in-session role switcher. The authenticated landing currently shows personal software
+for every account; role-specific live navigation remains to be implemented. The live
+screen does not link to demo requests, approvals or inbox, to avoid presenting demo
+data as the signed-in user's data. Password recovery on the login screen directs the
+user to web until the real reset-link flow is implemented.
 The manager demo uses bottom tabs for assigned approvals, department-visible context,
 and the shared in-app inbox. The spending demo uses assigned decisions, session-only
 decision history, and the shared in-app inbox; budget snapshots remain inside the
@@ -42,8 +44,10 @@ decided by the spending approver, with the result visible in department context;
 subsequent steps are not simulated. Notifications describe historical events, while
 request details show current status. All transitions are prototype assumptions to be
 replaced with the backend contract and enforced authorization.
-The employee software demo filters its current mock items by their expiring flag;
-historical access periods and return workflows are not represented in that demo.
+The authenticated software list is paginated and displays the backend's seven-day
+expiring flag. The old mock details route redirects to the list; it must not expose
+invented accounts or keys as real data. Historical access, an all-pages expiring
+filter, and return workflows are not provided in this first live slice.
 The canonical employee request list URL is `/my-requests`; unknown request IDs
 redirect there rather than to `/my-requests/index`, which matches a dynamic ID.
 
@@ -76,7 +80,7 @@ app/
 src/
   providers/               application-wide framework providers
   features/
-    auth/                   local-only login prototype
+    auth/                   backend login and prototype password recovery
     inbox/                  static in-app notifications
     licenses/               employee software screens and models
     manager/                department need-approval demo presentation
@@ -125,6 +129,23 @@ that a real advantage.
 - Form and ephemeral UI state: local to the feature until broader ownership is real.
 - Authentication and permissions: returned by and enforced by the backend.
 
+The session boundary uses the generated login, refresh and logout operations. The
+refresh token is stored using Expo SecureStore on native, with device-only iOS
+accessibility; the access token stays in memory. Web keeps both tokens in memory,
+so a page reload ends the local web session. SecureStore may retain iOS Keychain
+items across reinstall; logout explicitly removes the token after server revocation.
+Concurrent reads share one refresh. The old refresh token is removed before rotation:
+if its result is lost, the app asks the user to sign in again rather than retrying a
+potentially consumed token. A failed server logout keeps the current session so the
+user can retry; successful logout clears the query cache and local token. The read
+boundary retries a 401 only for reads, not business mutations.
+
+Use an HTTPS API origin without credentials or a path in release builds. HTTP is
+allowed only in development for local emulators/devices; traffic and credentials
+on such connections are not protected. Do not use real credentials over HTTP. A
+native build containing `expo-secure-store` needs device verification, including
+storage failures, restart, backup and logout. No biometric prompt is requested.
+
 `AppProviders` creates one `QueryClient` per application lifetime. On native
 platforms it connects React Native `AppState` to TanStack Query's `focusManager`, so
 background/foreground changes have browser-like focus semantics. Online-state
@@ -156,9 +177,10 @@ contracts root. The runtime base expression is
 `env.API_BASE_URL`. The built-in fetch generator preserves typed response data/status
 and throws for non-success HTTP responses so TanStack Query receives error states.
 Generated source is committed and reviewed with the contract, but never hand-edited.
-The generated fetch functions do not attach authentication or refresh a session.
-Protected operations must not be wired to screens until a native session and
-transport design is implemented and verified.
+The generated fetch functions do not attach authentication automatically. The live
+personal-software screen calls them through the session's authenticated read
+boundary. Other protected operations must not bypass that boundary or assume that
+it supports safe mutation retries.
 
 The initial business snapshot was imported from the backend OpenAPI export reviewed
 on 2026-11-09 (SHA-256
@@ -543,7 +565,9 @@ Contract update workflow:
 `EXPO_PUBLIC_API_BASE_URL` is statically referenced so Expo can inline it. It defaults
 to `http://localhost:3000` for local web/iOS-simulator development. Android emulators
 usually need `http://10.0.2.2:3000`; physical devices need a host address they can
-reach.
+reach. For the supplied deployed server set the origin to
+`https://wdp.novaproj.site` (without `/api/v1`); the generated operations already
+include that prefix. Release authentication rejects a non-HTTPS base URL.
 
 All `EXPO_PUBLIC_*` values are visible in the compiled application. Tokens and secrets
 must use an approved authentication/secure-storage design, not public environment

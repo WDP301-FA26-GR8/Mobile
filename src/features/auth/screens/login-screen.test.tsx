@@ -1,42 +1,44 @@
-import { fireEvent, render } from '@testing-library/react-native'
+import { fireEvent, render, waitFor } from '@testing-library/react-native'
 
 import { LoginScreen } from '@/features/auth'
 import { setAppLanguage } from '@/shared/i18n/i18n'
 
-const mockPush = jest.fn()
 const mockReplace = jest.fn()
+const mockLogin = jest.fn()
+const mockSession = { state: 'anonymous', login: mockLogin, restoreFailed: false }
 
-jest.mock('expo-router', () => ({
-  useRouter: () => ({ push: mockPush, replace: mockReplace })
-}))
+jest.mock('expo-router', () => ({ useRouter: () => ({ replace: mockReplace }) }))
+jest.mock('@/shared/api/session-context', () => ({ useSession: () => mockSession }))
 
-describe('<LoginScreen />', () => {
-  beforeAll(async () => {
-    await setAppLanguage('vi', false)
-  })
+beforeEach(async () => {
+  await setAppLanguage('vi', false)
+  mockLogin.mockReset()
+  mockReplace.mockClear()
+  mockSession.state = 'anonymous'
+})
 
-  beforeEach(() => {
-    mockPush.mockClear()
-    mockReplace.mockClear()
-  })
+test('requires credentials instead of opening demo data', async () => {
+  const screen = await render(<LoginScreen />)
+  await fireEvent.press(screen.getByRole('button', { name: 'Đăng nhập' }))
+  screen.getByText('Vui lòng kiểm tra email và mật khẩu.')
+  expect(mockLogin).not.toHaveBeenCalled()
+  expect(mockReplace).not.toHaveBeenCalled()
+  screen.getByText('Đặt lại mật khẩu chưa có trên ứng dụng. Vui lòng sử dụng trang web.')
+})
 
-  test('shows internal email and password login without third-party sign-in', async () => {
-    const screen = await render(<LoginScreen />)
+test('submits the credentials and reports authentication failure', async () => {
+  mockLogin.mockRejectedValueOnce({ status: 401 })
+  const screen = await render(<LoginScreen />)
+  await fireEvent.changeText(screen.getByLabelText('Email công ty'), 'person@example.test')
+  await fireEvent.changeText(screen.getByLabelText('Mật khẩu'), 'wrong')
+  await fireEvent.press(screen.getByRole('button', { name: 'Đăng nhập' }))
+  await waitFor(() => screen.getByText('Vui lòng kiểm tra email và mật khẩu.'))
+  expect(mockLogin).toHaveBeenCalledWith('person@example.test', 'wrong')
+  expect(mockReplace).not.toHaveBeenCalled()
+})
 
-    screen.getByText('Đăng nhập tài khoản nội bộ')
-    screen.getByLabelText('Email công ty')
-    screen.getByLabelText('Mật khẩu')
-    screen.getByText('Quên mật khẩu?')
-    expect(screen.queryByText(/Google|SSO/i)).toBeNull()
-  })
-
-  test('opens the employee demo and password recovery', async () => {
-    const screen = await render(<LoginScreen />)
-
-    fireEvent.press(screen.getByRole('button', { name: 'Đăng nhập' }))
-    fireEvent.press(screen.getByRole('link', { name: 'Quên mật khẩu?' }))
-
-    expect(mockReplace).toHaveBeenCalledWith('/my-software')
-    expect(mockPush).toHaveBeenCalledWith('/forgot-password')
-  })
+test('redirects an authenticated account to its software', async () => {
+  mockSession.state = 'authenticated'
+  await render(<LoginScreen />)
+  await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/my-software'))
 })
