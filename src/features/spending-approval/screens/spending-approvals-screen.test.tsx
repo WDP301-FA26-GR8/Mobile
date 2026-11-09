@@ -80,6 +80,19 @@ describe('<SpendingApprovalsScreen />', () => {
     screen.getByText('Đã duyệt')
   })
 
+  test('retains the spending history when visiting its inbox', async () => {
+    const screen = await render(<SpendingApprovalsScreen />)
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Xem BM01-2104 cho Slack Pro' }))
+    await fireEvent.press(screen.getByRole('button', { name: 'Duyệt chi' }))
+    await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Thông báo' }))
+    screen.getByText('Chưa có thông báo demo cho vai trò này.')
+    expect(screen.queryByText('Giấy phép Canva Team đã hết hạn.')).toBeNull()
+    await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Đã xử lý' }))
+    screen.getByText('Slack Pro')
+    screen.getByText('Đã duyệt')
+  })
+
   test('localizes the spending queue in English', async () => {
     await setAppLanguage('en', false)
     const screen = await render(<SpendingApprovalsScreen />)

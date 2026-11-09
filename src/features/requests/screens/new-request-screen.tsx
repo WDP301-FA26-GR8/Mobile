@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { goBackOr } from '@/shared/lib/go-back-or'
 import { mobileColors } from '@/shared/theme/colors'
 
 import { RequestCatalogSection, type RequestCatalogFilter } from '../components/request-catalog-section'
@@ -73,7 +74,7 @@ export function NewRequestScreen() {
     } else if (step === 'details') {
       setStep('catalog')
     } else {
-      router.back()
+      goBackOr(router, '/my-requests')
     }
   }
 

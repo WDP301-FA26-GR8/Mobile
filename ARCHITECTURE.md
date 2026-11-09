@@ -26,6 +26,12 @@ The manager demo uses bottom tabs for assigned approvals, department-visible con
 and the shared in-app inbox. The spending demo uses assigned decisions, session-only
 decision history, and the shared in-app inbox; budget snapshots remain inside the
 relevant request detail and are not a separate tab.
+Approver inbox tabs stay within their respective demo screens and do not display the
+employee's notifications; approver notification fixtures have not yet been supplied.
+Detail screens use a route fallback when opened without navigation history.
+Employee request prototype state is attached at the root route layout so navigating
+away from the request stack does not reset it. It remains in memory only and is not
+yet synchronized with approver decisions or inbox notifications.
 The employee software demo filters its current mock items by their expiring flag;
 historical access periods and return workflows are not represented in that demo.
 The canonical employee request list URL is `/my-requests`; unknown request IDs

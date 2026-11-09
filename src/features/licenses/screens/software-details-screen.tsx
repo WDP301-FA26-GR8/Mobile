@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { goBackOr } from '@/shared/lib/go-back-or'
+
 import type { MySoftwareItem } from '../model/my-software'
 
 interface SoftwareDetailsScreenProps {
@@ -23,7 +25,11 @@ export function SoftwareDetailsScreen({ software }: SoftwareDetailsScreenProps) 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Pressable accessibilityRole='button' onPress={() => router.back()} style={styles.backButton}>
+        <Pressable
+          accessibilityRole='button'
+          onPress={() => goBackOr(router, '/my-software')}
+          style={styles.backButton}
+        >
           <Text style={styles.backLabel}>{t('licenses.back')}</Text>
         </Pressable>
 

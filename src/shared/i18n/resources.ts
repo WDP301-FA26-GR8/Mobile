@@ -269,6 +269,7 @@ export const resources = {
         withinBudget: 'Within budget · reference only'
       },
       inbox: {
+        approverEmpty: 'No demo notifications are available for this role yet.',
         demoNote: 'Demo notifications only · no push notifications',
         items: {
           approved: {
@@ -742,6 +743,7 @@ export const resources = {
         withinBudget: 'Trong hạn mức · chỉ để tham khảo'
       },
       inbox: {
+        approverEmpty: 'Chưa có thông báo demo cho vai trò này.',
         demoNote: 'Thông báo giả lập · không có thông báo đẩy',
         items: {
           approved: {

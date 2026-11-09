@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { goBackOr } from '@/shared/lib/go-back-or'
+
 import { useRequests } from '../context/requests-context'
 import { canWithdrawRequest, type RequestTimelineEvent } from '../model/employee-requests'
 
@@ -44,7 +46,11 @@ export function RequestDetailsScreen({ requestId }: RequestDetailsScreenProps) {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Pressable accessibilityRole='button' onPress={() => router.back()} style={styles.backButton}>
+        <Pressable
+          accessibilityRole='button'
+          onPress={() => goBackOr(router, '/my-requests')}
+          style={styles.backButton}
+        >
           <Text style={styles.backLabel}>{t('requests.back')}</Text>
         </Pressable>
 

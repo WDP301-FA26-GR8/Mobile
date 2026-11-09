@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { goBackOr } from '@/shared/lib/go-back-or'
+
 type RecoveryStep = 'email' | 'sent' | 'reset' | 'done'
 
 export function ForgotPasswordScreen() {
@@ -34,7 +36,7 @@ export function ForgotPasswordScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps='handled'>
-        <Pressable accessibilityRole='button' onPress={() => router.back()} style={styles.backButton}>
+        <Pressable accessibilityRole='button' onPress={() => goBackOr(router, '/')} style={styles.backButton}>
           <Text style={styles.backLabel}>{t('auth.back')}</Text>
         </Pressable>
 

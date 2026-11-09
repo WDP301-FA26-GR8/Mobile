@@ -1,10 +1,10 @@
 import { Feather } from '@expo/vector-icons'
-import { useRouter } from 'expo-router'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { InboxScreen } from '@/features/inbox'
 import { mobileColors } from '@/shared/theme/colors'
 import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 
@@ -23,11 +23,10 @@ interface SpendingDecision {
   requestId: string
 }
 
-type SpendingTab = 'queue' | 'history'
+type SpendingTab = 'queue' | 'history' | 'inbox'
 
 export function SpendingApprovalsScreen() {
   const { t } = useTranslation()
-  const router = useRouter()
   const [step, setStep] = useState<SpendingStepFilter>('all')
   const [search, setSearch] = useState('')
   const [selectedRequestId, setSelectedRequestId] = useState<string>()
@@ -68,6 +67,10 @@ export function SpendingApprovalsScreen() {
     )
   }
 
+  if (activeTab === 'inbox') {
+    return <InboxScreen role='spending' onSelectTab={(tab) => setActiveTab(tab === 'queue' ? 'queue' : 'history')} />
+  }
+
   const needStepCount = pendingRequests.filter((request) => request.step === 'need').length
 
   return (
@@ -85,7 +88,7 @@ export function SpendingApprovalsScreen() {
             <Pressable
               accessibilityLabel={t('navigation.openTab', { tab: t('navigation.inbox') })}
               accessibilityRole='button'
-              onPress={() => router.push('/inbox')}
+              onPress={() => setActiveTab('inbox')}
               style={styles.notificationButton}
             >
               <Feather
@@ -254,7 +257,7 @@ export function SpendingApprovalsScreen() {
               icon: 'bell',
               id: 'spending-inbox',
               label: t('navigation.inbox'),
-              onPress: () => router.push('/inbox'),
+              onPress: () => setActiveTab('inbox'),
               selected: false
             }
           ]}

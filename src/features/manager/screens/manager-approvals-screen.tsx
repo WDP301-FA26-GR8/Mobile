@@ -1,10 +1,10 @@
 import { Feather } from '@expo/vector-icons'
-import { useRouter } from 'expo-router'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { InboxScreen } from '@/features/inbox'
 import { mobileColors } from '@/shared/theme/colors'
 import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 
@@ -19,7 +19,7 @@ import {
   type ManagerApprovalFilter
 } from '../model/manager-approvals'
 
-type ManagerTab = 'queue' | 'department'
+type ManagerTab = 'queue' | 'department' | 'inbox'
 
 interface ManagerDecision {
   kind: 'approved' | 'rejected'
@@ -29,7 +29,6 @@ interface ManagerDecision {
 
 export function ManagerApprovalsScreen() {
   const { t } = useTranslation()
-  const router = useRouter()
   const [filter, setFilter] = useState<ManagerApprovalFilter>('all')
   const [search, setSearch] = useState('')
   const [selectedRequestId, setSelectedRequestId] = useState<string>()
@@ -67,6 +66,10 @@ export function ManagerApprovalsScreen() {
     )
   }
 
+  if (activeTab === 'inbox') {
+    return <InboxScreen role='manager' onSelectTab={(tab) => setActiveTab(tab === 'queue' ? 'queue' : 'department')} />
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.screen}>
@@ -82,7 +85,7 @@ export function ManagerApprovalsScreen() {
             <Pressable
               accessibilityLabel={t('navigation.openTab', { tab: t('navigation.inbox') })}
               accessibilityRole='button'
-              onPress={() => router.push('/inbox')}
+              onPress={() => setActiveTab('inbox')}
               style={styles.notificationButton}
             >
               <Feather
@@ -239,7 +242,7 @@ export function ManagerApprovalsScreen() {
               icon: 'bell',
               id: 'manager-inbox',
               label: t('navigation.inbox'),
-              onPress: () => router.push('/inbox'),
+              onPress: () => setActiveTab('inbox'),
               selected: false
             }
           ]}

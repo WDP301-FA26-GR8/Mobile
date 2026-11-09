@@ -57,6 +57,16 @@ describe('<ManagerApprovalsScreen />', () => {
     screen.getByRole('button', { name: 'Xem yêu cầu BM01-2102 cho Claude Team AI' })
   })
 
+  test('keeps manager context when opening inbox and returning to department', async () => {
+    const screen = await render(<ManagerApprovalsScreen />)
+
+    await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Thông báo' }))
+    screen.getByText('Chưa có thông báo demo cho vai trò này.')
+    expect(screen.queryByText('Giấy phép Canva Team đã hết hạn.')).toBeNull()
+    await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Phòng ban' }))
+    screen.getByText('BM01-2103')
+  })
+
   test('requires explicit OI-07a confirmation before approving a long-term request', async () => {
     const screen = await render(<ManagerApprovalsScreen />)
 

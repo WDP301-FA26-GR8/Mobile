@@ -8,7 +8,7 @@ interface EmployeeProfileHeaderProps {
   initials: string
   meta: string
   name: string
-  onOpenInbox: () => void
+  onOpenInbox?: () => void
 }
 
 export function EmployeeProfileHeader({ initials, meta, name, onOpenInbox }: EmployeeProfileHeaderProps) {
@@ -23,20 +23,22 @@ export function EmployeeProfileHeader({ initials, meta, name, onOpenInbox }: Emp
         <Text style={styles.name}>{name}</Text>
         <Text style={styles.meta}>{meta}</Text>
       </View>
-      <Pressable
-        accessibilityLabel={t('navigation.openTab', { tab: t('navigation.inbox') })}
-        accessibilityRole='button'
-        onPress={onOpenInbox}
-        style={styles.bell}
-      >
-        <Feather
-          accessibilityElementsHidden
-          color={mobileColors.foreground}
-          importantForAccessibility='no'
-          name='bell'
-          size={18}
-        />
-      </Pressable>
+      {onOpenInbox ? (
+        <Pressable
+          accessibilityLabel={t('navigation.openTab', { tab: t('navigation.inbox') })}
+          accessibilityRole='button'
+          onPress={onOpenInbox}
+          style={styles.bell}
+        >
+          <Feather
+            accessibilityElementsHidden
+            color={mobileColors.foreground}
+            importantForAccessibility='no'
+            name='bell'
+            size={18}
+          />
+        </Pressable>
+      ) : null}
     </View>
   )
 }

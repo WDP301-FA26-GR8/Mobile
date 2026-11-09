@@ -9,14 +9,21 @@ import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 
 import { inboxNotifications, type InboxNotification } from '../model/inbox-notifications'
 
-export function InboxScreen() {
+type ApproverInboxProps = {
+  onSelectTab: (tab: 'queue' | 'secondary') => void
+  role: 'manager' | 'spending'
+}
+
+export function InboxScreen(props: ApproverInboxProps | { role?: 'employee' } = {}) {
   const { i18n, t } = useTranslation()
   const router = useRouter()
+  const role = props.role ?? 'employee'
   const [readIds, setReadIds] = useState(() =>
     inboxNotifications.filter((notification) => notification.isRead).map((notification) => notification.id)
   )
-  const unreadNotifications = inboxNotifications.filter((notification) => !readIds.includes(notification.id))
-  const readNotifications = inboxNotifications.filter((notification) => readIds.includes(notification.id))
+  const notifications = role === 'employee' ? inboxNotifications : []
+  const unreadNotifications = notifications.filter((notification) => !readIds.includes(notification.id))
+  const readNotifications = notifications.filter((notification) => readIds.includes(notification.id))
   const locale = i18n.language === 'vi' ? 'vi-VN' : 'en-US'
 
   function openNotification(notification: InboxNotification) {
@@ -69,15 +76,31 @@ export function InboxScreen() {
       <View style={styles.screen}>
         <ScrollView contentContainerStyle={styles.content}>
           <EmployeeProfileHeader
-            initials='VA'
-            meta={`${t('licenses.employeeDepartment')} · ${t('common.demo')}`}
-            name={t('licenses.employeeName')}
-            onOpenInbox={() => router.replace('/inbox')}
+            initials={
+              role === 'manager' ? t('manager.initials') : role === 'spending' ? t('spending.approverInitials') : 'VA'
+            }
+            meta={
+              role === 'manager'
+                ? t('manager.managerMeta')
+                : role === 'spending'
+                  ? t('spending.approverHeaderMeta')
+                  : `${t('licenses.employeeDepartment')} · ${t('common.demo')}`
+            }
+            name={
+              role === 'manager'
+                ? t('manager.managerName')
+                : role === 'spending'
+                  ? t('spending.approverName')
+                  : t('licenses.employeeName')
+            }
+            onOpenInbox={role === 'employee' ? () => router.replace('/inbox') : undefined}
           />
           <Text accessibilityRole='header' style={styles.title}>
             {t('inbox.title')}
           </Text>
           <Text style={styles.demoNote}>{t('inbox.demoNote')}</Text>
+
+          {role !== 'employee' ? <Text style={styles.demoNote}>{t('inbox.approverEmpty')}</Text> : null}
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('inbox.unread', { count: unreadNotifications.length })}</Text>
@@ -92,40 +115,77 @@ export function InboxScreen() {
 
         <MobileTabBar
           accessibilityLabel={t('navigation.tabs')}
-          tabs={[
-            {
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') }),
-              icon: 'grid',
-              id: 'software',
-              label: t('navigation.software'),
-              onPress: () => router.push('/my-software'),
-              selected: false
-            },
-            {
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
-              icon: 'plus-circle',
-              id: 'create',
-              label: t('navigation.createRequest'),
-              onPress: () => router.push('/my-requests/new'),
-              selected: false
-            },
-            {
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') }),
-              icon: 'clock',
-              id: 'requests',
-              label: t('navigation.requests'),
-              onPress: () => router.push('/my-requests'),
-              selected: false
-            },
-            {
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') }),
-              icon: 'bell',
-              id: 'inbox',
-              label: t('navigation.inbox'),
-              onPress: () => router.replace('/inbox'),
-              selected: true
-            }
-          ]}
+          tabs={
+            role === 'employee'
+              ? [
+                  {
+                    accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') }),
+                    icon: 'grid',
+                    id: 'software',
+                    label: t('navigation.software'),
+                    onPress: () => router.push('/my-software'),
+                    selected: false
+                  },
+                  {
+                    accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
+                    icon: 'plus-circle',
+                    id: 'create',
+                    label: t('navigation.createRequest'),
+                    onPress: () => router.push('/my-requests/new'),
+                    selected: false
+                  },
+                  {
+                    accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') }),
+                    icon: 'clock',
+                    id: 'requests',
+                    label: t('navigation.requests'),
+                    onPress: () => router.push('/my-requests'),
+                    selected: false
+                  },
+                  {
+                    accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') }),
+                    icon: 'bell',
+                    id: 'inbox',
+                    label: t('navigation.inbox'),
+                    onPress: () => router.replace('/inbox'),
+                    selected: true
+                  }
+                ]
+              : [
+                  {
+                    accessibilityLabel: t('navigation.openTab', {
+                      tab: t(role === 'manager' ? 'manager.tabs.queue' : 'spending.tabs.queue')
+                    }),
+                    icon: 'check-square',
+                    id: 'queue',
+                    label: t(role === 'manager' ? 'manager.tabs.queue' : 'spending.tabs.queue'),
+                    onPress: () => {
+                      if ('onSelectTab' in props) props.onSelectTab('queue')
+                    },
+                    selected: false
+                  },
+                  {
+                    accessibilityLabel: t('navigation.openTab', {
+                      tab: t(role === 'manager' ? 'manager.tabs.department' : 'spending.tabs.history')
+                    }),
+                    icon: role === 'manager' ? 'users' : 'clock',
+                    id: 'secondary',
+                    label: t(role === 'manager' ? 'manager.tabs.department' : 'spending.tabs.history'),
+                    onPress: () => {
+                      if ('onSelectTab' in props) props.onSelectTab('secondary')
+                    },
+                    selected: false
+                  },
+                  {
+                    accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') }),
+                    icon: 'bell',
+                    id: 'inbox',
+                    label: t('navigation.inbox'),
+                    onPress: () => {},
+                    selected: true
+                  }
+                ]
+          }
         />
       </View>
     </SafeAreaView>

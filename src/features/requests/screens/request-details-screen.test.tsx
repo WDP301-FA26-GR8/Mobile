@@ -1,13 +1,14 @@
-import { render } from '@testing-library/react-native'
+import { fireEvent, render } from '@testing-library/react-native'
 
 import { RequestDetailsScreen, RequestsProvider } from '@/features/requests'
 import { setAppLanguage } from '@/shared/i18n/i18n'
 
 const mockRedirect = jest.fn((_props: { href: string }) => null)
+const mockRouter = { back: jest.fn(), canGoBack: jest.fn(() => false), replace: jest.fn() }
 
 jest.mock('expo-router', () => ({
   Redirect: (props: { href: string }) => mockRedirect(props),
-  useRouter: () => ({ back: jest.fn() })
+  useRouter: () => mockRouter
 }))
 
 describe('<RequestDetailsScreen />', () => {
@@ -61,5 +62,15 @@ describe('<RequestDetailsScreen />', () => {
     )
 
     expect(mockRedirect).toHaveBeenCalledWith(expect.objectContaining({ href: '/my-requests' }))
+  })
+
+  test('returns to the request list when opened without history', async () => {
+    const screen = await render(
+      <RequestsProvider>
+        <RequestDetailsScreen requestId='BM01-2104' />
+      </RequestsProvider>
+    )
+    await fireEvent.press(screen.getByRole('button', { name: 'Quay lại' }))
+    expect(mockRouter.replace).toHaveBeenCalledWith('/my-requests')
   })
 })
