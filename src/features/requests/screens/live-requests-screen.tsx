@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons'
 import { Redirect, useRouter } from 'expo-router'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -12,6 +12,7 @@ import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 import { LiveRequestStatus } from '../components/live-request-status'
 import { LiveRequestType } from '../components/live-request-type'
 import { useLiveRequests } from '../hooks/use-live-requests'
+import { useLiveWithdraw } from '../hooks/use-live-withdraw'
 
 export function LiveRequestsScreen() {
   const { t, i18n } = useTranslation()
@@ -20,6 +21,9 @@ export function LiveRequestsScreen() {
   const [view, setView] = useState<'open' | 'ended'>('open')
   const [page, setPage] = useState(1)
   const query = useLiveRequests(view, page)
+  const withdrawal = useLiveWithdraw()
+  const [confirmId, setConfirmId] = useState<string>()
+  const withdrawing = useRef(false)
 
   if (session.state === 'anonymous') return <Redirect href='/' />
   return (
@@ -53,6 +57,7 @@ export function LiveRequestsScreen() {
                 onPress={() => {
                   setView(value)
                   setPage(1)
+                  setConfirmId(undefined)
                 }}
                 style={[styles.filter, view === value && styles.selected]}
               >
@@ -62,6 +67,49 @@ export function LiveRequestsScreen() {
               </Pressable>
             ))}
           </View>
+          {withdrawal.isError ? (
+            <Text accessibilityRole='alert' style={styles.error}>
+              {t('requests.createLive.withdrawError')}
+            </Text>
+          ) : null}
+          {withdrawal.isSuccess ? (
+            <Text accessibilityRole='summary' style={styles.muted}>
+              {t('requests.createLive.withdrawSuccess')}
+            </Text>
+          ) : null}
+          {confirmId ? (
+            <View accessibilityRole='summary' style={styles.card}>
+              <Text style={styles.itemTitle}>{t('requests.createLive.confirmWithdraw')}</Text>
+              <Text style={styles.muted}>{t('requests.createLive.withdrawNote')}</Text>
+              <Pressable
+                accessibilityRole='button'
+                disabled={withdrawal.isPending}
+                accessibilityState={{ disabled: withdrawal.isPending }}
+                onPress={() => setConfirmId(undefined)}
+                style={styles.action}
+              >
+                <Text style={styles.actionText}>{t('requests.cancel')}</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole='button'
+                disabled={withdrawal.isPending}
+                accessibilityState={{ disabled: withdrawal.isPending, busy: withdrawal.isPending }}
+                onPress={() => {
+                  if (withdrawing.current) return
+                  withdrawing.current = true
+                  withdrawal.mutate(confirmId, {
+                    onSettled: () => {
+                      withdrawing.current = false
+                      setConfirmId(undefined)
+                    }
+                  })
+                }}
+                style={styles.action}
+              >
+                <Text style={styles.actionText}>{t('requests.createLive.withdrawAction')}</Text>
+              </Pressable>
+            </View>
+          ) : null}
           {session.state === 'loading' || query.isLoading ? (
             <Text accessibilityRole='progressbar' style={styles.muted}>
               {t('requests.live.loading')}
@@ -91,36 +139,50 @@ export function LiveRequestsScreen() {
             const name = item.plan?.applicationName ?? item.softwareName ?? t('requests.live.unnamed')
             const date = new Date(item.submittedAt)
             return (
-              <Pressable
-                key={item.id}
-                accessibilityRole='button'
-                accessibilityLabel={t('requests.live.openNamed', { name })}
-                onPress={() => router.push({ pathname: '/live-requests/[requestId]', params: { requestId: item.id } })}
-                style={styles.card}
-              >
-                <View style={styles.row}>
-                  <Text style={styles.itemTitle}>{name}</Text>
-                  <Feather
-                    accessibilityElementsHidden
-                    importantForAccessibility='no'
-                    name='chevron-right'
-                    size={20}
-                    color={mobileColors.muted}
-                  />
-                </View>
-                {item.plan ? (
-                  <Text style={styles.muted}>{t('licenses.live.plan', { plan: item.plan.planName })}</Text>
+              <View key={item.id} style={styles.card}>
+                <Pressable
+                  accessibilityRole='button'
+                  accessibilityLabel={t('requests.live.openNamed', { name })}
+                  onPress={() =>
+                    router.push({ pathname: '/live-requests/[requestId]', params: { requestId: item.id } })
+                  }
+                >
+                  <View style={styles.row}>
+                    <Text style={styles.itemTitle}>{name}</Text>
+                    <Feather
+                      accessibilityElementsHidden
+                      importantForAccessibility='no'
+                      name='chevron-right'
+                      size={20}
+                      color={mobileColors.muted}
+                    />
+                  </View>
+                  {item.plan ? (
+                    <Text style={styles.muted}>{t('licenses.live.plan', { plan: item.plan.planName })}</Text>
+                  ) : null}
+                  <LiveRequestType type={item.type} />
+                  <LiveRequestStatus state={item.state} />
+                  <Text style={styles.muted}>
+                    {t('requests.live.submitted', {
+                      date: Number.isNaN(date.getTime())
+                        ? t('licenses.live.dateUnavailable')
+                        : new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }).format(date)
+                    })}
+                  </Text>
+                </Pressable>
+                {item.canWithdraw ? (
+                  <Pressable
+                    accessibilityRole='button'
+                    accessibilityLabel={t('requests.createLive.withdrawNamed', { name })}
+                    accessibilityState={{ disabled: withdrawal.isPending || withdrawal.isError }}
+                    disabled={withdrawal.isPending || withdrawal.isError}
+                    onPress={() => setConfirmId(item.id)}
+                    style={styles.action}
+                  >
+                    <Text style={styles.actionText}>{t('requests.createLive.withdraw')}</Text>
+                  </Pressable>
                 ) : null}
-                <LiveRequestType type={item.type} />
-                <LiveRequestStatus state={item.state} />
-                <Text style={styles.muted}>
-                  {t('requests.live.submitted', {
-                    date: Number.isNaN(date.getTime())
-                      ? t('licenses.live.dateUnavailable')
-                      : new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium' }).format(date)
-                  })}
-                </Text>
-              </Pressable>
+              </View>
             )
           })}
           {query.data && query.data.pagination.totalPages > 1 ? (
@@ -165,9 +227,8 @@ export function LiveRequestsScreen() {
               label: t('navigation.createRequest'),
               icon: 'plus-circle',
               selected: false,
-              disabled: true,
               accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
-              accessibilityHint: t('licenses.live.unavailableHint')
+              onPress: () => router.push('/live-request-create')
             },
             {
               id: 'requests',

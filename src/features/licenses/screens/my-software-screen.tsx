@@ -275,9 +275,8 @@ export function MySoftwareScreen() {
               label: t('navigation.createRequest'),
               icon: 'plus-circle',
               selected: false,
-              disabled: true,
               accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
-              accessibilityHint: t('licenses.live.unavailableHint')
+              onPress: () => router.push('/live-request-create')
             },
             {
               id: 'requests',

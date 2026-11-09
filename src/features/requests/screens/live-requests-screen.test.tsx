@@ -1,25 +1,31 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render } from '@testing-library/react-native'
+import { fireEvent, render, waitFor } from '@testing-library/react-native'
 import type { ReactElement } from 'react'
 
 import { LiveRequestDetailsScreen, LiveRequestsScreen } from '@/features/requests'
-import { accessRequestGet } from '@/shared/api/generated/api/access-requests/access-requests'
+import { accessRequestGet, accessRequestWithdraw } from '@/shared/api/generated/api/access-requests/access-requests'
 import { meAccessRequestList } from '@/shared/api/generated/api/me/me'
 import { setAppLanguage } from '@/shared/i18n/i18n'
 
 const mockRouter = { push: jest.fn(), replace: jest.fn(), back: jest.fn(), canGoBack: jest.fn(() => false) }
 const mockSession = {
   state: 'authenticated',
-  read: <T,>(operation: (token: string) => Promise<T>) => operation('test-token')
+  read: <T,>(operation: (token: string) => Promise<T>) => operation('test-token'),
+  write: <T,>(operation: (token: string) => Promise<T>) => operation('test-token')
 }
 jest.mock('expo-router', () => ({ Redirect: () => null, useRouter: () => mockRouter }))
 jest.mock('@/shared/api/session-context', () => ({ useSession: () => mockSession }))
 jest.mock('@/shared/api/generated/api/me/me', () => ({ meAccessRequestList: jest.fn() }))
-jest.mock('@/shared/api/generated/api/access-requests/access-requests', () => ({ accessRequestGet: jest.fn() }))
+jest.mock('@/shared/api/generated/api/access-requests/access-requests', () => ({
+  accessRequestGet: jest.fn(),
+  accessRequestWithdraw: jest.fn()
+}))
 
 const id = '01234567-89ab-cdef-0123-456789abcdef'
 function renderScreen(element: ReactElement) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { retry: false, gcTime: 0 } }
+  })
   return render(<QueryClientProvider client={client}>{element}</QueryClientProvider>)
 }
 
@@ -118,7 +124,7 @@ beforeEach(async () => {
   })
 })
 
-test('lists server requests and opens their details without enabling creation or withdrawal', async () => {
+test('lists server requests and opens their details', async () => {
   const screen = await renderScreen(<LiveRequestsScreen />)
   await screen.findByText('Figma')
   screen.getByText('Chờ xử lý')
@@ -126,9 +132,61 @@ test('lists server requests and opens their details without enabling creation or
     { view: 'open', page: 1, pageSize: 20 },
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
-  expect(screen.getByRole('tab', { name: 'Mở mục Tạo yêu cầu' }).props.accessibilityState.disabled).toBe(true)
+  await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Tạo yêu cầu' }))
+  expect(mockRouter.push).toHaveBeenCalledWith('/live-request-create')
   await fireEvent.press(screen.getByRole('button', { name: 'Xem yêu cầu cho Figma' }))
   expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/live-requests/[requestId]', params: { requestId: id } })
+})
+
+test('confirms withdrawal, sends once and reloads the list', async () => {
+  const detail = await jest.mocked(accessRequestGet)(id)
+  if (!detail.data.data || !('request' in detail.data.data)) throw new Error('Expected request')
+  jest.mocked(accessRequestWithdraw).mockResolvedValueOnce({
+    status: 200,
+    headers: new Headers(),
+    data: { success: true, message: 'REQUEST.WITHDRAWN', data: { request: detail.data.data.request } }
+  })
+  const screen = await renderScreen(<LiveRequestsScreen />)
+  await screen.findByText('Figma')
+  await fireEvent.press(screen.getByRole('button', { name: 'Rút yêu cầu cho Figma' }))
+  screen.getByText('Rút yêu cầu này?')
+  await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận rút' }))
+  await waitFor(() =>
+    expect(accessRequestWithdraw).toHaveBeenCalledWith(
+      id,
+      {},
+      expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
+    )
+  )
+  await waitFor(() => expect(meAccessRequestList).toHaveBeenCalledTimes(2))
+})
+
+test('surfaces uncertain withdrawal and prevents immediate repeat', async () => {
+  jest.mocked(accessRequestWithdraw).mockRejectedValueOnce(new Error('offline'))
+  const screen = await renderScreen(<LiveRequestsScreen />)
+  await screen.findByText('Figma')
+  await fireEvent.press(screen.getByRole('button', { name: 'Rút yêu cầu cho Figma' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận rút' }))
+  await screen.findByText(
+    'Chưa thể xác nhận kết quả. Hãy kiểm tra trạng thái yêu cầu sau khi tải lại trước khi thử lại.'
+  )
+  expect(screen.getByRole('button', { name: 'Rút yêu cầu cho Figma' }).props.accessibilityState.disabled).toBe(true)
+  expect(accessRequestWithdraw).toHaveBeenCalledTimes(1)
+})
+
+test('does not offer withdrawal when the server does not allow it', async () => {
+  const response = await jest.mocked(meAccessRequestList)()
+  if (!response.data.data) throw new Error('Expected list data')
+  jest.mocked(meAccessRequestList).mockResolvedValueOnce({
+    ...response,
+    data: {
+      ...response.data,
+      data: { ...response.data.data, items: response.data.data.items.map((item) => ({ ...item, canWithdraw: false })) }
+    }
+  })
+  const screen = await renderScreen(<LiveRequestsScreen />)
+  await screen.findByText('Figma')
+  expect(screen.queryByRole('button', { name: 'Rút yêu cầu cho Figma' })).toBeNull()
 })
 
 test('switches server view, resets page and handles empty results', async () => {
