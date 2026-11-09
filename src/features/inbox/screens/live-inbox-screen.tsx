@@ -1,17 +1,18 @@
 import { Feather } from '@expo/vector-icons'
 import { Redirect, useRouter } from 'expo-router'
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useSession } from '@/shared/api/session-context'
+import { goBackOr } from '@/shared/lib/go-back-or'
 import { mobileColors } from '@/shared/theme/colors'
 import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 
 import { useLiveInbox } from '../hooks/use-live-inbox'
 
-export function LiveInboxScreen() {
+export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {}) {
   const { t, i18n } = useTranslation()
   const router = useRouter()
   const session = useSession()
@@ -24,6 +25,15 @@ export function LiveInboxScreen() {
     <SafeAreaView style={styles.safe}>
       <View style={styles.screen}>
         <ScrollView contentContainerStyle={styles.content}>
+          {!navigation ? (
+            <Pressable
+              accessibilityRole='button'
+              onPress={() => goBackOr(router, '/my-software')}
+              style={styles.action}
+            >
+              <Text style={styles.actionText}>{t('common.back')}</Text>
+            </Pressable>
+          ) : null}
           <View style={styles.header}>
             <View style={styles.heading}>
               <Text style={styles.kicker}>{t('licenses.live.kicker')}</Text>
@@ -188,42 +198,44 @@ export function LiveInboxScreen() {
             </View>
           ) : null}
         </ScrollView>
-        <MobileTabBar
-          accessibilityLabel={t('navigation.tabs')}
-          tabs={[
-            {
-              id: 'software',
-              label: t('navigation.software'),
-              icon: 'grid',
-              selected: false,
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') }),
-              onPress: () => router.replace('/my-software')
-            },
-            {
-              id: 'create',
-              label: t('navigation.createRequest'),
-              icon: 'plus-circle',
-              selected: false,
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
-              onPress: () => router.push('/live-request-create')
-            },
-            {
-              id: 'requests',
-              label: t('navigation.requests'),
-              icon: 'clock',
-              selected: false,
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') }),
-              onPress: () => router.replace('/live-requests')
-            },
-            {
-              id: 'inbox',
-              label: t('navigation.inbox'),
-              icon: 'bell',
-              selected: true,
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') })
-            }
-          ]}
-        />
+        {navigation ?? (
+          <MobileTabBar
+            accessibilityLabel={t('navigation.tabs')}
+            tabs={[
+              {
+                id: 'software',
+                label: t('navigation.software'),
+                icon: 'grid',
+                selected: false,
+                accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') }),
+                onPress: () => router.replace('/my-software')
+              },
+              {
+                id: 'create',
+                label: t('navigation.createRequest'),
+                icon: 'plus-circle',
+                selected: false,
+                accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
+                onPress: () => router.push('/live-request-create')
+              },
+              {
+                id: 'requests',
+                label: t('navigation.requests'),
+                icon: 'clock',
+                selected: false,
+                accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') }),
+                onPress: () => router.replace('/live-requests')
+              },
+              {
+                id: 'inbox',
+                label: t('navigation.inbox'),
+                icon: 'bell',
+                selected: true,
+                accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') })
+              }
+            ]}
+          />
+        )}
       </View>
     </SafeAreaView>
   )

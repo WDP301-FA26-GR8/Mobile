@@ -125,7 +125,12 @@ test('signs in, loads account rights with bearer auth, and logs out', async () =
   await fireEvent.press(screen.getByRole('button', { name: 'Đăng xuất' }))
   await waitFor(() => screen.getByLabelText('Email công ty'))
   expect(mockStoredToken).toBeNull()
-  expect(client.getQueryCache().getAll()).toHaveLength(0)
+  expect(
+    client
+      .getQueryCache()
+      .getAll()
+      .every((query) => query.state.data === undefined)
+  ).toBe(true)
   expect(fetchMock).toHaveBeenCalledTimes(5)
   screen.unmount()
   client.clear()

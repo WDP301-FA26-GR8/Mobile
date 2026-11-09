@@ -1,22 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { employeeDashboardGet } from '@/shared/api/generated/api/dashboards/dashboards'
-import { meGet, meSoftwareRightList } from '@/shared/api/generated/api/me/me'
+import { meSoftwareRightList } from '@/shared/api/generated/api/me/me'
 import { useSession } from '@/shared/api/session-context'
+import { useAccountProfile } from '@/shared/api/use-account-profile'
 
 export function useMySoftware(page: number) {
   const session = useSession()
   const enabled = session.state === 'authenticated'
-  const profile = useQuery({
-    queryKey: ['session', 'me'],
-    enabled,
-    queryFn: ({ signal }) =>
-      session.read(async (token) => {
-        const result = await meGet({ signal, headers: { Authorization: `Bearer ${token}` } })
-        if (!result.data.data) throw new Error('Missing account response data')
-        return result.data.data
-      })
-  })
+  const profile = useAccountProfile()
   const software = useQuery({
     queryKey: ['session', 'software', page],
     enabled,

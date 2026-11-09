@@ -15,13 +15,16 @@ Push notifications, offline mode, biometrics, file downloads, phone usage
 collection, and IT Admin/Finance/Super Admin workflows are outside mobile scope.
 The committed OpenAPI snapshot contains the backend's business operations. Login,
 the signed-in account, personal software, inbox and employee requests use the backend.
-The live need-approval queue supports assigned individual grants; spending-approval
-and the original manager screens remain prototypes. Prototype decisions are stored only in the current app session
+The live need-approval workspace supports assigned individual grants; spending-approval
+and the original manager demo screens remain prototypes. Prototype decisions are stored only in the current app session
 and are not submitted to a backend. Contract availability alone does not resolve
 the differences between the current backend and newer proposed business decisions.
 Manager and spending demos have separate direct route entry points; there is no
-in-session role switcher. The authenticated landing currently shows personal software
-for every account; role-specific live navigation remains to be implemented. The live
+in-session role switcher. The authenticated landing loads `/me` before routing:
+accounts with the MANAGER role enter the live Manager workspace, while others enter
+personal software. If the account cannot be loaded, the user can retry or sign out;
+the app does not guess the role. The personal software screen links Manager accounts
+back to the workspace but does not show that entry for employees. The live
 screen links to live request flows instead of opening the demo, to
 avoid presenting demo data as the signed-in user's data. The live inbox at `/live-inbox`
 uses the authenticated notification API; the prototype inbox remains separate. Live
@@ -34,13 +37,27 @@ available, and displays the returned status rather than assuming immediate withd
 Writes are never automatically retried; an uncertain result requires checking the list
 before trying again. The backend has no client-provided idempotency key in this contract,
 so this cannot guarantee prevention of duplicate submissions across navigation/restarts.
-The authenticated landing links to `/live-need-approvals`; the queue is filtered by
-the backend to the caller's assigned GRANT steps, including spending/fallback deciders.
+The Manager landing is `/live-need-approvals`; it shows the authenticated account,
+department, assigned-work count, and a Manager-specific queue/team/inbox tab bar.
+The inbox uses the live notification feature; the team tab explains that department
+management is web-only, and the header links to personal self-service. A Manager without an active
+`managerScope` sees an explicit unavailable state rather than a fabricated queue.
+The queue is filtered by the backend to the caller's assigned GRANT steps; it is not an
+authorization check or a department-wide request list. This workspace is currently
+restricted to MANAGER accounts; Spending Approver and fallback-decider workflows have
+not yet been connected to role-specific navigation. The request detail queries the
+assignee-only similar seats endpoint separately, with pagination and explicit
+loading/error states. The contract supplies a due date but no exact deadline or
+all-queue urgent count; the UI does not invent an hourly SLA countdown.
 Group, renewal, service-account and department-wide views are not implemented. Decisions
 are confirmed explicitly, rejection requires a reason, and approvals for terms over
 12 months are blocked because the documented confirmation is absent from the payload.
 Backend authorization and stale-state checks remain authoritative. Failed or uncertain
 decisions are never retried automatically and require checking the refreshed queue.
+Manager group request creation and spend-batch submission remain web-only; a GH-3 flag
+is not shown because the current detail contract does not expose it. The mobile app
+does not assume the newer proposed one-step manager-self-request routing has been
+implemented by the backend.
 Password recovery on the login screen directs the
 user to web until the real reset-link flow is implemented.
 The manager demo uses bottom tabs for assigned approvals, department-visible context,

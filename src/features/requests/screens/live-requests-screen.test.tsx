@@ -29,6 +29,12 @@ function renderScreen(element: ReactElement) {
   return render(<QueryClientProvider client={client}>{element}</QueryClientProvider>)
 }
 
+test('returns to the previous screen or personal software', async () => {
+  const screen = await renderScreen(<LiveRequestsScreen />)
+  await fireEvent.press(screen.getByRole('button', { name: 'Quay lại' }))
+  expect(mockRouter.replace).toHaveBeenCalledWith('/my-software')
+})
+
 beforeEach(async () => {
   await setAppLanguage('vi', false)
   jest.clearAllMocks()

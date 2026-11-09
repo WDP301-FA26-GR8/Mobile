@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useSession } from '@/shared/api/session-context'
+import { goBackOr } from '@/shared/lib/go-back-or'
 import { mobileColors } from '@/shared/theme/colors'
 import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 
@@ -30,6 +31,9 @@ export function LiveRequestsScreen() {
     <SafeAreaView style={styles.safe}>
       <View style={styles.screen}>
         <ScrollView contentContainerStyle={styles.content}>
+          <Pressable accessibilityRole='button' onPress={() => goBackOr(router, '/my-software')} style={styles.action}>
+            <Text style={styles.actionText}>{t('common.back')}</Text>
+          </Pressable>
           <View style={styles.header}>
             <View style={styles.heading}>
               <Text style={styles.kicker}>{t('licenses.live.kicker')}</Text>

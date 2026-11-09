@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useSession } from '@/shared/api/session-context'
 import { InvalidApiOriginError } from '@/shared/api/secure-origin'
+import { useAccountProfile } from '@/shared/api/use-account-profile'
 
 export function LoginScreen() {
   const { t } = useTranslation()
@@ -15,10 +16,13 @@ export function LoginScreen() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<'credentials' | 'rateLimit' | 'general' | 'configuration'>()
   const session = useSession()
+  const profile = useAccountProfile()
 
   useEffect(() => {
-    if (session.state === 'authenticated') router.replace('/my-software')
-  }, [router, session.state])
+    if (session.state === 'authenticated' && profile.data && !profile.isError) {
+      router.replace(profile.data.roles.includes('MANAGER') ? '/live-need-approvals' : '/my-software')
+    }
+  }, [router, session.state, profile.data, profile.isError])
 
   async function submit() {
     if (busy) return
@@ -45,6 +49,44 @@ export function LoginScreen() {
     } finally {
       setBusy(false)
     }
+  }
+
+  if (session.state === 'authenticated') {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.content}>
+          <Text accessibilityRole={profile.isError ? 'alert' : 'progressbar'} style={styles.forgotLabel}>
+            {profile.isError ? t('auth.profileError') : t('auth.profileLoading')}
+          </Text>
+          {profile.isError ? (
+            <Pressable accessibilityRole='button' onPress={() => void profile.refetch()} style={styles.loginButton}>
+              <Text style={styles.loginLabel}>{t('licenses.live.retry')}</Text>
+            </Pressable>
+          ) : null}
+          <Pressable
+            accessibilityRole='button'
+            disabled={busy}
+            accessibilityState={{ disabled: busy, busy }}
+            onPress={() => {
+              setBusy(true)
+              setError(undefined)
+              void session
+                .logout()
+                .catch(() => setError('general'))
+                .finally(() => setBusy(false))
+            }}
+            style={styles.loginButton}
+          >
+            <Text style={styles.loginLabel}>{t('licenses.live.logout')}</Text>
+          </Pressable>
+          {error ? (
+            <Text accessibilityRole='alert' style={styles.forgotLabel}>
+              {t('licenses.live.logoutError')}
+            </Text>
+          ) : null}
+        </View>
+      </SafeAreaView>
+    )
   }
 
   return (

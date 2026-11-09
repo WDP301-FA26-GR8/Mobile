@@ -112,13 +112,32 @@ test('shows only server account and rights, without invented license keys', asyn
   expect(mockPush).toHaveBeenCalledWith('/live-request-create')
   await fireEvent.press(screen.getByRole('button', { name: 'Mở mục Thông báo' }))
   expect(mockPush).toHaveBeenCalledWith('/live-inbox')
-  await fireEvent.press(screen.getByRole('button', { name: 'Duyệt nhu cầu' }))
-  expect(mockPush).toHaveBeenCalledWith('/live-need-approvals')
+  expect(screen.queryByRole('button', { name: 'Duyệt nhu cầu' })).toBeNull()
   expect(screen.queryByText(/FIG-PRO/)).toBeNull()
   expect(meSoftwareRightList).toHaveBeenCalledWith(
     { view: 'current', page: 1, pageSize: 20 },
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
+})
+
+test('allows an active manager to return to the manager workspace', async () => {
+  const response = await jest.mocked(meGet)()
+  if (!response.data.data) throw new Error('Expected account')
+  jest.mocked(meGet).mockResolvedValue({
+    ...response,
+    data: {
+      ...response.data,
+      data: {
+        ...response.data.data,
+        roles: ['MANAGER'],
+        managerScope: { departmentId: 'department-id', departmentCode: 'IT', departmentName: 'IT' }
+      }
+    }
+  })
+  const screen = await renderScreen()
+  await screen.findByText('Nguyễn An')
+  await fireEvent.press(screen.getByRole('button', { name: 'Duyệt nhu cầu' }))
+  expect(mockPush).toHaveBeenCalledWith('/live-need-approvals')
 })
 
 test('filters the current page and explains the filter scope', async () => {

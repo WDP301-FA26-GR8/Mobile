@@ -5,10 +5,10 @@ import { needDecisionList } from '@/shared/api/generated/api/need-decisions/need
 import type { NeedDecisionBodyDto } from '@/shared/api/generated/contracts/access-requests'
 import { useSession } from '@/shared/api/session-context'
 
-export function useLiveNeedApprovals(page: number, requestId?: string) {
+export function useLiveNeedApprovals(page: number, requestId?: string, permitted = true) {
   const session = useSession()
   const client = useQueryClient()
-  const enabled = session.state === 'authenticated'
+  const enabled = session.state === 'authenticated' && permitted
   const queue = useQuery({
     queryKey: ['session', 'need-approvals', page],
     enabled,
@@ -29,7 +29,9 @@ export function useLiveNeedApprovals(page: number, requestId?: string) {
       session.read(async (token) => {
         if (!requestId) throw new Error('Missing request ID')
         const result = await accessRequestGet(requestId, { signal, headers: { Authorization: `Bearer ${token}` } })
-        if (!result.data.data || !('request' in result.data.data)) throw new Error('Missing request details')
+        if (!result.data.data || !('request' in result.data.data) || result.data.data.request.id !== requestId) {
+          throw new Error('Missing or inconsistent request details')
+        }
         return result.data.data.request
       })
   })

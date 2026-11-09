@@ -10,7 +10,7 @@ import {
 } from '@/shared/api/generated/api/notifications/notifications'
 import { setAppLanguage } from '@/shared/i18n/i18n'
 
-const mockRouter = { replace: jest.fn(), push: jest.fn() }
+const mockRouter = { replace: jest.fn(), push: jest.fn(), back: jest.fn(), canGoBack: jest.fn(() => true) }
 const mockSession = {
   state: 'authenticated',
   read: <T,>(operation: (token: string) => Promise<T>) => operation('test-token'),
@@ -35,6 +35,12 @@ function renderScreen() {
     </QueryClientProvider>
   )
 }
+
+test('returns to the previous screen when opened from assigned approvals', async () => {
+  const screen = await renderScreen()
+  await fireEvent.press(screen.getByRole('button', { name: 'Quay lại' }))
+  expect(mockRouter.back).toHaveBeenCalled()
+})
 
 beforeEach(async () => {
   await setAppLanguage('vi', false)

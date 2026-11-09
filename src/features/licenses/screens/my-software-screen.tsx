@@ -100,21 +100,23 @@ export function MySoftwareScreen() {
               {t('licenses.screenTitle')}
             </Text>
             <Text style={styles.subtitle}>{t('licenses.live.description')}</Text>
-            <Pressable
-              accessibilityRole='button'
-              accessibilityLabel={t('manager.live.openQueue')}
-              onPress={() => router.push('/live-need-approvals')}
-              style={styles.approvalsLink}
-            >
-              <Feather
-                accessibilityElementsHidden
-                importantForAccessibility='no'
-                name='check-square'
-                size={16}
-                color={mobileColors.primaryInk}
-              />
-              <Text style={styles.buttonText}>{t('manager.live.openQueue')}</Text>
-            </Pressable>
+            {profile.data?.roles.includes('MANAGER') ? (
+              <Pressable
+                accessibilityRole='button'
+                accessibilityLabel={t('manager.live.openQueue')}
+                onPress={() => router.push('/live-need-approvals')}
+                style={styles.approvalsLink}
+              >
+                <Feather
+                  accessibilityElementsHidden
+                  importantForAccessibility='no'
+                  name='check-square'
+                  size={16}
+                  color={mobileColors.primaryInk}
+                />
+                <Text style={styles.buttonText}>{t('manager.live.openQueue')}</Text>
+              </Pressable>
+            ) : null}
           </View>
 
           <View style={styles.summary}>
@@ -273,7 +275,6 @@ export function MySoftwareScreen() {
               ) : null}
             </View>
           ) : null}
-          <Text style={styles.subtitle}>{t('licenses.live.otherFeatures')}</Text>
         </ScrollView>
         <MobileTabBar
           accessibilityLabel={t('navigation.tabs')}
