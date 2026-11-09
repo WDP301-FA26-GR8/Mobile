@@ -166,7 +166,8 @@ test('shows live software and unavailable navigation in English', async () => {
   const screen = await renderScreen()
   await screen.findByText('Figma')
   screen.getByText('My workspace')
-  expect(screen.getByRole('tab', { name: 'Open Requests' }).props.accessibilityState.disabled).toBe(true)
+  await fireEvent.press(screen.getByRole('tab', { name: 'Open Requests' }))
+  expect(mockPush).toHaveBeenCalledWith('/live-requests')
 })
 
 test('shows errors and retries without falling back to mock data', async () => {

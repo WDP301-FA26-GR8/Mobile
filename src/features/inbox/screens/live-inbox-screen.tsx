@@ -134,7 +134,16 @@ export function LiveInboxScreen() {
                 </Text>
                 {typeof requestId === 'string' &&
                 /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(requestId) ? (
-                  <Text style={styles.muted}>{t('inbox.live.requestReference', { id: requestId })}</Text>
+                  <>
+                    <Text style={styles.muted}>{t('inbox.live.requestReference', { id: requestId })}</Text>
+                    <Pressable
+                      accessibilityRole='button'
+                      onPress={() => router.push({ pathname: '/live-requests/[requestId]', params: { requestId } })}
+                      style={styles.action}
+                    >
+                      <Text style={styles.actionText}>{t('requests.live.viewRequest')}</Text>
+                    </Pressable>
+                  </>
                 ) : null}
                 {!item.readAt ? (
                   <Pressable
@@ -190,16 +199,23 @@ export function LiveInboxScreen() {
               accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') }),
               onPress: () => router.replace('/my-software')
             },
-            ...[
-              { id: 'create', label: t('navigation.createRequest'), icon: 'plus-circle' as const },
-              { id: 'requests', label: t('navigation.requests'), icon: 'clock' as const }
-            ].map((tab) => ({
-              ...tab,
+            {
+              id: 'create',
+              label: t('navigation.createRequest'),
+              icon: 'plus-circle',
               selected: false,
               disabled: true,
-              accessibilityLabel: t('navigation.openTab', { tab: tab.label }),
+              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
               accessibilityHint: t('licenses.live.unavailableHint')
-            })),
+            },
+            {
+              id: 'requests',
+              label: t('navigation.requests'),
+              icon: 'clock',
+              selected: false,
+              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') }),
+              onPress: () => router.replace('/live-requests')
+            },
             {
               id: 'inbox',
               label: t('navigation.inbox'),

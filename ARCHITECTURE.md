@@ -15,17 +15,19 @@ Push notifications, offline mode, biometrics, file downloads, phone usage
 collection, and IT Admin/Finance/Super Admin workflows are outside mobile scope.
 The committed OpenAPI snapshot contains the backend's business operations. Login,
 the signed-in account and the current personal software-rights list use the backend.
-Employee requests, manager need-approval and spending-approval
+Employee request creation and withdrawal, manager need-approval and spending-approval
 remain prototype screens. Their decisions are stored only in the current app session
 and are not submitted to a backend. Contract availability alone does not resolve
 the differences between the current backend and newer proposed business decisions.
 Manager and spending demos have separate direct route entry points; there is no
 in-session role switcher. The authenticated landing currently shows personal software
 for every account; role-specific live navigation remains to be implemented. The live
-screen shows disabled navigation for requests instead of opening demos, to
+screen shows disabled navigation for request creation instead of opening the demo, to
 avoid presenting demo data as the signed-in user's data. The live inbox at `/live-inbox`
-uses the authenticated notification API; the prototype inbox remains separate.
-Notification-to-request navigation is deferred until live request details exist.
+uses the authenticated notification API; the prototype inbox remains separate. Live
+request list and detail routes are `/live-requests` and `/live-requests/[requestId]`.
+The list contains requests sent by the caller, while notification detail access is
+authorized by the backend. Request creation and withdrawal are not enabled there.
 Password recovery on the login screen directs the
 user to web until the real reset-link flow is implemented.
 The manager demo uses bottom tabs for assigned approvals, department-visible context,
@@ -78,6 +80,8 @@ app/
   index.tsx                thin route entry
   inbox.tsx                prototype inbox handoff
   live-inbox.tsx           authenticated inbox handoff
+  live-requests.tsx        authenticated request list handoff
+  live-requests/           authenticated request detail handoff
   my-software.tsx          employee software handoff
   manager.tsx              manager need-approval demo handoff
   spending-approvals.tsx   spending-approver demo handoff

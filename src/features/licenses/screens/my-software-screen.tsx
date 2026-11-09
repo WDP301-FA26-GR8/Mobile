@@ -270,16 +270,23 @@ export function MySoftwareScreen() {
               selected: true,
               accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') })
             },
-            ...[
-              { id: 'create', label: t('navigation.createRequest'), icon: 'plus-circle' as const },
-              { id: 'requests', label: t('navigation.requests'), icon: 'clock' as const }
-            ].map((tab) => ({
-              ...tab,
+            {
+              id: 'create',
+              label: t('navigation.createRequest'),
+              icon: 'plus-circle',
               selected: false,
               disabled: true,
-              accessibilityLabel: t('navigation.openTab', { tab: tab.label }),
+              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
               accessibilityHint: t('licenses.live.unavailableHint')
-            })),
+            },
+            {
+              id: 'requests',
+              label: t('navigation.requests'),
+              icon: 'clock',
+              selected: false,
+              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') }),
+              onPress: () => router.push('/live-requests')
+            },
             {
               id: 'inbox',
               label: t('navigation.inbox'),

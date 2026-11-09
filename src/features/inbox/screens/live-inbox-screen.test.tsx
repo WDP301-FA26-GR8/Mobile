@@ -10,7 +10,7 @@ import {
 } from '@/shared/api/generated/api/notifications/notifications'
 import { setAppLanguage } from '@/shared/i18n/i18n'
 
-const mockRouter = { replace: jest.fn() }
+const mockRouter = { replace: jest.fn(), push: jest.fn() }
 const mockSession = {
   state: 'authenticated',
   read: <T,>(operation: (token: string) => Promise<T>) => operation('test-token'),
@@ -96,7 +96,13 @@ test('shows real notifications and updates one using authenticated API', async (
   )
   await waitFor(() => expect(notificationList).toHaveBeenCalledTimes(2))
   expect(notificationUnreadCount).toHaveBeenCalledTimes(2)
-  expect(screen.getByRole('tab', { name: 'Mở mục Yêu cầu' }).props.accessibilityState.disabled).toBe(true)
+  await fireEvent.press(screen.getByRole('button', { name: 'Xem yêu cầu' }))
+  expect(mockRouter.push).toHaveBeenCalledWith({
+    pathname: '/live-requests/[requestId]',
+    params: { requestId: '01234567-89ab-cdef-0123-456789abcdef' }
+  })
+  await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Yêu cầu' }))
+  expect(mockRouter.replace).toHaveBeenCalledWith('/live-requests')
   await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Phần mềm' }))
   expect(mockRouter.replace).toHaveBeenCalledWith('/my-software')
 })
