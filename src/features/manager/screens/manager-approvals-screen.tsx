@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { catalogSoftware, useRequests } from '@/entities/demo-requests'
 import { InboxScreen } from '@/features/inbox'
 import { mobileColors } from '@/shared/theme/colors'
 import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
@@ -33,14 +34,71 @@ export function ManagerApprovalsScreen() {
   const [search, setSearch] = useState('')
   const [selectedRequestId, setSelectedRequestId] = useState<string>()
   const [activeTab, setActiveTab] = useState<ManagerTab>('queue')
-  const [decisions, setDecisions] = useState<Record<string, ManagerDecision['kind']>>({})
+  const { requests, managerDecisions, spendingDecisions, decide } = useRequests()
   const [lastDecision, setLastDecision] = useState<ManagerDecision>()
-  const pendingRequests = useMemo(() => managerApprovals.filter((request) => !decisions[request.id]), [decisions])
+  const [decisionError, setDecisionError] = useState(false)
+  const pendingRequests = useMemo(() => {
+    const employeeItems: ManagerApproval[] = requests
+      .filter((request) => request.status === 'awaitingNeed')
+      .map((request) => {
+        const fixture = managerApprovals.find((item) => item.id === request.id)
+        if (fixture) return fixture
+        const software = catalogSoftware.find((item) => item.id === request.softwareId)
+        return {
+          budgetPlanUnknown: true,
+          department: 'CC-TECH',
+          durationMonths: request.durationMonths,
+          id: request.id,
+          isStandard: software?.isStandard,
+          requesterName: 'Nguyễn Văn A',
+          requesterRole: 'Product Dev',
+          reason: request.reason,
+          softwareName: request.softwareName
+        }
+      })
+    return [
+      ...employeeItems,
+      ...managerApprovals.filter((request) => request.id === 'BM01-2091' && !managerDecisions[request.id])
+    ]
+  }, [requests, managerDecisions])
   const filteredRequests = useMemo(
     () => filterManagerApprovals(pendingRequests, filter, search),
     [filter, pendingRequests, search]
   )
-  const selectedRequest = managerApprovals.find((request) => request.id === selectedRequestId)
+  const selectedRequest = pendingRequests.find((request) => request.id === selectedRequestId)
+  const visibleRequests = departmentVisibleRequests
+    .map((request) => {
+      if (request.id === 'BM01-2088' && spendingDecisions[request.id]) {
+        return {
+          ...request,
+          kind: spendingDecisions[request.id].kind === 'rejected' ? ('rejected' as const) : ('needApproved' as const),
+          reason: spendingDecisions[request.id].reason
+        }
+      }
+      if (request.id === 'BM01-2103' && requests.find((item) => item.id === request.id)?.status === 'withdrawn') {
+        return { ...request, kind: 'withdrawn' as const }
+      }
+      return request
+    })
+    .concat(
+      requests
+        .filter((request) => request.id !== 'BM01-2103' && request.status !== 'awaitingNeed')
+        .map((request) => ({
+          id: request.id,
+          kind: 'employeeStatus' as const,
+          softwareName: request.softwareName,
+          status: request.status
+        }))
+    )
+  const raycastDecision = managerDecisions['BM01-2091']
+  if (raycastDecision) {
+    visibleRequests.push({
+      id: 'BM01-2091',
+      kind: raycastDecision.kind === 'rejected' ? 'otherRejected' : 'otherApproved',
+      reason: raycastDecision.reason,
+      softwareName: 'Raycast Pro'
+    })
+  }
   const filters: { id: ManagerApprovalFilter; label: string }[] = [
     { id: 'all', label: t('manager.filters.all') },
     { id: 'outsideStandard', label: t('manager.filters.outsideStandard') },
@@ -48,7 +106,12 @@ export function ManagerApprovalsScreen() {
   ]
 
   function recordDecision(request: ManagerApproval, kind: ManagerDecision['kind'], reason?: string) {
-    setDecisions((current) => ({ ...current, [request.id]: kind }))
+    if (!decide('manager', { kind, reason, requestId: request.id })) {
+      setDecisionError(true)
+      setSelectedRequestId(undefined)
+      return
+    }
+    setDecisionError(false)
     setLastDecision({ kind, reason, requestId: request.id })
     setSelectedRequestId(undefined)
   }
@@ -118,12 +181,13 @@ export function ManagerApprovalsScreen() {
               <View style={[styles.metricIcon, styles.metricIconNeutral]}>
                 <Feather color={mobileColors.success} name='users' size={16} />
               </View>
-              <Text style={styles.metricValue}>{departmentVisibleRequests.length}</Text>
+              <Text style={styles.metricValue}>{visibleRequests.length}</Text>
               <Text style={styles.metricLabel}>{t('manager.departmentVisibleCount')}</Text>
             </View>
           </View>
 
           <Text style={styles.demoNote}>{t('manager.demoNote')}</Text>
+          {decisionError ? <Text accessibilityRole='alert'>{t('common.demoDecisionError')}</Text> : null}
 
           {lastDecision ? (
             <View accessibilityRole='alert' style={styles.result}>
@@ -212,7 +276,7 @@ export function ManagerApprovalsScreen() {
                 <Text style={styles.sectionTitle}>{t('manager.departmentVisibilityTitle')}</Text>
                 <Text style={styles.sectionHint}>{t('manager.departmentVisibilityHint')}</Text>
               </View>
-              {departmentVisibleRequests.map((request) => (
+              {visibleRequests.map((request) => (
                 <DepartmentVisibleCard key={request.id} request={request} />
               ))}
             </View>

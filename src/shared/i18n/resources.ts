@@ -6,6 +6,7 @@ export const resources = {
         brandInitial: 'S',
         brandName: 'SaaS-Sentry',
         demo: 'demo',
+        demoDecisionError: 'This demo item is no longer available for that action. Please review its current status.',
         language: {
           english: 'English',
           englishShort: 'EN',
@@ -101,7 +102,7 @@ export const resources = {
         departmentVisibleCount: 'Department-visible items',
         departmentVisibilityHint: 'Visible for context, but not assigned to your approval queue.',
         departmentVisibilityTitle: 'Department visibility · not assigned',
-        demoActionNote: 'Demo only · this action stays on this screen and is not sent to an API.',
+        demoActionNote: 'Demo only · this action stays in this session and is not sent to an API.',
         demoNote: 'Static demo data · SLA values are illustrative snapshots.',
         detailSubtitle: 'Review the work context and request conditions before deciding.',
         duration: '{{months}} months',
@@ -130,6 +131,7 @@ export const resources = {
         outsideStandard: 'Outside standard',
         outsideStandardDetail: 'Outside the standard toolset · the requester provided a business reason.',
         plannedBudget: 'Plan line {{plan}}',
+        planUnavailable: 'Budget plan not provided in this demo',
         queueHint: 'Only requests assigned to the department head appear in this queue.',
         queueTitle: 'Assigned need approvals',
         requesterTitle: 'Employee and department context',
@@ -155,6 +157,11 @@ export const resources = {
         slaRemainingDays: 'SLA · {{days}}d {{hours}}h remaining',
         slaRemainingHours: 'SLA · {{hours}}h remaining',
         slaTitle: 'Service-level target',
+        slaUnavailable: 'SLA not provided in this demo',
+        employeeVisibilityNote: 'Visible within your department; this item is not assigned to the need approval queue.',
+        standardUnknown: 'Standard status not provided',
+        statusUnavailable: 'Demo status unavailable',
+        reasonUnavailable: 'No business reason provided in this demo.',
         standardTool: 'Standard toolset',
         subtitle: 'Review your department’s software needs and take assigned actions.',
         suggestionsTitle: 'Suggested reasons',
@@ -165,6 +172,26 @@ export const resources = {
         title: 'Need approval queue',
         unplannedBudget: 'Outside the approved plan · demo',
         visibility: {
+          otherApproved: {
+            label: 'Need approved · department view',
+            note: 'Need approval was recorded in this demo.'
+          },
+          otherRejected: {
+            label: 'Rejected · department view',
+            note: 'The manager rejected this need in this demo.'
+          },
+          needApproved: {
+            label: 'Need approved · department view',
+            note: 'The spending approver approved this self-request’s need step. Subsequent steps are not simulated.'
+          },
+          rejected: {
+            label: 'Rejected · department view',
+            note: 'The spending approver rejected this self-request’s need step.'
+          },
+          withdrawn: {
+            label: 'Withdrawn · department view',
+            note: 'The employee withdrew this request.'
+          },
           financeReview: {
             label: 'Finance review · department view',
             note: 'Visible within your department. Finance is reviewing this request; it is not in the spending approver queue.'
@@ -197,7 +224,7 @@ export const resources = {
         confirmOverride: 'Confirm override',
         confirmRejection: 'Confirm rejection',
         department: 'Cost center',
-        demoActionNote: 'Demo only · this action stays on this screen and is not sent to an API.',
+        demoActionNote: 'Demo only · this action stays in this session and is not sent to an API.',
         demoNote: 'Static demo values · budget snapshot and SLA are illustrative; amounts are not live.',
         decisionStatus: {
           approved: 'Approved',
@@ -272,8 +299,31 @@ export const resources = {
         approverEmpty: 'No demo notifications are available for this role yet.',
         demoNote: 'Demo notifications only · no push notifications',
         items: {
+          assignedNeed: {
+            body: 'Request {{requestId}} was submitted for need review.',
+            title: 'New need review'
+          },
+          withdrawn: {
+            body: 'Request {{requestId}} was withdrawn by the employee.',
+            title: 'Request withdrawn'
+          },
+          otherNeedApproved: {
+            body: 'The need step for request {{requestId}} was approved by the spending approver.',
+            title: 'Need approved'
+          },
+          otherRejected: {
+            title: 'Need rejected'
+          },
+          needApproved: {
+            body: 'The need for request {{requestId}} was approved and moved to manager submission on the web.',
+            title: 'Need approved'
+          },
+          spendApproved: {
+            body: 'Spending was approved for request {{requestId}} and it moved to waiting for IT.',
+            title: 'Spending approved'
+          },
           approved: {
-            body: 'The need for request {{requestId}} was approved. Finance is reviewing it; it is not in the spending approver queue.',
+            body: 'The need for request {{requestId}} was approved and then sent for Finance review.',
             title: 'Need approved'
           },
           expired: {
@@ -281,7 +331,7 @@ export const resources = {
             title: 'License expired'
           },
           ready: {
-            body: 'Request {{requestId}} for {{software}} is approved and ready for IT to start provisioning.',
+            body: 'Request {{requestId}} for {{software}} was ready for IT to start provisioning.',
             title: 'Ready to provision'
           },
           rejected: {
@@ -289,6 +339,7 @@ export const resources = {
           }
         },
         openNotification: 'Open notification about {{software}}',
+        reasonUnavailable: 'The demo rejection reason is unavailable.',
         read: 'Read',
         title: 'Inbox',
         unread: 'Unread · {{count}}'
@@ -399,6 +450,7 @@ export const resources = {
           submittedWeb: 'Lê Hoàng submitted the spending batch on the web.'
         },
         rejectedBy: 'Rejected by manager {{name}} · {{date}}',
+        rejectedBySpending: 'Rejected by spending approver {{name}} · {{date}}',
         rejectionReasons: {
           adobeBudgetOptimized:
             'The department budget has been optimized this quarter. Use Figma Pro or Canva Team from the standard toolset.'
@@ -458,7 +510,8 @@ export const resources = {
           financeReview: 'Finance review started',
           needApproved: 'Need approved',
           needReviewPending: 'Waiting for need review',
-          rejected: 'Request rejected by the manager',
+          rejected: 'Request rejected',
+          spendApproved: 'Spending approved',
           spendReviewPending: 'Waiting for spending decision',
           submittedWeb: 'Lê Hoàng submitted the spending batch on the web',
           withdrawn: 'Request withdrawn'
@@ -482,6 +535,7 @@ export const resources = {
         brandInitial: 'S',
         brandName: 'SaaS-Sentry',
         demo: 'giả lập',
+        demoDecisionError: 'Yêu cầu demo không còn hợp lệ cho thao tác này. Vui lòng xem lại trạng thái hiện tại.',
         language: {
           english: 'Tiếng Anh',
           englishShort: 'EN',
@@ -577,7 +631,7 @@ export const resources = {
         departmentVisibleCount: 'Mục phòng ban có thể xem',
         departmentVisibilityHint: 'Có thể xem để nắm tình hình nhưng không được giao cho bạn xử lý.',
         departmentVisibilityTitle: 'Phạm vi phòng ban · không được giao',
-        demoActionNote: 'Chỉ là demo · thao tác lưu trong màn hình này, chưa gửi lên API.',
+        demoActionNote: 'Chỉ là demo · thao tác lưu trong phiên này, chưa gửi lên API.',
         demoNote: 'Dữ liệu tĩnh · SLA là ảnh chụp minh họa.',
         detailSubtitle: 'Xem bối cảnh công việc và điều kiện yêu cầu trước khi quyết định.',
         duration: '{{months}} tháng',
@@ -606,6 +660,7 @@ export const resources = {
         outsideStandard: 'Ngoài bộ chuẩn',
         outsideStandardDetail: 'Ngoài bộ công cụ chuẩn · nhân viên đã cung cấp lý do nghiệp vụ.',
         plannedBudget: 'Dòng kế hoạch {{plan}}',
+        planUnavailable: 'Chưa có thông tin kế hoạch ngân sách trong demo',
         queueHint: 'Chỉ yêu cầu được giao cho trưởng phòng mới xuất hiện trong hàng đợi này.',
         queueTitle: 'Yêu cầu chờ duyệt nhu cầu',
         requesterTitle: 'Nhân viên và bối cảnh phòng ban',
@@ -630,6 +685,11 @@ export const resources = {
         slaRemainingDays: 'SLA · còn {{days}} ngày {{hours}} giờ',
         slaRemainingHours: 'SLA · còn {{hours}} giờ',
         slaTitle: 'Thời hạn xử lý',
+        slaUnavailable: 'Chưa có SLA trong dữ liệu demo',
+        employeeVisibilityNote: 'Yêu cầu thuộc phạm vi phòng ban; hiện không nằm trong hàng đợi duyệt nhu cầu.',
+        standardUnknown: 'Chưa có thông tin bộ chuẩn',
+        statusUnavailable: 'Chưa có trạng thái demo',
+        reasonUnavailable: 'Dữ liệu demo chưa có lý do nghiệp vụ.',
         standardTool: 'Bộ công cụ chuẩn',
         subtitle: 'Rà soát nhu cầu phần mềm của phòng và xử lý các mục được giao.',
         suggestionsTitle: 'Lý do gợi ý',
@@ -640,6 +700,26 @@ export const resources = {
         title: 'Hàng đợi duyệt nhu cầu',
         unplannedBudget: 'Ngoài kế hoạch đã duyệt · demo',
         visibility: {
+          otherApproved: {
+            label: 'Đã duyệt nhu cầu · phạm vi phòng',
+            note: 'Đã ghi nhận duyệt nhu cầu trong phiên demo.'
+          },
+          otherRejected: {
+            label: 'Đã từ chối · phạm vi phòng',
+            note: 'Trưởng phòng đã từ chối nhu cầu trong phiên demo.'
+          },
+          needApproved: {
+            label: 'Đã duyệt nhu cầu · phạm vi phòng',
+            note: 'Người duyệt chi đã duyệt bước nhu cầu của yêu cầu tự gửi. Các bước tiếp theo chưa được mô phỏng.'
+          },
+          rejected: {
+            label: 'Đã từ chối · phạm vi phòng',
+            note: 'Người duyệt chi đã từ chối bước nhu cầu của yêu cầu tự gửi.'
+          },
+          withdrawn: {
+            label: 'Đã rút · phạm vi phòng',
+            note: 'Nhân viên đã rút yêu cầu này.'
+          },
           financeReview: {
             label: 'Finance rà soát · phạm vi phòng',
             note: 'Trưởng phòng xem được trong phạm vi phòng ban. Finance đang rà soát; yêu cầu chưa vào hàng đợi Người duyệt chi.'
@@ -672,7 +752,7 @@ export const resources = {
         confirmOverride: 'Xác nhận override',
         confirmRejection: 'Xác nhận từ chối',
         department: 'Cost center',
-        demoActionNote: 'Chỉ là demo · thao tác lưu trong màn hình này, chưa gửi lên API.',
+        demoActionNote: 'Chỉ là demo · thao tác lưu trong phiên này, chưa gửi lên API.',
         demoNote: 'Số liệu tĩnh · snapshot ngân sách và SLA chỉ để minh họa, không phải dữ liệu thật.',
         decisionStatus: {
           approved: 'Đã duyệt',
@@ -746,8 +826,31 @@ export const resources = {
         approverEmpty: 'Chưa có thông báo demo cho vai trò này.',
         demoNote: 'Thông báo giả lập · không có thông báo đẩy',
         items: {
+          assignedNeed: {
+            body: 'Yêu cầu {{requestId}} đã được gửi để duyệt nhu cầu.',
+            title: 'Yêu cầu cần duyệt nhu cầu'
+          },
+          withdrawn: {
+            body: 'Nhân viên đã rút yêu cầu {{requestId}}.',
+            title: 'Yêu cầu đã rút'
+          },
+          otherNeedApproved: {
+            body: 'Người duyệt chi đã duyệt bước nhu cầu của yêu cầu {{requestId}}.',
+            title: 'Nhu cầu đã được duyệt'
+          },
+          otherRejected: {
+            title: 'Nhu cầu bị từ chối'
+          },
+          needApproved: {
+            body: 'Nhu cầu của yêu cầu {{requestId}} đã được duyệt và chuyển sang chờ trưởng phòng trình trên web.',
+            title: 'Nhu cầu đã được duyệt'
+          },
+          spendApproved: {
+            body: 'Yêu cầu {{requestId}} đã được duyệt chi và chuyển sang chờ IT.',
+            title: 'Đã duyệt chi'
+          },
           approved: {
-            body: 'Nhu cầu của yêu cầu {{requestId}} đã được duyệt. Finance đang rà soát; yêu cầu chưa vào hàng đợi Người duyệt chi.',
+            body: 'Nhu cầu của yêu cầu {{requestId}} đã được duyệt và chuyển sang Finance rà soát.',
             title: 'Nhu cầu đã được duyệt'
           },
           expired: {
@@ -755,7 +858,7 @@ export const resources = {
             title: 'Giấy phép đã hết hạn'
           },
           ready: {
-            body: 'Yêu cầu {{requestId}} cho {{software}} đã được duyệt và sẵn sàng để IT bắt đầu cấp phát.',
+            body: 'Yêu cầu {{requestId}} cho {{software}} đã sẵn sàng để IT bắt đầu cấp phát.',
             title: 'Sẵn sàng cấp phát'
           },
           rejected: {
@@ -763,6 +866,7 @@ export const resources = {
           }
         },
         openNotification: 'Mở thông báo về {{software}}',
+        reasonUnavailable: 'Dữ liệu demo chưa có lý do từ chối.',
         read: 'Đã đọc',
         title: 'Thông báo',
         unread: 'Chưa đọc · {{count}}'
@@ -872,6 +976,7 @@ export const resources = {
           submittedWeb: 'Lê Hoàng đã trình lô duyệt chi trên web.'
         },
         rejectedBy: 'Từ chối bởi trưởng phòng {{name}} · {{date}}',
+        rejectedBySpending: 'Từ chối bởi người duyệt chi {{name}} · {{date}}',
         rejectionReasons: {
           adobeBudgetOptimized: 'Ngân sách phòng quý này đã tối ưu. Dùng Figma Pro hoặc Canva Team trong bộ chuẩn.'
         },
@@ -930,7 +1035,8 @@ export const resources = {
           financeReview: 'Bắt đầu rà soát Finance',
           needApproved: 'Đã duyệt nhu cầu',
           needReviewPending: 'Đang chờ duyệt nhu cầu',
-          rejected: 'Trưởng phòng đã từ chối yêu cầu',
+          rejected: 'Yêu cầu đã bị từ chối',
+          spendApproved: 'Đã duyệt chi',
           spendReviewPending: 'Đang chờ quyết định duyệt chi',
           submittedWeb: 'Lê Hoàng đã trình lô trên web',
           withdrawn: 'Đã rút yêu cầu'

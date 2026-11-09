@@ -15,9 +15,12 @@ export function MyRequestsScreen() {
   const router = useRouter()
   const { requests, withdrawRequest } = useRequests()
   const [confirmationId, setConfirmationId] = useState<string>()
+  const [withdrawalError, setWithdrawalError] = useState(false)
 
   function confirmWithdrawal() {
-    if (confirmationId && withdrawRequest(confirmationId)) setConfirmationId(undefined)
+    if (!confirmationId) return
+    setWithdrawalError(!withdrawRequest(confirmationId))
+    setConfirmationId(undefined)
   }
 
   return (
@@ -38,6 +41,7 @@ export function MyRequestsScreen() {
             <Text style={styles.subtitle}>{t('requests.listSubtitle')}</Text>
           </View>
           <Text style={styles.policyNote}>{t('requests.withdrawPolicy')}</Text>
+          {withdrawalError ? <Text accessibilityRole='alert'>{t('common.demoDecisionError')}</Text> : null}
 
           {confirmationId ? (
             <View accessibilityRole='alert' style={styles.confirmation}>

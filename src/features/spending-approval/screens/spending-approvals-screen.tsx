@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { useRequests } from '@/entities/demo-requests'
 import { InboxScreen } from '@/features/inbox'
 import { mobileColors } from '@/shared/theme/colors'
 import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
@@ -31,14 +32,23 @@ export function SpendingApprovalsScreen() {
   const [search, setSearch] = useState('')
   const [selectedRequestId, setSelectedRequestId] = useState<string>()
   const [activeTab, setActiveTab] = useState<SpendingTab>('queue')
-  const [decisions, setDecisions] = useState<Record<string, SpendingDecision['kind']>>({})
+  const { requests, spendingDecisions: decisions, decide } = useRequests()
   const [lastDecision, setLastDecision] = useState<SpendingDecision>()
-  const pendingRequests = useMemo(() => spendingApprovals.filter((request) => !decisions[request.id]), [decisions])
+  const [decisionError, setDecisionError] = useState(false)
+  const pendingRequests = useMemo(
+    () =>
+      spendingApprovals.filter(
+        (request) =>
+          !decisions[request.id] &&
+          (request.id !== 'BM01-2104' || requests.find((item) => item.id === request.id)?.status === 'spendApproval')
+      ),
+    [decisions, requests]
+  )
   const filteredRequests = useMemo(
     () => filterSpendingApprovals(pendingRequests, step, search),
     [pendingRequests, search, step]
   )
-  const selectedRequest = spendingApprovals.find((request) => request.id === selectedRequestId)
+  const selectedRequest = pendingRequests.find((request) => request.id === selectedRequestId)
   const completedRequests = spendingApprovals.filter((request) => decisions[request.id])
   const filters: { id: SpendingStepFilter; label: string }[] = [
     { id: 'all', label: t('spending.filters.all') },
@@ -47,7 +57,12 @@ export function SpendingApprovalsScreen() {
   ]
 
   function recordDecision(request: SpendingApproval, kind: SpendingDecision['kind'], reason?: string) {
-    setDecisions((current) => ({ ...current, [request.id]: kind }))
+    if (!decide('spending', { kind, reason, requestId: request.id })) {
+      setDecisionError(true)
+      setSelectedRequestId(undefined)
+      return
+    }
+    setDecisionError(false)
     setLastDecision({ kind, reason, requestId: request.id })
     setSelectedRequestId(undefined)
   }
@@ -126,6 +141,7 @@ export function SpendingApprovalsScreen() {
             </View>
           </View>
           <Text style={styles.demoNote}>{t('spending.demoNote')}</Text>
+          {decisionError ? <Text accessibilityRole='alert'>{t('common.demoDecisionError')}</Text> : null}
 
           {lastDecision ? (
             <View accessibilityRole='alert' style={styles.result}>
@@ -221,7 +237,12 @@ export function SpendingApprovalsScreen() {
                         <Text style={styles.historySoftware}>{request.softwareName}</Text>
                         <Text style={styles.historyId}>{request.id}</Text>
                       </View>
-                      <Text style={styles.historyStatus}>{t(`spending.decisionStatus.${decisions[request.id]}`)}</Text>
+                      <Text style={styles.historyStatus}>
+                        {t(`spending.decisionStatus.${decisions[request.id].kind}`)}
+                      </Text>
+                      {decisions[request.id].reason ? (
+                        <Text style={styles.historyStatus}>{decisions[request.id].reason}</Text>
+                      ) : null}
                     </View>
                   ))}
                 </View>

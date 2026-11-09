@@ -1,11 +1,17 @@
-import { fireEvent, render } from '@testing-library/react-native'
+import { fireEvent, render as renderNative } from '@testing-library/react-native'
+import type { ReactElement } from 'react'
 
+import { RequestsProvider } from '@/entities/demo-requests'
 import { InboxScreen } from '@/features/inbox'
 import { setAppLanguage } from '@/shared/i18n/i18n'
 
 const mockRouter = {
   push: jest.fn(),
   replace: jest.fn()
+}
+
+function render(element: ReactElement) {
+  return renderNative(element, { wrapper: RequestsProvider })
 }
 
 jest.mock('expo-router', () => ({

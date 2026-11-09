@@ -1,13 +1,11 @@
 import { useRouter } from 'expo-router'
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { useRequests, type InboxNotification } from '@/entities/demo-requests'
 import { EmployeeProfileHeader } from '@/shared/ui/employee-profile-header'
 import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
-
-import { inboxNotifications, type InboxNotification } from '../model/inbox-notifications'
 
 type ApproverInboxProps = {
   onSelectTab: (tab: 'queue' | 'secondary') => void
@@ -18,25 +16,30 @@ export function InboxScreen(props: ApproverInboxProps | { role?: 'employee' } = 
   const { i18n, t } = useTranslation()
   const router = useRouter()
   const role = props.role ?? 'employee'
-  const [readIds, setReadIds] = useState(() =>
-    inboxNotifications.filter((notification) => notification.isRead).map((notification) => notification.id)
-  )
-  const notifications = role === 'employee' ? inboxNotifications : []
-  const unreadNotifications = notifications.filter((notification) => !readIds.includes(notification.id))
-  const readNotifications = notifications.filter((notification) => readIds.includes(notification.id))
+  const { notifications: allNotifications, markNotificationRead } = useRequests()
+  const notifications = allNotifications.filter((notification) => (notification.role ?? 'employee') === role)
+  const unreadNotifications = notifications.filter((notification) => !notification.isRead)
+  const readNotifications = notifications.filter((notification) => notification.isRead)
   const locale = i18n.language === 'vi' ? 'vi-VN' : 'en-US'
 
   function openNotification(notification: InboxNotification) {
-    setReadIds((current) => (current.includes(notification.id) ? current : [...current, notification.id]))
-    if (notification.requestId) {
+    markNotificationRead(notification.id)
+    if (role === 'employee' && notification.requestId) {
       router.push({ pathname: '/my-requests/[requestId]', params: { requestId: notification.requestId } })
+    } else if ('onSelectTab' in props) {
+      props.onSelectTab(
+        notification.kind === 'otherNeedApproved' || notification.kind === 'otherRejected' ? 'secondary' : 'queue'
+      )
     }
   }
 
   function renderNotification(notification: InboxNotification) {
     const body =
-      notification.kind === 'rejected'
-        ? t('requests.rejectionReasons.adobeBudgetOptimized')
+      notification.kind === 'rejected' || notification.kind === 'otherRejected'
+        ? (notification.reason ??
+          (notification.requestId === 'BM01-2041'
+            ? t('requests.rejectionReasons.adobeBudgetOptimized')
+            : t('inbox.reasonUnavailable')))
         : t(`inbox.items.${notification.kind}.body`, {
             requestId: notification.requestId,
             software: notification.softwareName
@@ -48,10 +51,7 @@ export function InboxScreen(props: ApproverInboxProps | { role?: 'employee' } = 
         accessibilityRole='button'
         key={notification.id}
         onPress={() => openNotification(notification)}
-        style={[
-          styles.notification,
-          readIds.includes(notification.id) ? styles.readNotification : styles.unreadNotification
-        ]}
+        style={[styles.notification, notification.isRead ? styles.readNotification : styles.unreadNotification]}
       >
         <View style={styles.notificationHeader}>
           <Text style={styles.notificationTitle}>{t(`inbox.items.${notification.kind}.title`)}</Text>
@@ -100,7 +100,9 @@ export function InboxScreen(props: ApproverInboxProps | { role?: 'employee' } = 
           </Text>
           <Text style={styles.demoNote}>{t('inbox.demoNote')}</Text>
 
-          {role !== 'employee' ? <Text style={styles.demoNote}>{t('inbox.approverEmpty')}</Text> : null}
+          {role !== 'employee' && notifications.length === 0 ? (
+            <Text style={styles.demoNote}>{t('inbox.approverEmpty')}</Text>
+          ) : null}
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('inbox.unread', { count: unreadNotifications.length })}</Text>

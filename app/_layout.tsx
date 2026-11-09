@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 
-import { RequestsProvider } from '@/features/requests'
+import { RequestsProvider } from '@/entities/demo-requests'
 import { AppProviders } from '@/providers/app-providers'
 
 export default function RootLayout() {

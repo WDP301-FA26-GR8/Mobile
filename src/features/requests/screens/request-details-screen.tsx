@@ -18,6 +18,7 @@ const timelineLabels: Record<RequestTimelineEvent, string> = {
   needReviewPending: 'requests.timeline.needReviewPending',
   rejected: 'requests.timeline.rejected',
   spendReviewPending: 'requests.timeline.spendReviewPending',
+  spendApproved: 'requests.timeline.spendApproved',
   submittedWeb: 'requests.timeline.submittedWeb',
   withdrawn: 'requests.timeline.withdrawn'
 }
@@ -31,13 +32,15 @@ export function RequestDetailsScreen({ requestId }: RequestDetailsScreenProps) {
   const router = useRouter()
   const { requests, withdrawRequest } = useRequests()
   const [confirmingWithdrawal, setConfirmingWithdrawal] = useState(false)
+  const [withdrawalError, setWithdrawalError] = useState(false)
   const request = requests.find((item) => item.id === requestId)
 
   if (!request) return <Redirect href='/my-requests' />
 
   const currentRequestId = request.id
   function confirmWithdrawal() {
-    if (withdrawRequest(currentRequestId)) setConfirmingWithdrawal(false)
+    setWithdrawalError(!withdrawRequest(currentRequestId))
+    setConfirmingWithdrawal(false)
   }
 
   const noticeText = request.notice ? t(`requests.notices.${request.notice}`) : undefined
@@ -62,6 +65,7 @@ export function RequestDetailsScreen({ requestId }: RequestDetailsScreenProps) {
           <Text style={styles.status}>{t(`requests.status.${request.status}`)}</Text>
           <Text style={styles.duration}>{t('requests.duration', { months: request.durationMonths })}</Text>
         </View>
+        {withdrawalError ? <Text accessibilityRole='alert'>{t('common.demoDecisionError')}</Text> : null}
 
         {noticeText ? (
           <View accessibilityRole='summary' style={styles.notice}>
@@ -69,20 +73,22 @@ export function RequestDetailsScreen({ requestId }: RequestDetailsScreenProps) {
           </View>
         ) : null}
 
-        {request.rejectionReason === 'adobeBudgetOptimized' && rejectedAt ? (
+        {(request.rejectionReason === 'adobeBudgetOptimized' || request.decisionReason) && rejectedAt ? (
           <View accessibilityRole='summary' style={styles.notice}>
             <Text style={styles.noticeText}>
-              {t('requests.rejectedBy', {
+              {t(request.rejectedBy === 'spending' ? 'requests.rejectedBySpending' : 'requests.rejectedBy', {
                 date: new Intl.DateTimeFormat(i18n.language === 'vi' ? 'vi-VN' : 'en-US', {
                   day: '2-digit',
                   month: '2-digit',
                   timeZone: 'Asia/Ho_Chi_Minh',
                   year: 'numeric'
                 }).format(new Date(rejectedAt)),
-                name: t('requests.managerName')
+                name: request.rejectedBy === 'spending' ? t('spending.approverName') : t('requests.managerName')
               })}
             </Text>
-            <Text style={styles.reasonText}>{t('requests.rejectionReasons.adobeBudgetOptimized')}</Text>
+            <Text style={styles.reasonText}>
+              {request.decisionReason ?? t('requests.rejectionReasons.adobeBudgetOptimized')}
+            </Text>
             <Text style={styles.note}>{t('requests.noBudgetCode')}</Text>
           </View>
         ) : null}

@@ -19,9 +19,20 @@ export function DepartmentVisibleCard({ request }: DepartmentVisibleCardProps) {
           <Text style={styles.software}>{request.softwareName}</Text>
           <Text style={styles.requestId}>{request.id}</Text>
         </View>
-        <Text style={styles.badge}>{t(`manager.visibility.${request.kind}.label`)}</Text>
+        <Text style={styles.badge}>
+          {request.kind === 'employeeStatus'
+            ? request.status
+              ? t(`requests.status.${request.status}`)
+              : t('manager.statusUnavailable')
+            : t(`manager.visibility.${request.kind}.label`)}
+        </Text>
       </View>
-      <Text style={styles.note}>{t(`manager.visibility.${request.kind}.note`)}</Text>
+      <Text style={styles.note}>
+        {request.kind === 'employeeStatus'
+          ? t('manager.employeeVisibilityNote')
+          : t(`manager.visibility.${request.kind}.note`)}
+      </Text>
+      {request.reason ? <Text style={styles.note}>{request.reason}</Text> : null}
     </View>
   )
 }

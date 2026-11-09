@@ -1,22 +1,36 @@
+import type { RequestStatus } from '@/entities/demo-requests'
+
 export type ManagerApprovalFilter = 'all' | 'longTerm' | 'outsideStandard'
 
 export interface ManagerApproval {
   budgetPlan?: string
+  budgetPlanUnknown?: boolean
   department: string
-  durationMonths: 12 | 18
+  durationMonths: number
   id: string
-  isStandard: boolean
+  isStandard?: boolean
   requesterName: string
   requesterRole: string
-  reasonKey: 'manager.reasons.claude' | 'manager.reasons.raycast'
-  slaHoursRemaining: number
+  reasonKey?: 'manager.reasons.claude' | 'manager.reasons.raycast'
+  reason?: string
+  slaHoursRemaining?: number
   softwareName: string
 }
 
 export interface DepartmentVisibleRequest {
   id: string
-  kind: 'financeReview' | 'selfRequest'
+  kind:
+    | 'financeReview'
+    | 'selfRequest'
+    | 'needApproved'
+    | 'rejected'
+    | 'withdrawn'
+    | 'employeeStatus'
+    | 'otherApproved'
+    | 'otherRejected'
   softwareName: string
+  status?: RequestStatus
+  reason?: string
 }
 
 export const managerApprovals: ManagerApproval[] = [
@@ -67,7 +81,7 @@ export function filterManagerApprovals(approvals: ManagerApproval[], filter: Man
       approval.requesterName.toLocaleLowerCase().includes(query) ||
       approval.softwareName.toLocaleLowerCase().includes(query)
     const matchesFilter =
-      filter === 'all' || (filter === 'longTerm' ? approval.durationMonths > 12 : !approval.isStandard)
+      filter === 'all' || (filter === 'longTerm' ? approval.durationMonths > 12 : approval.isStandard === false)
 
     return matchesSearch && matchesFilter
   })

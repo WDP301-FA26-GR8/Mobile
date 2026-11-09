@@ -55,7 +55,12 @@ export function SpendingApprovalDetails({ onApprove, onBack, onReject, request }
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps='handled'>
-        <Pressable accessibilityRole='button' onPress={onBack} style={styles.backButton}>
+        <Pressable
+          accessibilityLabel={t('spending.backToQueue')}
+          accessibilityRole='button'
+          onPress={onBack}
+          style={styles.backButton}
+        >
           <Feather
             accessibilityElementsHidden
             color={mobileColors.primaryInk}

@@ -37,12 +37,14 @@ export function ManagerApprovalDetails({ onApprove, onBack, onReject, request }:
   const [rejecting, setRejecting] = useState(false)
   const [rejectionReason, setRejectionReason] = useState('')
   const slaCopy =
-    request.slaHoursRemaining >= 24
-      ? t('manager.slaRemainingDays', {
-          days: Math.floor(request.slaHoursRemaining / 24),
-          hours: request.slaHoursRemaining % 24
-        })
-      : t('manager.slaRemainingHours', { hours: request.slaHoursRemaining })
+    request.slaHoursRemaining === undefined
+      ? t('manager.slaUnavailable')
+      : request.slaHoursRemaining >= 24
+        ? t('manager.slaRemainingDays', {
+            days: Math.floor(request.slaHoursRemaining / 24),
+            hours: request.slaHoursRemaining % 24
+          })
+        : t('manager.slaRemainingHours', { hours: request.slaHoursRemaining })
 
   function beginApproval() {
     if (request.durationMonths > 12) {
@@ -62,7 +64,12 @@ export function ManagerApprovalDetails({ onApprove, onBack, onReject, request }:
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps='handled'>
-        <Pressable accessibilityRole='button' onPress={onBack} style={styles.backButton}>
+        <Pressable
+          accessibilityLabel={t('manager.backToQueue')}
+          accessibilityRole='button'
+          onPress={onBack}
+          style={styles.backButton}
+        >
           <Feather
             accessibilityElementsHidden
             color={mobileColors.primaryInk}
@@ -109,17 +116,21 @@ export function ManagerApprovalDetails({ onApprove, onBack, onReject, request }:
           <View style={styles.detailRow}>
             <Text style={styles.label}>{t('manager.budgetLink')}</Text>
             <Text style={styles.value}>
-              {request.budgetPlan
-                ? t('manager.plannedBudget', { plan: request.budgetPlan })
-                : t('manager.unplannedBudget')}
+              {request.budgetPlanUnknown
+                ? t('manager.planUnavailable')
+                : request.budgetPlan
+                  ? t('manager.plannedBudget', { plan: request.budgetPlan })
+                  : t('manager.unplannedBudget')}
             </Text>
           </View>
         </View>
 
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>{t('manager.businessReason')}</Text>
-          <Text style={styles.body}>{t(request.reasonKey)}</Text>
-          {!request.isStandard ? (
+          <Text style={styles.body}>
+            {request.reason || (request.reasonKey ? t(request.reasonKey) : t('manager.reasonUnavailable'))}
+          </Text>
+          {request.isStandard === false ? (
             <View style={styles.warning}>
               <Text style={styles.warningText}>{t('manager.outsideStandardDetail')}</Text>
             </View>

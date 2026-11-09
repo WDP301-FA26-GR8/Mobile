@@ -14,12 +14,14 @@ interface ManagerApprovalCardProps {
 export function ManagerApprovalCard({ onPress, request }: ManagerApprovalCardProps) {
   const { t } = useTranslation()
   const slaCopy =
-    request.slaHoursRemaining >= 24
-      ? t('manager.slaRemainingDays', {
-          days: Math.floor(request.slaHoursRemaining / 24),
-          hours: request.slaHoursRemaining % 24
-        })
-      : t('manager.slaRemainingHours', { hours: request.slaHoursRemaining })
+    request.slaHoursRemaining === undefined
+      ? t('manager.slaUnavailable')
+      : request.slaHoursRemaining >= 24
+        ? t('manager.slaRemainingDays', {
+            days: Math.floor(request.slaHoursRemaining / 24),
+            hours: request.slaHoursRemaining % 24
+          })
+        : t('manager.slaRemainingHours', { hours: request.slaHoursRemaining })
 
   return (
     <Pressable
@@ -64,9 +66,15 @@ export function ManagerApprovalCard({ onPress, request }: ManagerApprovalCardPro
       </View>
 
       <View style={styles.badges}>
-        <View style={[styles.badge, request.isStandard ? styles.standardBadge : styles.warningBadge]}>
-          <Text style={[styles.badgeText, request.isStandard ? styles.standardText : styles.warningText]}>
-            {t(request.isStandard ? 'manager.standardTool' : 'manager.outsideStandard')}
+        <View style={[styles.badge, request.isStandard === false ? styles.warningBadge : styles.standardBadge]}>
+          <Text style={[styles.badgeText, request.isStandard === false ? styles.warningText : styles.standardText]}>
+            {t(
+              request.isStandard === undefined
+                ? 'manager.standardUnknown'
+                : request.isStandard
+                  ? 'manager.standardTool'
+                  : 'manager.outsideStandard'
+            )}
           </Text>
         </View>
         {request.durationMonths > 12 ? (
