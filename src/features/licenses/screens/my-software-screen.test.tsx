@@ -12,11 +12,8 @@ jest.mock('expo-router', () => ({
 }))
 
 describe('<MySoftwareScreen />', () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
     await setAppLanguage('vi', false)
-  })
-
-  beforeEach(() => {
     mockPush.mockClear()
     mockReplace.mockClear()
   })
@@ -40,15 +37,33 @@ describe('<MySoftwareScreen />', () => {
   test('navigates to software details and the employee request tabs', async () => {
     const screen = await render(<MySoftwareScreen />)
 
-    fireEvent.press(screen.getByRole('button', { name: 'Mở chi tiết Figma Professional' }))
+    await fireEvent.press(screen.getByRole('button', { name: 'Mở chi tiết Figma Professional' }))
 
     expect(mockPush).toHaveBeenCalledWith({
       params: { softwareId: 'figma-professional' },
       pathname: '/my-software/[softwareId]'
     })
 
-    fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Tạo yêu cầu' }))
+    await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Tạo yêu cầu' }))
     expect(mockPush).toHaveBeenCalledWith('/my-requests/new')
+
+    await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Yêu cầu' }))
+    expect(mockPush).toHaveBeenCalledWith('/my-requests')
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Mở mục Thông báo' }))
+    expect(mockPush).toHaveBeenCalledWith('/inbox')
+  })
+
+  test('filters the existing software to items marked as expiring', async () => {
+    const screen = await render(<MySoftwareScreen />)
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Sắp hết hạn' }))
+    screen.getByText('JetBrains All Products')
+    expect(screen.queryByText('Linear Plus')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Sắp hết hạn' }).props.accessibilityState?.selected).toBe(true)
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Tất cả' }))
+    screen.getByText('Linear Plus')
   })
 
   test('provides English employee-screen copy', () => {

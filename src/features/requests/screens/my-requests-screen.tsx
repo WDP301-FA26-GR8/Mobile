@@ -28,7 +28,15 @@ export function MyRequestsScreen() {
             initials='VA'
             meta={`${t('licenses.employeeDepartment')} · ${t('common.demo')}`}
             name={t('licenses.employeeName')}
+            onOpenInbox={() => router.push('/inbox')}
           />
+          <View style={styles.heading}>
+            <Text style={styles.kicker}>{t('requests.listKicker')}</Text>
+            <Text accessibilityRole='header' style={styles.title}>
+              {t('requests.title')}
+            </Text>
+            <Text style={styles.subtitle}>{t('requests.listSubtitle')}</Text>
+          </View>
           <Text style={styles.policyNote}>{t('requests.withdrawPolicy')}</Text>
 
           {confirmationId ? (
@@ -81,7 +89,7 @@ export function MyRequestsScreen() {
               icon: 'clock',
               id: 'requests',
               label: t('navigation.requests'),
-              onPress: () => router.replace('/my-requests/index'),
+              onPress: () => router.replace('/my-requests'),
               selected: true
             },
             {
@@ -132,8 +140,8 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   },
   content: {
-    gap: 13,
-    padding: 18
+    gap: 15,
+    padding: 16
   },
   confirmLabel: {
     color: '#ffffff',
@@ -142,6 +150,17 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: 9
+  },
+  heading: {
+    gap: 5,
+    paddingHorizontal: 2
+  },
+  kicker: {
+    color: '#a33700',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase'
   },
   safeArea: {
     backgroundColor: '#fef7ef',
@@ -164,5 +183,16 @@ const styles = StyleSheet.create({
     color: '#a33700',
     fontSize: 13,
     fontWeight: '600'
+  },
+  subtitle: {
+    color: '#7c7068',
+    fontSize: 13,
+    lineHeight: 19
+  },
+  title: {
+    color: '#241c18',
+    fontSize: 25,
+    fontWeight: '700',
+    letterSpacing: -0.5
   }
 })

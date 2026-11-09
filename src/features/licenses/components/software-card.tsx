@@ -1,5 +1,8 @@
+import { Feather } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+
+import { mobileColors } from '@/shared/theme/colors'
 
 import type { MySoftwareItem } from '../model/my-software'
 
@@ -37,6 +40,13 @@ export function SoftwareCard({ onPress, software }: SoftwareCardProps) {
           {status}
         </Text>
       </View>
+      <Feather
+        accessibilityElementsHidden
+        color={mobileColors.muted}
+        importantForAccessibility='no'
+        name='chevron-right'
+        size={16}
+      />
     </Pressable>
   )
 }
@@ -54,12 +64,13 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     flexDirection: 'row',
-    gap: 12,
+    gap: 8,
     minHeight: 76,
     padding: 12
   },
   copy: {
-    flex: 1
+    flex: 1,
+    minWidth: 0
   },
   icon: {
     alignItems: 'center',

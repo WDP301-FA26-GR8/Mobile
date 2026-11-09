@@ -72,6 +72,7 @@ export function InboxScreen() {
             initials='VA'
             meta={`${t('licenses.employeeDepartment')} · ${t('common.demo')}`}
             name={t('licenses.employeeName')}
+            onOpenInbox={() => router.replace('/inbox')}
           />
           <Text accessibilityRole='header' style={styles.title}>
             {t('inbox.title')}
@@ -113,7 +114,7 @@ export function InboxScreen() {
               icon: 'clock',
               id: 'requests',
               label: t('navigation.requests'),
-              onPress: () => router.push('/my-requests/index'),
+              onPress: () => router.push('/my-requests'),
               selected: false
             },
             {

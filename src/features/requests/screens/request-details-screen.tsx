@@ -31,7 +31,7 @@ export function RequestDetailsScreen({ requestId }: RequestDetailsScreenProps) {
   const [confirmingWithdrawal, setConfirmingWithdrawal] = useState(false)
   const request = requests.find((item) => item.id === requestId)
 
-  if (!request) return <Redirect href='/my-requests/index' />
+  if (!request) return <Redirect href='/my-requests' />
 
   const currentRequestId = request.id
   function confirmWithdrawal() {

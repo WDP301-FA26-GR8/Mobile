@@ -1,5 +1,8 @@
+import { Feather } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+
+import { mobileColors } from '@/shared/theme/colors'
 
 import { canWithdrawRequest, type EmployeeRequest } from '../model/employee-requests'
 
@@ -39,7 +42,16 @@ export function RequestCard({ onOpen, onWithdraw, request }: RequestCardProps) {
           {t(`requests.status.${request.status}`)}
           {request.durationMonths > 12 ? ` · ${t('requests.duration', { months: request.durationMonths })}` : ''}
         </Text>
-        <Text style={styles.softwareName}>{request.softwareName}</Text>
+        <View style={styles.softwareRow}>
+          <Text style={styles.softwareName}>{request.softwareName}</Text>
+          <Feather
+            accessibilityElementsHidden
+            color={mobileColors.muted}
+            importantForAccessibility='no'
+            name='chevron-right'
+            size={18}
+          />
+        </View>
         {request.costVnd !== undefined ? (
           <Text style={styles.cost}>
             {t(request.costPeriod === 'annual' ? 'requests.annualCost' : 'requests.cost', {
@@ -100,7 +112,7 @@ const styles = StyleSheet.create({
     borderRadius: 9,
     borderWidth: 1,
     justifyContent: 'center',
-    minHeight: 34,
+    minHeight: 44,
     paddingHorizontal: 11
   },
   withdrawLabel: {
@@ -110,5 +122,10 @@ const styles = StyleSheet.create({
   },
   withdrawnStatus: {
     color: '#7c7068'
+  },
+  softwareRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between'
   }
 })

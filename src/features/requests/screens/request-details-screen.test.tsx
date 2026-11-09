@@ -3,8 +3,10 @@ import { render } from '@testing-library/react-native'
 import { RequestDetailsScreen, RequestsProvider } from '@/features/requests'
 import { setAppLanguage } from '@/shared/i18n/i18n'
 
+const mockRedirect = jest.fn((_props: { href: string }) => null)
+
 jest.mock('expo-router', () => ({
-  Redirect: () => null,
+  Redirect: (props: { href: string }) => mockRedirect(props),
   useRouter: () => ({ back: jest.fn() })
 }))
 
@@ -49,5 +51,15 @@ describe('<RequestDetailsScreen />', () => {
     screen.getByText('Ngân sách phòng quý này đã tối ưu. Dùng Figma Pro hoặc Canva Team trong bộ chuẩn.')
     screen.getByText('Không hiện mã kiểm tra ngân sách hay số dư. Không rút đơn đã kết thúc.')
     expect(screen.queryByRole('button', { name: 'Rút yêu cầu' })).toBeNull()
+  })
+
+  test('redirects an unknown request to the canonical list route', async () => {
+    await render(
+      <RequestsProvider>
+        <RequestDetailsScreen requestId='index' />
+      </RequestsProvider>
+    )
+
+    expect(mockRedirect).toHaveBeenCalledWith(expect.objectContaining({ href: '/my-requests' }))
   })
 })

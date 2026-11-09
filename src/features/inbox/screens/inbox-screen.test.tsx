@@ -48,5 +48,7 @@ describe('<InboxScreen />', () => {
     screen.getByRole('tab', { name: 'Mở mục Tạo yêu cầu' })
     screen.getByRole('tab', { name: 'Mở mục Yêu cầu' })
     screen.getByRole('tab', { name: 'Mở mục Thông báo' })
+    await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Yêu cầu' }))
+    expect(mockRouter.push).toHaveBeenCalledWith('/my-requests')
   })
 })

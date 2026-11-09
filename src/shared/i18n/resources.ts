@@ -320,6 +320,14 @@ export const resources = {
         employeeDepartment: 'CC-TECH',
         employeeName: 'Nguyen Van A',
         employeeRole: 'Product Dev',
+        filterLabel: 'Filter software',
+        kicker: 'Employee workspace · demo',
+        listFilters: {
+          all: 'All software',
+          expiring: 'Expiring'
+        },
+        listTitle: 'Your software',
+        noExpiring: 'No software is marked as expiring in this demo.',
         openSoftware: 'Open {{name}} details',
         securityNote: 'One company account or seat per employee. Credentials are not shared (QĐ-75).',
         screenTitle: 'My software',
@@ -375,6 +383,8 @@ export const resources = {
           standard: 'Standard'
         },
         kicker: 'Employee request',
+        listKicker: 'Employee workspace · demo',
+        listSubtitle: 'Track your requests and review their current status.',
         managerName: 'Le Hoang',
         longTermWarning: 'OI-07a · Requests over 12 months need additional review.',
         newTitle: 'New software request',
@@ -783,6 +793,14 @@ export const resources = {
         employeeDepartment: 'CC-TECH',
         employeeName: 'Nguyễn Văn A',
         employeeRole: 'Product Dev',
+        filterLabel: 'Lọc phần mềm',
+        kicker: 'Không gian nhân viên · demo',
+        listFilters: {
+          all: 'Tất cả',
+          expiring: 'Sắp hết hạn'
+        },
+        listTitle: 'Phần mềm được cấp',
+        noExpiring: 'Không có phần mềm nào được đánh dấu sắp hết hạn trong demo.',
         openSoftware: 'Mở chi tiết {{name}}',
         securityNote: 'Mỗi người một tài khoản công ty / seat riêng. Không chia sẻ thông tin đăng nhập (QĐ-75).',
         screenTitle: 'Phần mềm của tôi',
@@ -838,6 +856,8 @@ export const resources = {
           standard: 'Bộ công cụ chuẩn'
         },
         kicker: 'Yêu cầu của nhân viên',
+        listKicker: 'Không gian nhân viên · demo',
+        listSubtitle: 'Theo dõi yêu cầu và trạng thái xử lý của bạn.',
         managerName: 'Lê Hoàng',
         longTermWarning: 'OI-07a · Yêu cầu trên 12 tháng cần rà soát bổ sung.',
         newTitle: 'Yêu cầu phần mềm mới',
