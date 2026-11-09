@@ -13,12 +13,13 @@ Mobile shares backend business rules, authorization, and separation of duties.
 
 Push notifications, offline mode, biometrics, file downloads, phone usage
 collection, and IT Admin/Finance/Super Admin workflows are outside mobile scope.
-The current committed OpenAPI snapshot has only a System status operation, so
-business screens and authentication cannot be connected until the backend
-contract is supplied. The client contains local-only login, employee software/request, in-app inbox,
-manager need-approval, and spending-approval prototype screens. Prototype decisions
-are stored only in the current app session and are not submitted to a backend. The
-business API contract is still needed before these workflows can be connected.
+The committed OpenAPI snapshot contains the backend's business operations, but the
+client contains local-only login, employee software/request, in-app inbox,
+manager need-approval, and spending-approval prototype screens. They are not yet
+connected to those operations. Prototype decisions are stored only in the current
+app session and are not submitted to a backend. Contract availability alone does
+not resolve the differences between the current backend and newer proposed business
+decisions, nor does it provide an authenticated mobile session.
 Manager and spending demos have separate direct route entry points; there is no
 in-session role switcher. Production login routing must follow the backend-authenticated
 role once that contract is available.
@@ -155,6 +156,24 @@ contracts root. The runtime base expression is
 `env.API_BASE_URL`. The built-in fetch generator preserves typed response data/status
 and throws for non-success HTTP responses so TanStack Query receives error states.
 Generated source is committed and reviewed with the contract, but never hand-edited.
+The generated fetch functions do not attach authentication or refresh a session.
+Protected operations must not be wired to screens until a native session and
+transport design is implemented and verified.
+
+The initial business snapshot was imported from the backend OpenAPI export reviewed
+on 2026-11-09 (SHA-256
+`8bc889bce6d092a25173c6eeb9e31da44847a4de1e7f024e08ab0a288672bda0`).
+The import adds missing top-level tag declarations and request/response aliases
+to satisfy the mobile naming conventions without renaming the backend DTOs. It also
+adds the already-inherited string type to example-only `message` overlays, and
+extracts one inline group-line schema through a reference; these preserve the
+contract's constraints while allowing Orval to generate type-correct Faker mocks.
+Alias collisions and missing source schemas fail the import. Import tests cover
+these transformations. Generated Faker data is test-only and may still need overrides
+for specific business scenarios; it is not evidence that a workflow is valid.
+Generation removes the generated mocks directory before Orval runs because Orval's
+output cleanup does not remove obsolete mock files when a tag disappears. Restart
+`api:watch` after removing a tag so that this cleanup runs again.
 
 Faker works in the Node/Jest development environment and is useful for factories and
 fixtures. It is deliberately a development dependency and must not enter a native
@@ -168,10 +187,10 @@ mocking across simulator/device builds, prefer a separately deployed mock server
 explicit development-only interceptor; never ship a hidden device-side mock switch.
 
 Backend Swagger tags and component names are architecture inputs. Every operation has
-one stable business tag such as `Users` or `Licenses`; request bodies use
-`CreateUserRequest`-style names, success wrappers use `UserResponse`/
-`UsersPageResponse`, and reusable inner models use semantic `*Dto`/enum names. This
-is what keeps generated folders understandable as the API grows.
+one stable business tag; the imported snapshot declares the tags and adds
+`*Request` and `*Response` aliases while retaining the backend's `*BodyDto` and
+`*ResponseDto` definitions. This keeps generated folders understandable without
+requiring the backend to rename its models.
 
 ## Reusable production architecture
 
@@ -510,9 +529,12 @@ platform, OS, app state, and route context needed to reproduce failures.
 
 Contract update workflow:
 
-1. Export and review the backend OpenAPI document.
-2. Replace `openapi/openapi.yaml` in both clients that consume the changed API.
-3. Run `pnpm api:generate` in each affected client.
+1. Export and review the backend OpenAPI document, including its provenance and
+   business changes.
+2. Run `node scripts/import-openapi.mjs <reviewed-backend-export>` to normalize and
+   write the mobile snapshot. Review the resulting diff and update its provenance.
+3. Run `pnpm api:generate` in the mobile client; follow the web client's own
+   contract-update process separately.
 4. Update feature code against generated types, never generated output itself.
 5. Run typecheck, tests, lint, and the relevant platform export/smoke check.
 

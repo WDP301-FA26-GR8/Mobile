@@ -12,6 +12,14 @@ function referencedComponentName(schema) {
   return undefined
 }
 
+function referencedComponentNames(schema) {
+  if (!schema || typeof schema !== 'object') return []
+  if (schema.type === 'array') return referencedComponentNames(schema.items)
+  if (Array.isArray(schema.allOf)) return schema.allOf.flatMap(referencedComponentNames)
+  const name = referencedComponentName(schema)
+  return name ? [name] : []
+}
+
 function contentSchemas(container) {
   return Object.values(container?.content ?? {})
     .map((mediaType) => mediaType?.schema)
@@ -44,18 +52,20 @@ export function validateOpenApi(document) {
       }
 
       for (const schema of contentSchemas(operation.requestBody)) {
-        const name = referencedComponentName(schema)
-        if (name && !name.endsWith('Request')) {
-          issues.push(`${location} request body component "${name}" must end with Request`)
+        for (const name of referencedComponentNames(schema)) {
+          if (!name.endsWith('Request')) {
+            issues.push(`${location} request body component "${name}" must end with Request`)
+          }
         }
       }
 
       for (const [status, response] of Object.entries(operation.responses ?? {})) {
         if (!/^2\d\d$/.test(status)) continue
         for (const schema of contentSchemas(response)) {
-          const name = referencedComponentName(schema)
-          if (name && !name.endsWith('Response')) {
-            issues.push(`${location} success response component "${name}" must end with Response`)
+          for (const name of referencedComponentNames(schema)) {
+            if (!name.endsWith('Response')) {
+              issues.push(`${location} success response component "${name}" must end with Response`)
+            }
           }
         }
       }

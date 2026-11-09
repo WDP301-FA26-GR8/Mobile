@@ -71,3 +71,31 @@ test('reports ambiguous tags, duplicate ids, and unclear body contract names', (
     'GET /modules duplicates operationId "save"'
   ])
 })
+
+test('validates referenced response names inside allOf and arrays', () => {
+  const issues = validateOpenApi({
+    tags: [{ name: 'Users' }],
+    paths: {
+      '/users': {
+        get: {
+          tags: ['Users'],
+          operationId: 'listUsers',
+          responses: {
+            200: {
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'array',
+                    items: { allOf: [{ $ref: '#/components/schemas/UserDto' }, { properties: { message: {} } }] }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  })
+
+  assert.deepEqual(issues, ['GET /users success response component "UserDto" must end with Response'])
+})
