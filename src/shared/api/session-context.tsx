@@ -12,6 +12,7 @@ type SessionContextValue = {
   login(email: string, password: string): Promise<void>
   logout(): Promise<void>
   read<T>(operation: (accessToken: string) => Promise<T>): Promise<T>
+  write<T>(operation: (accessToken: string) => Promise<T>): Promise<T>
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null)
@@ -61,7 +62,8 @@ export function SessionProvider({ children }: PropsWithChildren) {
           setState('authenticated')
         },
         logout: () => session.logout(),
-        read: (operation) => session.read(operation)
+        read: (operation) => session.read(operation),
+        write: (operation) => session.write(operation)
       }}
     >
       {children}

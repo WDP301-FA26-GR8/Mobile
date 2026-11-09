@@ -15,15 +15,18 @@ Push notifications, offline mode, biometrics, file downloads, phone usage
 collection, and IT Admin/Finance/Super Admin workflows are outside mobile scope.
 The committed OpenAPI snapshot contains the backend's business operations. Login,
 the signed-in account and the current personal software-rights list use the backend.
-Employee requests, the in-app inbox, manager need-approval and spending-approval
+Employee requests, manager need-approval and spending-approval
 remain prototype screens. Their decisions are stored only in the current app session
 and are not submitted to a backend. Contract availability alone does not resolve
 the differences between the current backend and newer proposed business decisions.
 Manager and spending demos have separate direct route entry points; there is no
 in-session role switcher. The authenticated landing currently shows personal software
 for every account; role-specific live navigation remains to be implemented. The live
-screen does not link to demo requests, approvals or inbox, to avoid presenting demo
-data as the signed-in user's data. Password recovery on the login screen directs the
+screen shows disabled navigation for requests instead of opening demos, to
+avoid presenting demo data as the signed-in user's data. The live inbox at `/live-inbox`
+uses the authenticated notification API; the prototype inbox remains separate.
+Notification-to-request navigation is deferred until live request details exist.
+Password recovery on the login screen directs the
 user to web until the real reset-link flow is implemented.
 The manager demo uses bottom tabs for assigned approvals, department-visible context,
 and the shared in-app inbox. The spending demo uses assigned decisions, session-only
@@ -45,7 +48,8 @@ subsequent steps are not simulated. Notifications describe historical events, wh
 request details show current status. All transitions are prototype assumptions to be
 replaced with the backend contract and enforced authorization.
 The authenticated software list is paginated and displays the backend's seven-day
-expiring flag. The old mock details route redirects to the list; it must not expose
+expiring flag. The dashboard supplies the overall expiring count; the filter explicitly
+applies only to the current page. The old mock details route redirects to the list; it must not expose
 invented accounts or keys as real data. Historical access, an all-pages expiring
 filter, and return workflows are not provided in this first live slice.
 The canonical employee request list URL is `/my-requests`; unknown request IDs
@@ -72,7 +76,8 @@ persistence, jobs, and financial/access decisions.
 app/
   _layout.tsx              root route/provider attachment
   index.tsx                thin route entry
-  inbox.tsx                in-app inbox handoff
+  inbox.tsx                prototype inbox handoff
+  live-inbox.tsx           authenticated inbox handoff
   my-software.tsx          employee software handoff
   manager.tsx              manager need-approval demo handoff
   spending-approvals.tsx   spending-approver demo handoff
@@ -81,7 +86,7 @@ src/
   providers/               application-wide framework providers
   features/
     auth/                   backend login and prototype password recovery
-    inbox/                  static in-app notifications
+    inbox/                  authenticated and prototype in-app notifications
     licenses/               employee software screens and models
     manager/                department need-approval demo presentation
     spending-approval/      per-item spending queue and budget snapshots
@@ -138,7 +143,9 @@ Concurrent reads share one refresh. The old refresh token is removed before rota
 if its result is lost, the app asks the user to sign in again rather than retrying a
 potentially consumed token. A failed server logout keeps the current session so the
 user can retry; successful logout clears the query cache and local token. The read
-boundary retries a 401 only for reads, not business mutations.
+boundary retries a 401 only for reads, not business mutations. Authenticated writes
+refresh an already expired token before sending, but never retry a sent operation.
+Inbox read updates invalidate both list and count even after an uncertain failure.
 
 Use an HTTPS API origin without credentials or a path in release builds. HTTP is
 allowed only in development for local emulators/devices; traffic and credentials

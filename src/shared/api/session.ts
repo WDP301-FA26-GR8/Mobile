@@ -180,6 +180,18 @@ export class Session {
     }
   }
 
+  async write<T>(operation: (accessToken: string) => Promise<T>): Promise<T> {
+    if (this.loggingOut) throw new SessionExpiredError()
+    const revision = this.revision
+    let tokens = this.tokens
+    if (!tokens) throw new SessionExpiredError()
+    if (Date.parse(tokens.expiresAt) <= Date.now()) tokens = await this.refresh(tokens.refreshToken)
+    if (this.revision !== revision || this.loggingOut) throw new SessionExpiredError()
+    const result = await operation(tokens.accessToken)
+    if (this.revision !== revision || this.loggingOut) throw new SessionExpiredError()
+    return result
+  }
+
   async logout(): Promise<void> {
     if (this.loggingOut) throw new Error('Logout already in progress')
     this.loggingOut = true

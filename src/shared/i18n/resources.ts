@@ -305,6 +305,33 @@ export const resources = {
         withinBudget: 'Within budget · reference only'
       },
       inbox: {
+        live: {
+          unreadCount: '{{formattedCount}} unread',
+          countUnavailable: 'Unread count unavailable',
+          countError: 'Could not load the unread count.',
+          markAll: 'Mark all as read',
+          markRead: 'Mark as read',
+          markNamed: 'Mark {{code}} as read',
+          loading: 'Loading notifications',
+          loadError: 'Could not load notifications. Please try again.',
+          writeError: 'Could not confirm the update. Check the inbox before trying again.',
+          empty: 'No notifications on this page.',
+          read: 'Read',
+          unread: 'Unread',
+          requestReference: 'Request: {{id}}',
+          unknown: 'Other update ({{code}})',
+          codes: {
+            REQUEST_SUBMITTED: 'Request submitted',
+            REQUEST_GRANTED: 'Access granted',
+            REQUEST_NEED_APPROVED: 'Need approved',
+            REQUEST_NEED_REJECTED: 'Need rejected',
+            REQUEST_SPEND_APPROVED: 'Spending approved',
+            REQUEST_SPEND_REJECTED: 'Spending rejected',
+            STEP_ASSIGNED: 'A workflow step needs your attention',
+            REQUEST_WITHDRAWN: 'Request withdrawn',
+            HANDOVER_REQUIRED: 'A data handover needs confirmation'
+          }
+        },
         approverEmpty: 'No demo notifications are available for this role yet.',
         demoNote: 'Demo notifications only · no push notifications',
         items: {
@@ -355,12 +382,22 @@ export const resources = {
       },
       licenses: {
         live: {
+          kicker: 'My workspace',
           description: 'Software rights held or starting later, from your account.',
           noDepartment: 'No department assigned',
           loading: 'Loading your account and software…',
           error: 'Could not load your information. Please check your connection and try again.',
           retry: 'Try again',
-          total: '{{count}} software rights',
+          total: '{{formattedCount}} rights',
+          expiringTotal: '{{formattedCount}} rights',
+          countUnavailable: 'Unavailable',
+          currentRights: 'Current and upcoming',
+          expiringLabel: 'Expiring within 7 days',
+          summaryError: 'The expiring total could not be loaded.',
+          unavailableHint: 'This feature is not connected yet.',
+          pageFilterNote: 'The expiring filter applies only to the current page. Use the page controls to see more.',
+          noExpiringPage: 'No expiring rights on this page.',
+          emptyHint: 'Your assigned software will appear here when available.',
           empty: 'You do not have any current software rights.',
           emptyPage: 'There are no rights on this page.',
           dateUnavailable: 'Invalid date returned by the server',
@@ -373,7 +410,7 @@ export const resources = {
           previous: 'Previous',
           next: 'Next',
           page: 'Page {{page}}',
-          otherFeatures: 'Requests, approvals and inbox are not connected to your account yet.',
+          otherFeatures: 'Requests and approvals are not connected to your account yet.',
           logout: 'Sign out',
           logoutError: 'Could not confirm sign out with the server. Check your connection and try again.',
           status: {
@@ -873,6 +910,33 @@ export const resources = {
         withinBudget: 'Trong hạn mức · chỉ để tham khảo'
       },
       inbox: {
+        live: {
+          unreadCount: '{{formattedCount}} thông báo chưa đọc',
+          countUnavailable: 'Chưa có số thông báo chưa đọc',
+          countError: 'Không thể tải số thông báo chưa đọc.',
+          markAll: 'Đánh dấu tất cả đã đọc',
+          markRead: 'Đánh dấu đã đọc',
+          markNamed: 'Đánh dấu đã đọc: {{code}}',
+          loading: 'Đang tải thông báo',
+          loadError: 'Không thể tải thông báo. Vui lòng thử lại.',
+          writeError: 'Chưa thể xác nhận kết quả. Hãy kiểm tra hộp thư trước khi thử lại.',
+          empty: 'Không có thông báo trên trang này.',
+          read: 'Đã đọc',
+          unread: 'Chưa đọc',
+          requestReference: 'Mã yêu cầu: {{id}}',
+          unknown: 'Cập nhật khác ({{code}})',
+          codes: {
+            REQUEST_SUBMITTED: 'Yêu cầu đã được gửi',
+            REQUEST_GRANTED: 'Đã cấp quyền sử dụng',
+            REQUEST_NEED_APPROVED: 'Nhu cầu đã được duyệt',
+            REQUEST_NEED_REJECTED: 'Nhu cầu đã bị từ chối',
+            REQUEST_SPEND_APPROVED: 'Đề nghị chi đã được duyệt',
+            REQUEST_SPEND_REJECTED: 'Đề nghị chi đã bị từ chối',
+            STEP_ASSIGNED: 'Có bước xử lý được giao cho bạn',
+            REQUEST_WITHDRAWN: 'Yêu cầu đã được rút',
+            HANDOVER_REQUIRED: 'Cần xác nhận bàn giao dữ liệu'
+          }
+        },
         approverEmpty: 'Chưa có thông báo demo cho vai trò này.',
         demoNote: 'Thông báo giả lập · không có thông báo đẩy',
         items: {
@@ -923,12 +987,22 @@ export const resources = {
       },
       licenses: {
         live: {
+          kicker: 'Không gian của tôi',
           description: 'Quyền phần mềm hiện có hoặc sắp bắt đầu của tài khoản bạn.',
           noDepartment: 'Chưa có phòng ban',
           loading: 'Đang tải tài khoản và phần mềm…',
           error: 'Không thể tải thông tin. Vui lòng kiểm tra kết nối và thử lại.',
           retry: 'Thử lại',
-          total: '{{count}} quyền phần mềm',
+          total: '{{formattedCount}} quyền',
+          expiringTotal: '{{formattedCount}} quyền',
+          countUnavailable: 'Chưa có dữ liệu',
+          currentRights: 'Hiện có và sắp bắt đầu',
+          expiringLabel: 'Sắp hết hạn trong 7 ngày',
+          summaryError: 'Không thể tải tổng số quyền sắp hết hạn.',
+          unavailableHint: 'Tính năng này chưa được kết nối.',
+          pageFilterNote: 'Bộ lọc chỉ áp dụng cho trang hiện tại. Chuyển trang để xem thêm.',
+          noExpiringPage: 'Không có quyền sắp hết hạn trên trang này.',
+          emptyHint: 'Phần mềm được cấp sẽ xuất hiện tại đây khi có dữ liệu.',
           empty: 'Bạn chưa có quyền phần mềm hiện tại.',
           emptyPage: 'Không có quyền phần mềm trên trang này.',
           dateUnavailable: 'Ngày không hợp lệ từ máy chủ',
@@ -941,7 +1015,7 @@ export const resources = {
           previous: 'Trang trước',
           next: 'Trang sau',
           page: 'Trang {{page}}',
-          otherFeatures: 'Yêu cầu, duyệt và thông báo chưa được kết nối với tài khoản của bạn.',
+          otherFeatures: 'Yêu cầu và duyệt chưa được kết nối với tài khoản của bạn.',
           logout: 'Đăng xuất',
           logoutError: 'Chưa thể xác nhận đăng xuất với máy chủ. Vui lòng kiểm tra kết nối và thử lại.',
           status: {

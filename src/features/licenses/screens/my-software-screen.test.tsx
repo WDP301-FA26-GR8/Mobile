@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, waitFor } from '@testing-library/react-native'
 
 import { MySoftwareScreen } from '@/features/licenses'
+import { employeeDashboardGet } from '@/shared/api/generated/api/dashboards/dashboards'
 import { meGet, meSoftwareRightList } from '@/shared/api/generated/api/me/me'
 import { setAppLanguage } from '@/shared/i18n/i18n'
 
@@ -12,9 +13,11 @@ const mockSession = {
   read: <T,>(operation: (token: string) => Promise<T>) => operation('test-token')
 }
 
-jest.mock('expo-router', () => ({ Redirect: () => null }))
+const mockPush = jest.fn()
+jest.mock('expo-router', () => ({ Redirect: () => null, useRouter: () => ({ push: mockPush }) }))
 jest.mock('@/shared/api/session-context', () => ({ useSession: () => mockSession }))
 jest.mock('@/shared/api/generated/api/me/me', () => ({ meGet: jest.fn(), meSoftwareRightList: jest.fn() }))
+jest.mock('@/shared/api/generated/api/dashboards/dashboards', () => ({ employeeDashboardGet: jest.fn() }))
 
 function renderScreen() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
@@ -29,6 +32,19 @@ beforeEach(async () => {
   await setAppLanguage('vi', false)
   jest.clearAllMocks()
   mockSession.state = 'authenticated'
+  const counted = { state: 'COUNTED' as const, count: 0, sourceOperationId: 'meSoftwareRightList', reason: null }
+  jest.mocked(employeeDashboardGet).mockResolvedValue({
+    status: 200,
+    headers: new Headers(),
+    data: {
+      success: true,
+      message: 'DASHBOARD.EMPLOYEE_RETRIEVED',
+      data: {
+        asOf: '2026-11-09',
+        sections: { softwareRights: counted, expiringRights: counted, requests: counted, saasIssues: counted }
+      }
+    }
+  })
   jest.mocked(meGet).mockResolvedValue({
     status: 200,
     headers: new Headers(),
@@ -88,11 +104,69 @@ test('shows only server account and rights, without invented license keys', asyn
   screen.getByText('Nguyễn An')
   screen.getByText('Gói: Professional')
   screen.getByText('Đang hoạt động')
+  screen.getByText('0 quyền')
+  screen.getByText('1 quyền')
+  expect(screen.queryByText('Không gian nhân viên · demo')).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Trang trước' })).toBeNull()
+  expect(screen.getByRole('tab', { name: 'Mở mục Tạo yêu cầu' }).props.accessibilityState.disabled).toBe(true)
+  await fireEvent.press(screen.getByRole('button', { name: 'Mở mục Thông báo' }))
+  expect(mockPush).toHaveBeenCalledWith('/live-inbox')
   expect(screen.queryByText(/FIG-PRO/)).toBeNull()
   expect(meSoftwareRightList).toHaveBeenCalledWith(
     { view: 'current', page: 1, pageSize: 20 },
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
+})
+
+test('filters the current page and explains the filter scope', async () => {
+  const screen = await renderScreen()
+  await screen.findByText('Figma')
+  await fireEvent.press(screen.getByRole('button', { name: 'Sắp hết hạn' }))
+  screen.getByText('Bộ lọc chỉ áp dụng cho trang hiện tại. Chuyển trang để xem thêm.')
+  screen.getByText('Không có quyền sắp hết hạn trên trang này.')
+  expect(screen.queryByText('Figma')).toBeNull()
+  await fireEvent.press(screen.getByRole('button', { name: 'Tất cả' }))
+  screen.getByText('Figma')
+})
+
+test('shows unavailable rather than a fabricated total when the dashboard fails', async () => {
+  jest.mocked(employeeDashboardGet).mockRejectedValueOnce(new Error('offline'))
+  const screen = await renderScreen()
+  await screen.findByText('Không thể tải tổng số quyền sắp hết hạn.')
+  screen.getByText('Chưa có dữ liệu')
+  expect(screen.queryByText('0 quyền')).toBeNull()
+  await fireEvent.press(screen.getByRole('button', { name: /Không thể tải tổng số quyền sắp hết hạn/ }))
+  await screen.findByText('0 quyền')
+})
+
+test('does not present an unavailable dashboard section as zero', async () => {
+  const response = await jest.mocked(employeeDashboardGet)()
+  if (!response.data.data) throw new Error('Expected dashboard data')
+  jest.mocked(employeeDashboardGet).mockResolvedValue({
+    ...response,
+    data: {
+      ...response.data,
+      data: {
+        ...response.data.data,
+        sections: {
+          ...response.data.data.sections,
+          expiringRights: { state: 'NOT_AVAILABLE', count: null, sourceOperationId: null, reason: 'NO_DATA_SOURCE' }
+        }
+      }
+    }
+  })
+  const screen = await renderScreen()
+  await screen.findByText('Figma')
+  await screen.findByText('Chưa có dữ liệu')
+  expect(screen.queryByText('0 quyền')).toBeNull()
+})
+
+test('shows live software and unavailable navigation in English', async () => {
+  await setAppLanguage('en', false)
+  const screen = await renderScreen()
+  await screen.findByText('Figma')
+  screen.getByText('My workspace')
+  expect(screen.getByRole('tab', { name: 'Open Requests' }).props.accessibilityState.disabled).toBe(true)
 })
 
 test('shows errors and retries without falling back to mock data', async () => {
@@ -141,4 +215,12 @@ test('reports failed server logout without claiming success', async () => {
   await waitFor(() =>
     screen.getByText('Chưa thể xác nhận đăng xuất với máy chủ. Vui lòng kiểm tra kết nối và thử lại.')
   )
+})
+
+test('allows sign out when the profile cannot be loaded', async () => {
+  jest.mocked(meGet).mockRejectedValueOnce(new Error('offline'))
+  const screen = await renderScreen()
+  await screen.findByText('Không thể tải thông tin. Vui lòng kiểm tra kết nối và thử lại.')
+  await fireEvent.press(screen.getByRole('button', { name: 'Đăng xuất' }))
+  expect(mockLogout).toHaveBeenCalledTimes(1)
 })

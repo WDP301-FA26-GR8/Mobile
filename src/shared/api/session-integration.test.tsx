@@ -76,6 +76,20 @@ test('signs in, loads account rights with bearer auth, and logs out', async () =
         { status: 200 }
       )
     }
+    if (url.endsWith('/dashboards/employee')) {
+      const counted = { state: 'COUNTED', count: 0, sourceOperationId: 'meSoftwareRightList', reason: null }
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'DASHBOARD.EMPLOYEE_RETRIEVED',
+          data: {
+            asOf: '2026-11-09',
+            sections: { softwareRights: counted, expiringRights: counted, requests: counted, saasIssues: counted }
+          }
+        }),
+        { status: 200 }
+      )
+    }
     if (url.includes('/me/software-rights')) {
       return new Response(
         JSON.stringify({
@@ -112,7 +126,7 @@ test('signs in, loads account rights with bearer auth, and logs out', async () =
   await waitFor(() => screen.getByLabelText('Email công ty'))
   expect(mockStoredToken).toBeNull()
   expect(client.getQueryCache().getAll()).toHaveLength(0)
-  expect(fetchMock).toHaveBeenCalledTimes(4)
+  expect(fetchMock).toHaveBeenCalledTimes(5)
   screen.unmount()
   client.clear()
   fetchMock.mockRestore()

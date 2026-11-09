@@ -10,8 +10,10 @@ export interface MobileTab {
   icon: FeatherIconName
   id: string
   label: string
-  onPress: () => void
+  onPress?: () => void
   selected: boolean
+  disabled?: boolean
+  accessibilityHint?: string
 }
 
 interface MobileTabBarProps {
@@ -25,11 +27,13 @@ export function MobileTabBar({ accessibilityLabel, tabs }: MobileTabBarProps) {
       {tabs.map((tab) => (
         <Pressable
           accessibilityLabel={tab.accessibilityLabel}
+          accessibilityHint={tab.accessibilityHint}
           accessibilityRole='tab'
-          accessibilityState={{ selected: tab.selected }}
+          accessibilityState={{ selected: tab.selected, disabled: tab.disabled }}
+          disabled={tab.disabled}
           key={tab.id}
           onPress={tab.onPress}
-          style={styles.tab}
+          style={[styles.tab, tab.disabled && styles.tabDisabled]}
         >
           <View style={[styles.iconContainer, tab.selected && styles.iconContainerSelected]}>
             <Feather
@@ -84,5 +88,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     minHeight: 50
+  },
+  tabDisabled: {
+    opacity: 0.5
   }
 })

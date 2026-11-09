@@ -134,3 +134,12 @@ test('rejects a late response after sign out', async () => {
   finish('private data')
   await expect(pending).rejects.toBeInstanceOf(SessionExpiredError)
 })
+
+test('does not retry mutations when the server returns 401', async () => {
+  const { session, api } = setup()
+  await session.login('person@example.test', 'password')
+  const operation = jest.fn(async () => Promise.reject({ status: 401 }))
+  await expect(session.write(operation)).rejects.toEqual({ status: 401 })
+  expect(operation).toHaveBeenCalledTimes(1)
+  expect(api.refresh).not.toHaveBeenCalled()
+})
