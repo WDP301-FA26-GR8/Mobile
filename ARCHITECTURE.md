@@ -15,7 +15,8 @@ Push notifications, offline mode, biometrics, file downloads, phone usage
 collection, and IT Admin/Finance/Super Admin workflows are outside mobile scope.
 The committed OpenAPI snapshot contains the backend's business operations. Login,
 the signed-in account, personal software, inbox and employee requests use the backend.
-Manager need-approval and spending-approval remain prototype screens. Their decisions are stored only in the current app session
+The live need-approval queue supports assigned individual grants; spending-approval
+and the original manager screens remain prototypes. Prototype decisions are stored only in the current app session
 and are not submitted to a backend. Contract availability alone does not resolve
 the differences between the current backend and newer proposed business decisions.
 Manager and spending demos have separate direct route entry points; there is no
@@ -33,6 +34,13 @@ available, and displays the returned status rather than assuming immediate withd
 Writes are never automatically retried; an uncertain result requires checking the list
 before trying again. The backend has no client-provided idempotency key in this contract,
 so this cannot guarantee prevention of duplicate submissions across navigation/restarts.
+The authenticated landing links to `/live-need-approvals`; the queue is filtered by
+the backend to the caller's assigned GRANT steps, including spending/fallback deciders.
+Group, renewal, service-account and department-wide views are not implemented. Decisions
+are confirmed explicitly, rejection requires a reason, and approvals for terms over
+12 months are blocked because the documented confirmation is absent from the payload.
+Backend authorization and stale-state checks remain authoritative. Failed or uncertain
+decisions are never retried automatically and require checking the refreshed queue.
 Password recovery on the login screen directs the
 user to web until the real reset-link flow is implemented.
 The manager demo uses bottom tabs for assigned approvals, department-visible context,
@@ -87,6 +95,7 @@ app/
   live-inbox.tsx           authenticated inbox handoff
   live-requests.tsx        authenticated request list handoff
   live-request-create.tsx  authenticated individual request handoff
+  live-need-approvals.tsx  authenticated need approval handoff
   live-requests/           authenticated request detail handoff
   my-software.tsx          employee software handoff
   manager.tsx              manager need-approval demo handoff

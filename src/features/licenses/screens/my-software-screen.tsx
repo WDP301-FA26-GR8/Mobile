@@ -100,6 +100,21 @@ export function MySoftwareScreen() {
               {t('licenses.screenTitle')}
             </Text>
             <Text style={styles.subtitle}>{t('licenses.live.description')}</Text>
+            <Pressable
+              accessibilityRole='button'
+              accessibilityLabel={t('manager.live.openQueue')}
+              onPress={() => router.push('/live-need-approvals')}
+              style={styles.approvalsLink}
+            >
+              <Feather
+                accessibilityElementsHidden
+                importantForAccessibility='no'
+                name='check-square'
+                size={16}
+                color={mobileColors.primaryInk}
+              />
+              <Text style={styles.buttonText}>{t('manager.live.openQueue')}</Text>
+            </Pressable>
           </View>
 
           <View style={styles.summary}>
@@ -318,6 +333,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   heading: { gap: 5, paddingHorizontal: 2 },
+  approvalsLink: { minHeight: 44, flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 8 },
   kicker: {
     color: mobileColors.primaryInk,
     fontSize: 10,
