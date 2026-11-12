@@ -5,13 +5,16 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useSession } from '@/shared/api/session-context'
 import { goBackOr } from '@/shared/lib/go-back-or'
-import { mobileColors } from '@/shared/theme/colors'
+import type { MobileColors } from '@/shared/theme/colors'
+import { useMobileTheme } from '@/shared/theme/theme-provider'
 
 import { LiveRequestStatus } from '../components/live-request-status'
 import { LiveRequestType } from '../components/live-request-type'
 import { useLiveRequest } from '../hooks/use-live-requests'
 
 export function LiveRequestDetailsScreen({ requestId }: { requestId: string }) {
+  const { colors: mobileColors } = useMobileTheme()
+  const styles = createStyles(mobileColors)
   const { t, i18n } = useTranslation()
   const session = useSession()
   const router = useRouter()
@@ -121,23 +124,24 @@ export function LiveRequestDetailsScreen({ requestId }: { requestId: string }) {
   )
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: mobileColors.background },
-  content: { padding: 16, paddingBottom: 24, gap: 14 },
-  action: { minHeight: 44, alignSelf: 'flex-start', justifyContent: 'center' },
-  actionText: { color: mobileColors.primaryInk, fontWeight: '700' },
-  title: { color: mobileColors.foreground, fontSize: 25, fontWeight: '700' },
-  card: {
-    backgroundColor: mobileColors.white,
-    borderColor: mobileColors.border,
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
-    gap: 8
-  },
-  name: { color: mobileColors.foreground, fontSize: 18, fontWeight: '700' },
-  label: { color: mobileColors.muted, fontSize: 12, marginTop: 6 },
-  value: { color: mobileColors.foreground, fontSize: 14, lineHeight: 20 },
-  muted: { color: mobileColors.muted, fontSize: 13, lineHeight: 19 },
-  error: { color: mobileColors.danger, fontSize: 13 }
-})
+const createStyles = (mobileColors: MobileColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: mobileColors.background },
+    content: { padding: 16, paddingBottom: 24, gap: 14 },
+    action: { minHeight: 44, alignSelf: 'flex-start', justifyContent: 'center' },
+    actionText: { color: mobileColors.primaryInk, fontWeight: '700' },
+    title: { color: mobileColors.foreground, fontSize: 25, fontWeight: '700' },
+    card: {
+      backgroundColor: mobileColors.white,
+      borderColor: mobileColors.border,
+      borderWidth: 1,
+      borderRadius: 16,
+      padding: 16,
+      gap: 8
+    },
+    name: { color: mobileColors.foreground, fontSize: 18, fontWeight: '700' },
+    label: { color: mobileColors.muted, fontSize: 12, marginTop: 6 },
+    value: { color: mobileColors.foreground, fontSize: 14, lineHeight: 20 },
+    muted: { color: mobileColors.muted, fontSize: 13, lineHeight: 19 },
+    error: { color: mobileColors.danger, fontSize: 13 }
+  })

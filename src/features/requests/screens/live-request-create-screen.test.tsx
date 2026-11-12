@@ -157,6 +157,50 @@ test('loads catalog errors and retries', async () => {
   await waitFor(() => screen.getByText('Figma'))
 })
 
+test('navigates between employee tabs and confirms before discarding entered details', async () => {
+  const screen = await renderScreen()
+  await screen.findByText('Figma')
+  expect(screen.getByRole('tab', { name: 'Mở mục Tạo yêu cầu' }).props.accessibilityState.selected).toBe(true)
+  await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Phần mềm' }))
+  expect(mockRouter.replace).toHaveBeenCalledWith('/my-software')
+
+  jest.clearAllMocks()
+  await fireEvent.press(screen.getByRole('button', { name: 'Chọn Figma, Pro' }))
+  await fireEvent.changeText(screen.getByLabelText('Lý do nghiệp vụ (bắt buộc)'), 'Thiết kế')
+  await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Thông báo' }))
+  screen.getByText('Gói đã chọn và thông tin bạn nhập sẽ không được lưu.')
+  expect(mockRouter.replace).not.toHaveBeenCalled()
+  await fireEvent.press(screen.getByRole('button', { name: 'Tiếp tục chỉnh sửa' }))
+  expect(screen.getByLabelText('Lý do nghiệp vụ (bắt buộc)').props.value).toBe('Thiết kế')
+  await fireEvent.press(screen.getByRole('button', { name: 'Quay lại yêu cầu' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Rời yêu cầu' }))
+  expect(mockRouter.replace).toHaveBeenCalledWith('/live-requests')
+})
+
+test('disables tab navigation while submitting', async () => {
+  let rejectSubmit: (error: Error) => void = () => {
+    throw new Error('Submission was not started')
+  }
+  jest.mocked(accessRequestSubmit).mockImplementationOnce(
+    () =>
+      new Promise((_, reject) => {
+        rejectSubmit = reject
+      })
+  )
+  const screen = await renderScreen()
+  await screen.findByText('Figma')
+  await fireEvent.press(screen.getByRole('button', { name: 'Chọn Figma, Pro' }))
+  await fireEvent.changeText(screen.getByLabelText('Lý do nghiệp vụ (bắt buộc)'), 'Thiết kế')
+  await fireEvent.press(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }))
+  await screen.findByText('Có thể gửi yêu cầu. Máy chủ sẽ kiểm tra lại khi gửi.')
+  await fireEvent.press(screen.getByRole('button', { name: 'Gửi yêu cầu' }))
+  await waitFor(() =>
+    expect(screen.getByRole('tab', { name: 'Mở mục Thông báo' }).props.accessibilityState.disabled).toBe(true)
+  )
+  rejectSubmit(new Error('offline'))
+  await screen.findByText('Chưa thể xác nhận kết quả. Hãy kiểm tra danh sách yêu cầu trước khi gửi lại để tránh trùng.')
+})
+
 test('navigates to the created request after successful submission', async () => {
   jest.mocked(accessRequestSubmit).mockResolvedValueOnce({
     status: 201,

@@ -7,7 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useSession } from '@/shared/api/session-context'
 import { goBackOr } from '@/shared/lib/go-back-or'
-import { mobileColors } from '@/shared/theme/colors'
+import type { MobileColors } from '@/shared/theme/colors'
+import { useMobileTheme } from '@/shared/theme/theme-provider'
 import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 
 import { LiveRequestStatus } from '../components/live-request-status'
@@ -16,6 +17,8 @@ import { useLiveRequests } from '../hooks/use-live-requests'
 import { useLiveWithdraw } from '../hooks/use-live-withdraw'
 
 export function LiveRequestsScreen() {
+  const { colors: mobileColors } = useMobileTheme()
+  const styles = createStyles(mobileColors)
   const { t, i18n } = useTranslation()
   const router = useRouter()
   const session = useSession()
@@ -152,6 +155,15 @@ export function LiveRequestsScreen() {
                   }
                 >
                   <View style={styles.row}>
+                    <View style={styles.itemIcon}>
+                      <Feather
+                        accessibilityElementsHidden
+                        importantForAccessibility='no'
+                        name='file-text'
+                        size={19}
+                        color={mobileColors.primaryInk}
+                      />
+                    </View>
                     <Text style={styles.itemTitle}>{name}</Text>
                     <Feather
                       accessibilityElementsHidden
@@ -256,47 +268,62 @@ export function LiveRequestsScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: mobileColors.background },
-  screen: { flex: 1 },
-  content: { padding: 16, paddingBottom: 24, gap: 14 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  heading: { flex: 1, gap: 5 },
-  kicker: {
-    color: mobileColors.primaryInk,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1,
-    textTransform: 'uppercase'
-  },
-  title: { color: mobileColors.foreground, fontSize: 25, fontWeight: '700' },
-  muted: { color: mobileColors.muted, fontSize: 13, lineHeight: 19 },
-  icon: {
-    width: 44,
-    height: 44,
-    borderRadius: 16,
-    backgroundColor: mobileColors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  filters: { alignSelf: 'flex-start', flexDirection: 'row', backgroundColor: '#f6eee6', padding: 4, borderRadius: 14 },
-  filter: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 15, borderRadius: 12 },
-  selected: { backgroundColor: mobileColors.primary },
-  filterText: { color: mobileColors.muted, fontWeight: '600', fontSize: 12 },
-  selectedText: { color: mobileColors.white },
-  card: {
-    backgroundColor: mobileColors.white,
-    borderColor: mobileColors.border,
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
-    gap: 9
-  },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  itemTitle: { flex: 1, color: mobileColors.foreground, fontWeight: '700', fontSize: 16 },
-  error: { color: mobileColors.danger, fontSize: 13 },
-  action: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 8, alignSelf: 'flex-start' },
-  actionText: { color: mobileColors.primaryInk, fontWeight: '700' },
-  disabled: { opacity: 0.4 },
-  pagination: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }
-})
+const createStyles = (mobileColors: MobileColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: mobileColors.background },
+    screen: { flex: 1 },
+    content: { padding: 16, paddingBottom: 24, gap: 14 },
+    header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    heading: { flex: 1, gap: 5 },
+    kicker: {
+      color: mobileColors.primaryInk,
+      fontSize: 10,
+      fontWeight: '700',
+      letterSpacing: 1,
+      textTransform: 'uppercase'
+    },
+    title: { color: mobileColors.foreground, fontSize: 25, fontWeight: '700' },
+    muted: { color: mobileColors.muted, fontSize: 13, lineHeight: 19 },
+    icon: {
+      width: 44,
+      height: 44,
+      borderRadius: 16,
+      backgroundColor: mobileColors.primarySoft,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    filters: {
+      alignSelf: 'flex-start',
+      flexDirection: 'row',
+      backgroundColor: mobileColors.surfaceSubtle,
+      padding: 4,
+      borderRadius: 14
+    },
+    filter: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 15, borderRadius: 12 },
+    selected: { backgroundColor: mobileColors.primary },
+    filterText: { color: mobileColors.muted, fontWeight: '600', fontSize: 12 },
+    selectedText: { color: mobileColors.onPrimary },
+    card: {
+      backgroundColor: mobileColors.white,
+      borderColor: mobileColors.border,
+      borderWidth: 1,
+      borderRadius: 16,
+      padding: 16,
+      gap: 9
+    },
+    row: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 },
+    itemIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: mobileColors.primarySoft
+    },
+    itemTitle: { flex: 1, color: mobileColors.foreground, fontWeight: '700', fontSize: 16 },
+    error: { color: mobileColors.danger, fontSize: 13 },
+    action: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 8, alignSelf: 'flex-start' },
+    actionText: { color: mobileColors.primaryInk, fontWeight: '700' },
+    disabled: { opacity: 0.4 },
+    pagination: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }
+  })

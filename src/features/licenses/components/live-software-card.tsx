@@ -4,9 +4,12 @@ import { StyleSheet, Text, View } from 'react-native'
 
 import type { MySoftwarePageResponseDtoDataItemsItem } from '@/shared/api/generated/contracts/me'
 import { MySoftwarePageResponseDtoDataItemsItemStatus } from '@/shared/api/generated/contracts/me'
-import { mobileColors } from '@/shared/theme/colors'
+import type { MobileColors } from '@/shared/theme/colors'
+import { useMobileTheme } from '@/shared/theme/theme-provider'
 
 export function LiveSoftwareCard({ item }: { item: MySoftwarePageResponseDtoDataItemsItem }) {
+  const { colors: mobileColors } = useMobileTheme()
+  const styles = createStyles(mobileColors)
   const { t, i18n } = useTranslation()
   const status = Object.values(MySoftwarePageResponseDtoDataItemsItemStatus).includes(item.status)
     ? t(`licenses.live.status.${item.status}`)
@@ -27,7 +30,7 @@ export function LiveSoftwareCard({ item }: { item: MySoftwarePageResponseDtoData
             importantForAccessibility='no'
             name='box'
             size={20}
-            color={mobileColors.white}
+            color={mobileColors.onPrimary}
           />
         </View>
         <View style={styles.copy}>
@@ -64,32 +67,39 @@ export function LiveSoftwareCard({ item }: { item: MySoftwarePageResponseDtoData
   )
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: mobileColors.surface,
-    borderColor: mobileColors.border,
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 12,
-    gap: 10
-  },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  icon: {
-    backgroundColor: mobileColors.primary,
-    borderRadius: 14,
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  copy: { flex: 1, minWidth: 0 },
-  name: { color: mobileColors.foreground, fontSize: 14, fontWeight: '700' },
-  secondary: { color: mobileColors.muted, fontSize: 12, lineHeight: 18 },
-  badge: { backgroundColor: '#e5f7ef', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 5, maxWidth: '36%' },
-  badgeWarning: { backgroundColor: mobileColors.warningBackground },
-  badgeNeutral: { backgroundColor: mobileColors.border },
-  badgeText: { color: mobileColors.success, fontSize: 10, fontWeight: '600' },
-  neutralText: { color: mobileColors.muted },
-  warningText: { color: mobileColors.warning, fontSize: 12 },
-  details: { gap: 2, paddingLeft: 54 }
-})
+const createStyles = (mobileColors: MobileColors) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: mobileColors.surface,
+      borderColor: mobileColors.border,
+      borderWidth: 1,
+      borderRadius: 18,
+      padding: 16,
+      gap: 14
+    },
+    row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    icon: {
+      backgroundColor: mobileColors.primary,
+      borderRadius: 14,
+      width: 44,
+      height: 44,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    copy: { flex: 1, minWidth: 0 },
+    name: { color: mobileColors.foreground, fontSize: 16, fontWeight: '700' },
+    secondary: { color: mobileColors.muted, fontSize: 13, lineHeight: 20 },
+    badge: {
+      backgroundColor: mobileColors.surfaceSubtle,
+      borderRadius: 999,
+      paddingHorizontal: 8,
+      paddingVertical: 5,
+      maxWidth: '36%'
+    },
+    badgeWarning: { backgroundColor: mobileColors.warningBackground },
+    badgeNeutral: { backgroundColor: mobileColors.border },
+    badgeText: { color: mobileColors.success, fontSize: 12, fontWeight: '700' },
+    neutralText: { color: mobileColors.muted },
+    warningText: { color: mobileColors.warning, fontSize: 12 },
+    details: { gap: 4, paddingTop: 12, borderTopWidth: 1, borderTopColor: mobileColors.border }
+  })

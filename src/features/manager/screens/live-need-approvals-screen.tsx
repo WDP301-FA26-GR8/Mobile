@@ -9,13 +9,17 @@ import { LiveInboxScreen } from '@/features/inbox'
 import type { NeedQueueResponseDtoDataItemsItem } from '@/shared/api/generated/contracts/need-decisions'
 import { useSession } from '@/shared/api/session-context'
 import { useAccountProfile } from '@/shared/api/use-account-profile'
-import { mobileColors } from '@/shared/theme/colors'
+import type { MobileColors } from '@/shared/theme/colors'
+import { useMobileTheme } from '@/shared/theme/theme-provider'
+import { ThemeSwitch } from '@/shared/ui/theme-switch'
 
 import { ManagerLiveTabs } from '../components/manager-live-tabs'
 import { SimilarSeats } from '../components/similar-seats'
 import { useLiveNeedApprovals } from '../hooks/use-live-need-approvals'
 
 export function LiveNeedApprovalsScreen() {
+  const { colors: mobileColors } = useMobileTheme()
+  const styles = createStyles(mobileColors)
   const { t, i18n } = useTranslation()
   const router = useRouter()
   const session = useSession()
@@ -101,19 +105,21 @@ export function LiveNeedApprovalsScreen() {
                 </Text>
               </View>
               <View style={styles.headingCopy}>
-                <View style={styles.row}>
-                  <Text style={styles.name}>{profile.data.employee.fullName}</Text>
-                  <Text style={styles.role}>{t('manager.live.role')}</Text>
-                </View>
+                <Text style={styles.name}>{profile.data.employee.fullName}</Text>
                 <Text style={styles.muted}>
                   {profile.data.managerScope?.departmentName ?? t('licenses.live.noDepartment')}
                 </Text>
               </View>
+              <ThemeSwitch />
+            </View>
+          ) : null}
+          {!selected && isManager && profile.data ? (
+            <View style={styles.profileActions}>
               <Pressable
                 accessibilityRole='button'
                 accessibilityLabel={t('manager.live.personal')}
                 onPress={() => router.push('/my-software')}
-                style={styles.iconButton}
+                style={styles.personalButton}
               >
                 <Feather
                   accessibilityElementsHidden
@@ -122,6 +128,7 @@ export function LiveNeedApprovalsScreen() {
                   size={18}
                   color={mobileColors.primaryInk}
                 />
+                <Text style={styles.personalLabel}>{t('manager.live.personal')}</Text>
               </Pressable>
               <Pressable
                 accessibilityRole='button'
@@ -135,20 +142,6 @@ export function LiveNeedApprovalsScreen() {
                   accessibilityElementsHidden
                   importantForAccessibility='no'
                   name='log-out'
-                  size={18}
-                  color={mobileColors.primaryInk}
-                />
-              </Pressable>
-              <Pressable
-                accessibilityRole='button'
-                accessibilityLabel={t('navigation.openTab', { tab: t('navigation.inbox') })}
-                onPress={() => selectTab('inbox')}
-                style={styles.iconButton}
-              >
-                <Feather
-                  accessibilityElementsHidden
-                  importantForAccessibility='no'
-                  name='bell'
                   size={18}
                   color={mobileColors.primaryInk}
                 />
@@ -210,7 +203,7 @@ export function LiveNeedApprovalsScreen() {
                 <Text accessibilityRole='header' style={styles.title}>
                   {selected ? t('manager.live.details') : t('manager.live.title')}
                 </Text>
-                <Text style={styles.muted}>{t('manager.live.scope')}</Text>
+                <Text style={[styles.muted, styles.heroSubtitle]}>{t('manager.live.scope')}</Text>
               </View>
               <View style={styles.icon}>
                 <Feather
@@ -258,14 +251,19 @@ export function LiveNeedApprovalsScreen() {
               {hasScope && queue.data ? (
                 <View style={styles.summaryRow}>
                   <View style={styles.summaryCard}>
-                    <Text style={styles.muted}>{t('manager.live.assignedLabel')}</Text>
+                    <View style={styles.summaryHeading}>
+                      <Feather
+                        accessibilityElementsHidden
+                        importantForAccessibility='no'
+                        name='inbox'
+                        size={18}
+                        color={mobileColors.primaryInk}
+                      />
+                      <Text style={styles.summaryLabel}>{t('manager.live.assignedLabel')}</Text>
+                    </View>
                     <Text style={styles.summaryCount}>
                       {new Intl.NumberFormat(i18n.language).format(queue.data.pagination.totalItems)}
                     </Text>
-                  </View>
-                  <View style={styles.summaryCard}>
-                    <Text style={styles.muted}>{t('manager.live.urgentUnavailable')}</Text>
-                    <Text style={styles.muted}>{t('manager.live.urgentHint')}</Text>
                   </View>
                 </View>
               ) : null}
@@ -523,116 +521,138 @@ function formatCost(value: { amount: string; currency: string } | null, locale: 
   }).format(Number(value.amount))
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: mobileColors.background },
-  screen: { flex: 1 },
-  profile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 9,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: mobileColors.border
-  },
-  role: { color: mobileColors.primary, fontSize: 10, fontWeight: '700' },
-  iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: mobileColors.border,
-    backgroundColor: mobileColors.white,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  review: { color: mobileColors.primary, fontWeight: '700', fontSize: 12 },
-  reviewRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 5 },
-  summaryRow: { flexDirection: 'row', gap: 10 },
-  content: { padding: 16, paddingBottom: 30, gap: 14 },
-  action: { minHeight: 44, alignSelf: 'flex-start', justifyContent: 'center' },
-  link: { color: mobileColors.primaryInk, fontWeight: '700' },
-  heading: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  headingCopy: { flex: 1, gap: 5 },
-  kicker: {
-    color: mobileColors.primaryInk,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1,
-    textTransform: 'uppercase'
-  },
-  title: { color: mobileColors.foreground, fontSize: 25, fontWeight: '700' },
-  icon: {
-    width: 44,
-    height: 44,
-    borderRadius: 16,
-    backgroundColor: mobileColors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  card: {
-    backgroundColor: mobileColors.white,
-    borderColor: mobileColors.border,
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
-    gap: 9
-  },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  avatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: mobileColors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  avatarText: { color: mobileColors.primaryInk, fontWeight: '700' },
-  divider: { height: 1, backgroundColor: mobileColors.border },
-  name: { color: mobileColors.foreground, fontSize: 16, fontWeight: '700', flexShrink: 1 },
-  summaryCard: {
-    flex: 1,
-    backgroundColor: mobileColors.white,
-    borderColor: mobileColors.border,
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
-    gap: 5
-  },
-  summaryCount: { color: mobileColors.foreground, fontSize: 24, fontWeight: '700' },
-  label: { color: mobileColors.muted, fontSize: 12, marginTop: 4 },
-  value: { color: mobileColors.foreground, fontSize: 14, lineHeight: 20 },
-  muted: { color: mobileColors.muted, fontSize: 13, lineHeight: 19 },
-  error: { color: mobileColors.danger, fontSize: 13, lineHeight: 19 },
-  success: { color: mobileColors.success, fontSize: 13, lineHeight: 19 },
-  pagination: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
-  outline: {
-    minHeight: 48,
-    borderWidth: 1,
-    borderColor: mobileColors.border,
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  primary: {
-    minHeight: 48,
-    backgroundColor: mobileColors.primary,
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  primaryText: { color: mobileColors.white, fontWeight: '700' },
-  disabled: { opacity: 0.4 },
-  input: {
-    minHeight: 90,
-    borderColor: mobileColors.border,
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
-    color: mobileColors.foreground,
-    textAlignVertical: 'top'
-  },
-  confirm: { borderTopWidth: 1, borderTopColor: mobileColors.border, paddingTop: 12, gap: 10 }
-})
+const createStyles = (mobileColors: MobileColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: mobileColors.background },
+    screen: { flex: 1 },
+    profile: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 9,
+      paddingBottom: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: mobileColors.border
+    },
+    profileActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    personalButton: {
+      flex: 1,
+      minHeight: 44,
+      paddingHorizontal: 14,
+      borderRadius: 14,
+      backgroundColor: mobileColors.primarySoft,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8
+    },
+    personalLabel: { color: mobileColors.primaryInk, fontWeight: '700', fontSize: 13, flexShrink: 1 },
+    iconButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: mobileColors.border,
+      backgroundColor: mobileColors.white,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    review: { color: mobileColors.primary, fontWeight: '700', fontSize: 12 },
+    reviewRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 5 },
+    summaryRow: { flexDirection: 'row', gap: 10 },
+    content: { padding: 16, paddingBottom: 30, gap: 14 },
+    action: { minHeight: 44, alignSelf: 'flex-start', justifyContent: 'center' },
+    link: { color: mobileColors.primaryInk, fontWeight: '700' },
+    heading: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      padding: 18,
+      borderRadius: 20,
+      backgroundColor: mobileColors.primarySoft
+    },
+    headingCopy: { flex: 1, gap: 5 },
+    kicker: {
+      color: mobileColors.primaryInk,
+      fontSize: 10,
+      fontWeight: '700',
+      letterSpacing: 1,
+      textTransform: 'uppercase'
+    },
+    title: { color: mobileColors.foreground, fontSize: 25, fontWeight: '700' },
+    icon: {
+      width: 44,
+      height: 44,
+      borderRadius: 16,
+      backgroundColor: mobileColors.surface,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    card: {
+      backgroundColor: mobileColors.white,
+      borderColor: mobileColors.border,
+      borderWidth: 1,
+      borderRadius: 16,
+      padding: 16,
+      gap: 9
+    },
+    row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    avatar: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: mobileColors.primarySoft,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    avatarText: { color: mobileColors.primaryInk, fontWeight: '700' },
+    divider: { height: 1, backgroundColor: mobileColors.border },
+    name: { color: mobileColors.foreground, fontSize: 16, fontWeight: '700', flexShrink: 1 },
+    summaryCard: {
+      flex: 1,
+      backgroundColor: mobileColors.surface,
+      borderColor: mobileColors.border,
+      borderWidth: 1,
+      borderRadius: 16,
+      padding: 18,
+      gap: 10
+    },
+    summaryHeading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    summaryLabel: { color: mobileColors.primaryInk, fontSize: 13, fontWeight: '700', flexShrink: 1 },
+    summaryCount: { color: mobileColors.foreground, fontSize: 24, fontWeight: '700' },
+    label: { color: mobileColors.muted, fontSize: 12, marginTop: 4 },
+    value: { color: mobileColors.foreground, fontSize: 14, lineHeight: 20 },
+    muted: { color: mobileColors.muted, fontSize: 13, lineHeight: 19 },
+    heroSubtitle: { color: mobileColors.foreground },
+    error: { color: mobileColors.danger, fontSize: 13, lineHeight: 19 },
+    success: { color: mobileColors.success, fontSize: 13, lineHeight: 19 },
+    pagination: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 10 },
+    outline: {
+      minHeight: 48,
+      borderWidth: 1,
+      borderColor: mobileColors.border,
+      borderRadius: 12,
+      paddingHorizontal: 15,
+      justifyContent: 'center',
+      alignItems: 'center'
+    },
+    primary: {
+      minHeight: 48,
+      backgroundColor: mobileColors.primary,
+      borderRadius: 12,
+      paddingHorizontal: 15,
+      justifyContent: 'center',
+      alignItems: 'center'
+    },
+    primaryText: { color: mobileColors.onPrimary, fontWeight: '700' },
+    disabled: { opacity: 0.4 },
+    input: {
+      minHeight: 90,
+      borderColor: mobileColors.border,
+      borderWidth: 1,
+      borderRadius: 12,
+      padding: 12,
+      color: mobileColors.foreground,
+      textAlignVertical: 'top'
+    },
+    confirm: { borderTopWidth: 1, borderTopColor: mobileColors.border, paddingTop: 12, gap: 10 }
+  })

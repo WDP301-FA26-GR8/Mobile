@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, waitFor } from '@testing-library/react-native'
 
@@ -5,6 +6,7 @@ import { MySoftwareScreen } from '@/features/licenses'
 import { employeeDashboardGet } from '@/shared/api/generated/api/dashboards/dashboards'
 import { meGet, meSoftwareRightList } from '@/shared/api/generated/api/me/me'
 import { setAppLanguage } from '@/shared/i18n/i18n'
+import { ThemeProvider } from '@/shared/theme/theme-provider'
 
 const mockLogout = jest.fn()
 const mockSession = {
@@ -118,6 +120,25 @@ test('shows only server account and rights, without invented license keys', asyn
     { view: 'current', page: 1, pageSize: 20 },
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
+})
+
+test('switches the live software screen to dark appearance', async () => {
+  await AsyncStorage.removeItem('saas-sentry.theme')
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
+  const screen = await render(
+    <QueryClientProvider client={client}>
+      <ThemeProvider>
+        <MySoftwareScreen />
+      </ThemeProvider>
+    </QueryClientProvider>
+  )
+  await screen.findByText('Figma')
+  await fireEvent.press(screen.getByRole('button', { name: 'Giao diện' }))
+  await fireEvent.press(screen.getByRole('radio', { name: 'Tối' }))
+  await waitFor(() =>
+    expect(screen.getByRole('header', { name: 'Phần mềm của tôi' })).toHaveStyle({ color: '#f8fcff' })
+  )
+  expect(screen.getByText('Figma')).toBeTruthy()
 })
 
 test('allows an active manager to return to the manager workspace', async () => {

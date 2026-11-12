@@ -2,11 +2,14 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
-import { mobileColors } from '@/shared/theme/colors'
+import type { MobileColors } from '@/shared/theme/colors'
+import { useMobileTheme } from '@/shared/theme/theme-provider'
 
 import { useSimilarSeats } from '../hooks/use-similar-seats'
 
 export function SimilarSeats({ requestId }: { requestId: string }) {
+  const { colors: mobileColors } = useMobileTheme()
+  const styles = createStyles(mobileColors)
   const { t, i18n } = useTranslation()
   const [page, setPage] = useState(1)
   const seats = useSimilarSeats(requestId, page)
@@ -63,15 +66,16 @@ export function SimilarSeats({ requestId }: { requestId: string }) {
   )
 }
 
-const styles = StyleSheet.create({
-  section: { borderTopWidth: 1, borderTopColor: mobileColors.border, marginTop: 8, paddingTop: 12, gap: 8 },
-  title: { color: mobileColors.foreground, fontSize: 16, fontWeight: '700' },
-  item: { backgroundColor: mobileColors.surfaceSubtle, borderRadius: 10, padding: 10, gap: 3 },
-  value: { color: mobileColors.foreground, fontSize: 14, lineHeight: 20 },
-  muted: { color: mobileColors.muted, fontSize: 13, lineHeight: 19 },
-  error: { color: mobileColors.danger, fontSize: 13, lineHeight: 19 },
-  link: { color: mobileColors.primaryInk, fontWeight: '700' },
-  action: { minHeight: 44, alignSelf: 'flex-start', justifyContent: 'center' },
-  disabled: { opacity: 0.4 },
-  pagination: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }
-})
+const createStyles = (mobileColors: MobileColors) =>
+  StyleSheet.create({
+    section: { borderTopWidth: 1, borderTopColor: mobileColors.border, marginTop: 8, paddingTop: 12, gap: 8 },
+    title: { color: mobileColors.foreground, fontSize: 16, fontWeight: '700' },
+    item: { backgroundColor: mobileColors.surfaceSubtle, borderRadius: 10, padding: 10, gap: 3 },
+    value: { color: mobileColors.foreground, fontSize: 14, lineHeight: 20 },
+    muted: { color: mobileColors.muted, fontSize: 13, lineHeight: 19 },
+    error: { color: mobileColors.danger, fontSize: 13, lineHeight: 19 },
+    link: { color: mobileColors.primaryInk, fontWeight: '700' },
+    action: { minHeight: 44, alignSelf: 'flex-start', justifyContent: 'center' },
+    disabled: { opacity: 0.4 },
+    pagination: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }
+  })

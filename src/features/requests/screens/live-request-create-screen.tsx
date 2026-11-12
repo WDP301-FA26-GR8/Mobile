@@ -1,16 +1,23 @@
+import { Feather } from '@expo/vector-icons'
 import { Redirect, useRouter } from 'expo-router'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import type { RequestablePlanPageResponseDtoDataItemsItem } from '@/shared/api/generated/contracts/requestable-software'
 import { useSession } from '@/shared/api/session-context'
-import { mobileColors } from '@/shared/theme/colors'
+import type { MobileColors } from '@/shared/theme/colors'
+import { useMobileTheme } from '@/shared/theme/theme-provider'
+import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 
 import { useLiveRequestCreate } from '../hooks/use-live-request-create'
 
+type Destination = '/my-software' | '/live-requests' | '/live-inbox'
+
 export function LiveRequestCreateScreen() {
+  const { colors: mobileColors } = useMobileTheme()
+  const styles = createStyles(mobileColors)
   const { t, i18n } = useTranslation()
   const router = useRouter()
   const session = useSession()
@@ -20,6 +27,7 @@ export function LiveRequestCreateScreen() {
   const [term, setTerm] = useState('12')
   const [reason, setReason] = useState('')
   const [validation, setValidation] = useState(false)
+  const [destination, setDestination] = useState<Destination>()
   const sent = useRef(false)
   const { plans, preview, submit } = useLiveRequestCreate(search.trim(), page)
   const months = Number(term)
@@ -59,6 +67,14 @@ export function LiveRequestCreateScreen() {
       }
     )
   }
+  function navigateTo(target: Destination) {
+    if (submit.isPending) return
+    if (selected || search || reason || term !== '12') {
+      setDestination(target)
+      return
+    }
+    router.replace(target)
+  }
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView keyboardShouldPersistTaps='handled' contentContainerStyle={styles.content}>
@@ -66,15 +82,28 @@ export function LiveRequestCreateScreen() {
           accessibilityRole='button'
           accessibilityState={{ disabled: submit.isPending }}
           disabled={submit.isPending}
-          onPress={() => router.replace('/live-requests')}
+          onPress={() => navigateTo('/live-requests')}
           style={styles.action}
         >
           <Text style={styles.actionText}>{t('requests.live.back')}</Text>
         </Pressable>
-        <Text accessibilityRole='header' style={styles.title}>
-          {t('requests.createLive.title')}
-        </Text>
-        <Text style={styles.muted}>{t('requests.createLive.intro')}</Text>
+        <View style={styles.header}>
+          <View style={styles.headerCopy}>
+            <Text accessibilityRole='header' style={styles.title}>
+              {t('requests.createLive.title')}
+            </Text>
+            <Text style={styles.muted}>{t('requests.createLive.intro')}</Text>
+          </View>
+          <View style={styles.headerIcon}>
+            <Feather
+              accessibilityElementsHidden
+              importantForAccessibility='no'
+              name='plus-circle'
+              size={22}
+              color={mobileColors.primaryInk}
+            />
+          </View>
+        </View>
         {locked ? (
           <Text accessibilityRole='alert' style={styles.error}>
             {submit.isError ? t('requests.createLive.submitUncertain') : t('requests.createLive.sending')}
@@ -126,8 +155,19 @@ export function LiveRequestCreateScreen() {
             }}
             style={[styles.card, selected?.id === plan.id && styles.selected]}
           >
-            <Text style={styles.name}>{plan.application.name}</Text>
-            <Text style={styles.muted}>{t('licenses.live.plan', { plan: plan.name })}</Text>
+            <View style={styles.planRow}>
+              <View style={styles.headerCopy}>
+                <Text style={styles.name}>{plan.application.name}</Text>
+                <Text style={styles.muted}>{t('licenses.live.plan', { plan: plan.name })}</Text>
+              </View>
+              <Feather
+                accessibilityElementsHidden
+                importantForAccessibility='no'
+                name={selected?.id === plan.id ? 'check-circle' : 'circle'}
+                size={22}
+                color={selected?.id === plan.id ? mobileColors.primary : mobileColors.muted}
+              />
+            </View>
             {!plan.canSubmit ? <Text style={styles.error}>{t('requests.createLive.planBlocked')}</Text> : null}
           </Pressable>
         ))}
@@ -254,49 +294,129 @@ export function LiveRequestCreateScreen() {
           </View>
         ) : null}
       </ScrollView>
+      <MobileTabBar
+        accessibilityLabel={t('navigation.tabs')}
+        tabs={[
+          {
+            id: 'software',
+            label: t('navigation.software'),
+            icon: 'grid',
+            selected: false,
+            disabled: submit.isPending,
+            accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') }),
+            onPress: () => navigateTo('/my-software')
+          },
+          {
+            id: 'create',
+            label: t('navigation.createRequest'),
+            icon: 'plus-circle',
+            selected: true,
+            disabled: submit.isPending,
+            accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') })
+          },
+          {
+            id: 'requests',
+            label: t('navigation.requests'),
+            icon: 'clock',
+            selected: false,
+            disabled: submit.isPending,
+            accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') }),
+            onPress: () => navigateTo('/live-requests')
+          },
+          {
+            id: 'inbox',
+            label: t('navigation.inbox'),
+            icon: 'bell',
+            selected: false,
+            disabled: submit.isPending,
+            accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') }),
+            onPress: () => navigateTo('/live-inbox')
+          }
+        ]}
+      />
+      <Modal transparent animationType='fade' visible={!!destination} onRequestClose={() => setDestination(undefined)}>
+        <View style={styles.modalBackdrop}>
+          <View accessibilityViewIsModal style={styles.dialog}>
+            <Text accessibilityRole='header' style={styles.name}>
+              {t('requests.createLive.leaveTitle')}
+            </Text>
+            <Text style={styles.muted}>{t('requests.createLive.leaveMessage')}</Text>
+            <Pressable accessibilityRole='button' onPress={() => setDestination(undefined)} style={styles.primary}>
+              <Text style={styles.primaryText}>{t('requests.createLive.leaveCancel')}</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole='button'
+              onPress={() => {
+                if (destination) {
+                  setDestination(undefined)
+                  router.replace(destination)
+                }
+              }}
+              style={styles.dialogAction}
+            >
+              <Text style={styles.actionText}>{t('requests.createLive.leaveConfirm')}</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: mobileColors.background },
-  content: { padding: 16, gap: 12, paddingBottom: 30 },
-  title: { color: mobileColors.foreground, fontSize: 25, fontWeight: '700' },
-  muted: { color: mobileColors.muted, fontSize: 13, lineHeight: 19 },
-  label: { color: mobileColors.foreground, fontSize: 13, fontWeight: '700' },
-  input: {
-    backgroundColor: mobileColors.white,
-    borderColor: mobileColors.border,
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
-    minHeight: 44,
-    color: mobileColors.foreground
-  },
-  reason: { minHeight: 90, textAlignVertical: 'top' },
-  card: {
-    backgroundColor: mobileColors.white,
-    borderColor: mobileColors.border,
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
-    gap: 10
-  },
-  selected: { borderColor: mobileColors.primary, borderWidth: 2 },
-  name: { color: mobileColors.foreground, fontSize: 16, fontWeight: '700' },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  action: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' },
-  actionText: { color: mobileColors.primaryInk, fontWeight: '700' },
-  primary: {
-    backgroundColor: mobileColors.primary,
-    borderRadius: 12,
-    minHeight: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 12
-  },
-  primaryText: { color: mobileColors.white, fontWeight: '700' },
-  disabled: { opacity: 0.4 },
-  review: { gap: 9, borderTopColor: mobileColors.border, borderTopWidth: 1, paddingTop: 12 },
-  error: { color: mobileColors.danger, fontSize: 13, lineHeight: 19 }
-})
+const createStyles = (mobileColors: MobileColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: mobileColors.background },
+    content: { padding: 16, gap: 12, paddingBottom: 30 },
+    header: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 },
+    headerCopy: { flex: 1, minWidth: 0, gap: 4 },
+    headerIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 16,
+      backgroundColor: mobileColors.primarySoft,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    planRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    title: { color: mobileColors.foreground, fontSize: 25, fontWeight: '700' },
+    muted: { color: mobileColors.muted, fontSize: 13, lineHeight: 19 },
+    label: { color: mobileColors.foreground, fontSize: 13, fontWeight: '700' },
+    input: {
+      backgroundColor: mobileColors.white,
+      borderColor: mobileColors.border,
+      borderWidth: 1,
+      borderRadius: 12,
+      padding: 12,
+      minHeight: 44,
+      color: mobileColors.foreground
+    },
+    reason: { minHeight: 90, textAlignVertical: 'top' },
+    card: {
+      backgroundColor: mobileColors.white,
+      borderColor: mobileColors.border,
+      borderWidth: 1,
+      borderRadius: 16,
+      padding: 16,
+      gap: 10
+    },
+    selected: { borderColor: mobileColors.primary, borderWidth: 2 },
+    name: { color: mobileColors.foreground, fontSize: 16, fontWeight: '700' },
+    row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    action: { minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' },
+    actionText: { color: mobileColors.primaryInk, fontWeight: '700' },
+    primary: {
+      backgroundColor: mobileColors.primary,
+      borderRadius: 12,
+      minHeight: 48,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 12
+    },
+    primaryText: { color: mobileColors.onPrimary, fontWeight: '700' },
+    disabled: { opacity: 0.4 },
+    review: { gap: 9, borderTopColor: mobileColors.border, borderTopWidth: 1, paddingTop: 12 },
+    error: { color: mobileColors.danger, fontSize: 13, lineHeight: 19 },
+    modalBackdrop: { flex: 1, backgroundColor: 'rgba(36, 28, 24, 0.55)', justifyContent: 'center', padding: 24 },
+    dialog: { backgroundColor: mobileColors.white, borderRadius: 20, padding: 22, gap: 14 },
+    dialogAction: { minHeight: 48, alignItems: 'center', justifyContent: 'center' }
+  })

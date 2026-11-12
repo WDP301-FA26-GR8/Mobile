@@ -6,14 +6,18 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useSession } from '@/shared/api/session-context'
-import { mobileColors } from '@/shared/theme/colors'
+import type { MobileColors } from '@/shared/theme/colors'
+import { useMobileTheme } from '@/shared/theme/theme-provider'
 import { EmployeeProfileHeader } from '@/shared/ui/employee-profile-header'
 import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
+import { ThemeSwitch } from '@/shared/ui/theme-switch'
 
 import { LiveSoftwareCard } from '../components/live-software-card'
 import { useMySoftware } from '../hooks/use-my-software'
 
 export function MySoftwareScreen() {
+  const { colors: mobileColors } = useMobileTheme()
+  const styles = createStyles(mobileColors)
   const { t, i18n } = useTranslation()
   const session = useSession()
   const router = useRouter()
@@ -57,6 +61,7 @@ export function MySoftwareScreen() {
                   />
                 ) : null}
               </View>
+              <ThemeSwitch />
               <Pressable
                 accessibilityRole='button'
                 accessibilityLabel={loggingOut ? t('auth.loading') : t('licenses.live.logout')}
@@ -95,11 +100,24 @@ export function MySoftwareScreen() {
             </Text>
           ) : null}
           <View style={styles.heading}>
-            <Text style={styles.kicker}>{t('licenses.live.kicker')}</Text>
-            <Text accessibilityRole='header' style={styles.title}>
-              {t('licenses.screenTitle')}
-            </Text>
-            <Text style={styles.subtitle}>{t('licenses.live.description')}</Text>
+            <View style={styles.headingMain}>
+              <View style={styles.headingCopy}>
+                <Text style={styles.kicker}>{t('licenses.live.kicker')}</Text>
+                <Text accessibilityRole='header' style={styles.title}>
+                  {t('licenses.screenTitle')}
+                </Text>
+                <Text style={[styles.subtitle, styles.heroSubtitle]}>{t('licenses.live.description')}</Text>
+              </View>
+              <View style={styles.headingIcon}>
+                <Feather
+                  accessibilityElementsHidden
+                  importantForAccessibility='no'
+                  name='grid'
+                  size={24}
+                  color={mobileColors.primaryInk}
+                />
+              </View>
+            </View>
             {profile.data?.roles.includes('MANAGER') ? (
               <Pressable
                 accessibilityRole='button'
@@ -317,93 +335,111 @@ export function MySoftwareScreen() {
   )
 }
 
-const styles = StyleSheet.create({
-  safeArea: { backgroundColor: mobileColors.background, flex: 1 },
-  screen: { flex: 1 },
-  content: { gap: 15, padding: 16, paddingBottom: 24 },
-  profile: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  profileCopy: { flex: 1 },
-  inboxButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: mobileColors.border,
-    backgroundColor: mobileColors.white,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  heading: { gap: 5, paddingHorizontal: 2 },
-  approvalsLink: { minHeight: 44, flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 8 },
-  kicker: {
-    color: mobileColors.primaryInk,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1,
-    textTransform: 'uppercase'
-  },
-  title: { color: mobileColors.foreground, fontSize: 25, fontWeight: '700', letterSpacing: -0.5 },
-  subtitle: { color: mobileColors.muted, fontSize: 13, lineHeight: 19 },
-  summary: { flexDirection: 'row', gap: 9 },
-  summaryCard: {
-    backgroundColor: mobileColors.white,
-    borderColor: mobileColors.border,
-    borderRadius: 17,
-    borderWidth: 1,
-    flex: 1,
-    gap: 5,
-    padding: 13
-  },
-  summaryIcon: {
-    alignItems: 'center',
-    backgroundColor: mobileColors.primarySoft,
-    borderRadius: 12,
-    height: 30,
-    justifyContent: 'center',
-    marginBottom: 2,
-    width: 34
-  },
-  summaryIconWarning: { backgroundColor: mobileColors.warningBackground },
-  summaryValue: { color: mobileColors.foreground, fontSize: 17, fontWeight: '700' },
-  summaryLabel: { color: mobileColors.muted, fontSize: 10, fontWeight: '500' },
-  sectionHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTitle: { color: mobileColors.foreground, fontSize: 16, fontWeight: '700' },
-  filters: { alignSelf: 'flex-start', backgroundColor: '#f6eee6', borderRadius: 14, flexDirection: 'row', padding: 4 },
-  filterButton: {
-    alignItems: 'center',
-    borderRadius: 12,
-    justifyContent: 'center',
-    minHeight: 44,
-    paddingHorizontal: 15
-  },
-  filterSelected: { backgroundColor: mobileColors.primary },
-  filterText: { color: mobileColors.muted, fontSize: 12, fontWeight: '600' },
-  filterTextSelected: { color: mobileColors.white },
-  list: { gap: 9 },
-  messageCard: { backgroundColor: mobileColors.white, borderRadius: 16, padding: 16, gap: 8 },
-  emptyCard: {
-    alignItems: 'center',
-    backgroundColor: mobileColors.white,
-    borderColor: mobileColors.border,
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 22,
-    gap: 8
-  },
-  emptyIcon: {
-    backgroundColor: mobileColors.primarySoft,
-    borderRadius: 16,
-    height: 48,
-    width: 48,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  emptyTitle: { color: mobileColors.foreground, fontSize: 14, fontWeight: '700', textAlign: 'center' },
-  emptyHint: { color: mobileColors.muted, fontSize: 12, textAlign: 'center', lineHeight: 18 },
-  pagination: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
-  button: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12 },
-  disabledButton: { opacity: 0.4 },
-  buttonText: { color: mobileColors.primaryInk, fontWeight: '700' },
-  retryInline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: 44 },
-  error: { color: mobileColors.danger, fontSize: 13, lineHeight: 19 }
-})
+const createStyles = (mobileColors: MobileColors) =>
+  StyleSheet.create({
+    safeArea: { backgroundColor: mobileColors.background, flex: 1 },
+    screen: { flex: 1 },
+    content: { gap: 18, padding: 20, paddingBottom: 28 },
+    profile: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    profileCopy: { flex: 1 },
+    inboxButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      borderWidth: 1,
+      borderColor: mobileColors.border,
+      backgroundColor: mobileColors.white,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    heading: { gap: 8, padding: 18, borderRadius: 20, backgroundColor: mobileColors.primarySoft },
+    headingMain: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+    headingCopy: { flex: 1, minWidth: 0, gap: 7 },
+    headingIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: mobileColors.surface
+    },
+    approvalsLink: { minHeight: 44, flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 8 },
+    kicker: {
+      color: mobileColors.primaryInk,
+      fontSize: 10,
+      fontWeight: '700',
+      letterSpacing: 1,
+      textTransform: 'uppercase'
+    },
+    title: { color: mobileColors.foreground, fontSize: 28, fontWeight: '700', letterSpacing: -0.5 },
+    subtitle: { color: mobileColors.muted, fontSize: 14, lineHeight: 21 },
+    heroSubtitle: { color: mobileColors.foreground },
+    summary: { flexDirection: 'row', gap: 9 },
+    summaryCard: {
+      backgroundColor: mobileColors.white,
+      borderColor: mobileColors.border,
+      borderRadius: 17,
+      borderWidth: 1,
+      flex: 1,
+      gap: 5,
+      padding: 16
+    },
+    summaryIcon: {
+      alignItems: 'center',
+      backgroundColor: mobileColors.primarySoft,
+      borderRadius: 12,
+      height: 30,
+      justifyContent: 'center',
+      marginBottom: 2,
+      width: 34
+    },
+    summaryIconWarning: { backgroundColor: mobileColors.warningBackground },
+    summaryValue: { color: mobileColors.foreground, fontSize: 20, fontWeight: '700' },
+    summaryLabel: { color: mobileColors.muted, fontSize: 12, lineHeight: 17, fontWeight: '500' },
+    sectionHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    sectionTitle: { color: mobileColors.foreground, fontSize: 16, fontWeight: '700' },
+    filters: {
+      alignSelf: 'flex-start',
+      backgroundColor: mobileColors.surfaceSubtle,
+      borderRadius: 14,
+      flexDirection: 'row',
+      padding: 4
+    },
+    filterButton: {
+      alignItems: 'center',
+      borderRadius: 12,
+      justifyContent: 'center',
+      minHeight: 44,
+      paddingHorizontal: 15
+    },
+    filterSelected: { backgroundColor: mobileColors.primary },
+    filterText: { color: mobileColors.muted, fontSize: 12, fontWeight: '600' },
+    filterTextSelected: { color: mobileColors.onPrimary },
+    list: { gap: 9 },
+    messageCard: { backgroundColor: mobileColors.white, borderRadius: 16, padding: 16, gap: 8 },
+    emptyCard: {
+      alignItems: 'center',
+      backgroundColor: mobileColors.white,
+      borderColor: mobileColors.border,
+      borderWidth: 1,
+      borderRadius: 16,
+      padding: 28,
+      gap: 10
+    },
+    emptyIcon: {
+      backgroundColor: mobileColors.primarySoft,
+      borderRadius: 16,
+      height: 48,
+      width: 48,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    emptyTitle: { color: mobileColors.foreground, fontSize: 14, fontWeight: '700', textAlign: 'center' },
+    emptyHint: { color: mobileColors.muted, fontSize: 12, textAlign: 'center', lineHeight: 18 },
+    pagination: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
+    button: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12 },
+    disabledButton: { opacity: 0.4 },
+    buttonText: { color: mobileColors.primaryInk, fontWeight: '700' },
+    retryInline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: 44 },
+    error: { color: mobileColors.danger, fontSize: 13, lineHeight: 19 }
+  })

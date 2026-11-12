@@ -7,12 +7,15 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useSession } from '@/shared/api/session-context'
 import { goBackOr } from '@/shared/lib/go-back-or'
-import { mobileColors } from '@/shared/theme/colors'
+import type { MobileColors } from '@/shared/theme/colors'
+import { useMobileTheme } from '@/shared/theme/theme-provider'
 import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 
 import { useLiveInbox } from '../hooks/use-live-inbox'
 
 export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {}) {
+  const { colors: mobileColors } = useMobileTheme()
+  const styles = createStyles(mobileColors)
   const { t, i18n } = useTranslation()
   const router = useRouter()
   const session = useSession()
@@ -132,10 +135,21 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
             return (
               <View key={item.id} style={[styles.card, !item.readAt && styles.unread]}>
                 <View style={styles.itemHeader}>
-                  <Text style={styles.itemTitle}>
-                    {code ? t(`inbox.live.codes.${code}`) : t('inbox.live.unknown', { code: item.code })}
-                  </Text>
-                  <Text style={styles.muted}>{item.readAt ? t('inbox.live.read') : t('inbox.live.unread')}</Text>
+                  <View style={styles.itemIcon}>
+                    <Feather
+                      accessibilityElementsHidden
+                      importantForAccessibility='no'
+                      name='bell'
+                      size={18}
+                      color={mobileColors.primaryInk}
+                    />
+                  </View>
+                  <View style={styles.itemCopy}>
+                    <Text style={styles.itemTitle}>
+                      {code ? t(`inbox.live.codes.${code}`) : t('inbox.live.unknown', { code: item.code })}
+                    </Text>
+                    <Text style={styles.muted}>{item.readAt ? t('inbox.live.read') : t('inbox.live.unread')}</Text>
+                  </View>
                 </View>
                 <Text style={styles.muted}>
                   {Number.isNaN(date.getTime())
@@ -241,43 +255,53 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
   )
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: mobileColors.background },
-  screen: { flex: 1 },
-  content: { padding: 16, gap: 14, paddingBottom: 24 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  heading: { flex: 1, gap: 4 },
-  headerIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 16,
-    backgroundColor: mobileColors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  kicker: {
-    color: mobileColors.primaryInk,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1,
-    textTransform: 'uppercase'
-  },
-  title: { color: mobileColors.foreground, fontSize: 25, fontWeight: '700' },
-  muted: { color: mobileColors.muted, fontSize: 13, lineHeight: 19 },
-  card: {
-    backgroundColor: mobileColors.white,
-    borderColor: mobileColors.border,
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
-    gap: 8
-  },
-  unread: { borderColor: mobileColors.primary, backgroundColor: mobileColors.primarySoft },
-  itemHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
-  itemTitle: { flex: 1, color: mobileColors.foreground, fontSize: 15, fontWeight: '700' },
-  action: { minHeight: 44, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 8 },
-  actionText: { color: mobileColors.primaryInk, fontWeight: '700' },
-  disabled: { opacity: 0.4 },
-  error: { color: mobileColors.danger, fontSize: 13 },
-  pagination: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }
-})
+const createStyles = (mobileColors: MobileColors) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: mobileColors.background },
+    screen: { flex: 1 },
+    content: { padding: 16, gap: 14, paddingBottom: 24 },
+    header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    heading: { flex: 1, gap: 4 },
+    headerIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: 16,
+      backgroundColor: mobileColors.primarySoft,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    kicker: {
+      color: mobileColors.primaryInk,
+      fontSize: 10,
+      fontWeight: '700',
+      letterSpacing: 1,
+      textTransform: 'uppercase'
+    },
+    title: { color: mobileColors.foreground, fontSize: 25, fontWeight: '700' },
+    muted: { color: mobileColors.muted, fontSize: 13, lineHeight: 19 },
+    card: {
+      backgroundColor: mobileColors.white,
+      borderColor: mobileColors.border,
+      borderWidth: 1,
+      borderRadius: 16,
+      padding: 16,
+      gap: 8
+    },
+    unread: { borderColor: mobileColors.primary, borderLeftWidth: 4 },
+    itemHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    itemIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: mobileColors.primarySoft
+    },
+    itemCopy: { flex: 1, minWidth: 0, gap: 3 },
+    itemTitle: { color: mobileColors.foreground, fontSize: 15, fontWeight: '700' },
+    action: { minHeight: 44, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 8 },
+    actionText: { color: mobileColors.primaryInk, fontWeight: '700' },
+    disabled: { opacity: 0.4 },
+    error: { color: mobileColors.danger, fontSize: 13 },
+    pagination: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }
+  })

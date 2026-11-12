@@ -7,6 +7,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { createQueryClient } from '@/shared/api/query-client'
 import { SessionProvider } from '@/shared/api/session-context'
 import { i18n, initializeMobileLanguage } from '@/shared/i18n/i18n'
+import { ThemeProvider } from '@/shared/theme/theme-provider'
 
 export function AppProviders({ children }: PropsWithChildren) {
   const [queryClient] = useState(createQueryClient)
@@ -27,11 +28,13 @@ export function AppProviders({ children }: PropsWithChildren) {
 
   return (
     <I18nextProvider i18n={i18n}>
-      <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <SessionProvider>{children}</SessionProvider>
-        </QueryClientProvider>
-      </SafeAreaProvider>
+      <ThemeProvider>
+        <SafeAreaProvider>
+          <QueryClientProvider client={queryClient}>
+            <SessionProvider>{children}</SessionProvider>
+          </QueryClientProvider>
+        </SafeAreaProvider>
+      </ThemeProvider>
     </I18nextProvider>
   )
 }

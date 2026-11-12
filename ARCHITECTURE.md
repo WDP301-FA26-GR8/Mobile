@@ -34,6 +34,9 @@ authorized by the backend. Individual catalog requests use `/live-request-create
 the caller chooses a requestable plan and must receive a current successful preview
 before submitting. The list offers withdrawal only when the server indicates it is
 available, and displays the returned status rather than assuming immediate withdrawal.
+The create screen includes the employee tabs and asks for confirmation before its
+back button or tabs discard entered details. Tabs are disabled while a submission is
+in flight; system back and other external navigation are not covered by this prompt.
 Writes are never automatically retried; an uncertain result requires checking the list
 before trying again. The backend has no client-provided idempotency key in this contract,
 so this cannot guarantee prevention of duplicate submissions across navigation/restarts.
@@ -169,6 +172,13 @@ that a real advantage.
 - Remote state: TanStack Query.
 - Form and ephemeral UI state: local to the feature until broader ownership is real.
 - Authentication and permissions: returned by and enforced by the backend.
+- Appearance: `ThemeProvider` persists the system/light/dark preference in AsyncStorage
+  and follows the device when set to system. The authenticated live Employee and
+  Manager screens, login, and shared tab bar use the web-aligned palette. Legacy
+  prototype screens have not yet been converted to dark mode.
+
+The palette retains the web primary hues, but text on solid primary buttons uses a
+dark foreground for contrast rather than the web's white primary foreground.
 
 The session boundary uses the generated login, refresh and logout operations. The
 refresh token is stored using Expo SecureStore on native, with device-only iOS

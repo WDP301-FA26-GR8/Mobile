@@ -8,6 +8,15 @@ export const resources = {
         brandName: 'SaaS-Sentry',
         demo: 'demo',
         demoDecisionError: 'This demo item is no longer available for that action. Please review its current status.',
+        theme: {
+          open: 'Appearance',
+          title: 'Choose appearance',
+          system: 'Use device setting',
+          light: 'Light',
+          dark: 'Dark',
+          close: 'Close',
+          storageError: 'Appearance preference could not be saved or loaded.'
+        },
         language: {
           english: 'English',
           englishShort: 'EN',
@@ -44,6 +53,7 @@ export const resources = {
         },
         login: 'Sign in',
         loginTitle: 'Sign in to your internal account',
+        loginSubtitle: 'Access your software and follow your requests in one place.',
         password: 'Password',
         passwordPlaceholder: 'Enter your password',
         recovery: {
@@ -538,6 +548,10 @@ export const resources = {
           catalogError: 'Could not load the catalog.',
           empty: 'No plans on this page.',
           choosePlan: 'Select {{app}}, {{plan}}',
+          leaveTitle: 'Leave this request?',
+          leaveMessage: 'Your selections and entered details will be lost.',
+          leaveConfirm: 'Leave request',
+          leaveCancel: 'Keep editing',
           planBlocked: 'This plan cannot currently be submitted.',
           selected: '{{app}} · {{plan}}',
           term: 'Duration in months (1–12)',
@@ -762,6 +776,15 @@ export const resources = {
         brandName: 'SaaS-Sentry',
         demo: 'giả lập',
         demoDecisionError: 'Yêu cầu demo không còn hợp lệ cho thao tác này. Vui lòng xem lại trạng thái hiện tại.',
+        theme: {
+          open: 'Giao diện',
+          title: 'Chọn giao diện',
+          system: 'Theo thiết bị',
+          light: 'Sáng',
+          dark: 'Tối',
+          close: 'Đóng',
+          storageError: 'Không thể lưu hoặc tải lựa chọn giao diện.'
+        },
         language: {
           english: 'Tiếng Anh',
           englishShort: 'EN',
@@ -798,6 +821,7 @@ export const resources = {
         },
         login: 'Đăng nhập',
         loginTitle: 'Đăng nhập tài khoản nội bộ',
+        loginSubtitle: 'Xem phần mềm và theo dõi yêu cầu của bạn tại một nơi.',
         password: 'Mật khẩu',
         passwordPlaceholder: 'Nhập mật khẩu',
         recovery: {
@@ -1287,6 +1311,10 @@ export const resources = {
           catalogError: 'Không thể tải danh mục.',
           empty: 'Không có gói trên trang này.',
           choosePlan: 'Chọn {{app}}, {{plan}}',
+          leaveTitle: 'Rời khỏi yêu cầu này?',
+          leaveMessage: 'Gói đã chọn và thông tin bạn nhập sẽ không được lưu.',
+          leaveConfirm: 'Rời yêu cầu',
+          leaveCancel: 'Tiếp tục chỉnh sửa',
           planBlocked: 'Hiện chưa thể gửi yêu cầu cho gói này.',
           selected: '{{app}} · {{plan}}',
           term: 'Thời hạn theo tháng (1–12)',
