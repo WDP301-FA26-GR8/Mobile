@@ -58,6 +58,7 @@ export function MySoftwareScreen() {
                     initials={profile.data.employee.fullName.trim().slice(0, 1).toLocaleUpperCase()}
                     name={profile.data.employee.fullName}
                     meta={profile.data.employee.department?.name ?? t('licenses.live.noDepartment')}
+                    onOpenProfile={() => router.push('/profile')}
                   />
                 ) : null}
               </View>

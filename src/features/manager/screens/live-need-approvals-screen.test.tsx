@@ -199,6 +199,8 @@ test('loads only assigned individual grants and opens real details', async () =>
   await screen.findByText('Figma')
   screen.getByText('Manager An')
   screen.getByText('Phòng IT')
+  await fireEvent.press(screen.getByRole('button', { name: 'Mở thông tin tài khoản của Manager An' }))
+  expect(mockRouter.push).toHaveBeenCalledWith('/profile')
   expect(needDecisionList).toHaveBeenCalledWith(
     { type: 'GRANT', page: 1, pageSize: 20 },
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })

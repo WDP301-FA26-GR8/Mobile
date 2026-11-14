@@ -10,22 +10,50 @@ interface EmployeeProfileHeaderProps {
   meta: string
   name: string
   onOpenInbox?: () => void
+  onOpenProfile?: () => void
 }
 
-export function EmployeeProfileHeader({ initials, meta, name, onOpenInbox }: EmployeeProfileHeaderProps) {
+export function EmployeeProfileHeader({
+  initials,
+  meta,
+  name,
+  onOpenInbox,
+  onOpenProfile
+}: EmployeeProfileHeaderProps) {
   const { colors: mobileColors } = useMobileTheme()
   const styles = createStyles(mobileColors)
   const { t } = useTranslation()
 
   return (
     <View style={styles.container}>
-      <View style={styles.avatar}>
-        <Text style={styles.initials}>{initials}</Text>
-      </View>
-      <View style={styles.copy}>
-        <Text style={styles.name}>{name}</Text>
-        <Text style={styles.meta}>{meta}</Text>
-      </View>
+      <Pressable
+        accessibilityLabel={onOpenProfile ? t('account.openProfile', { name }) : undefined}
+        accessibilityRole={onOpenProfile ? 'button' : undefined}
+        disabled={!onOpenProfile}
+        onPress={onOpenProfile}
+        style={styles.identity}
+      >
+        <View style={styles.avatar}>
+          <Text style={styles.initials}>{initials}</Text>
+        </View>
+        <View style={styles.copy}>
+          <Text numberOfLines={1} style={styles.name}>
+            {name}
+          </Text>
+          <Text numberOfLines={1} style={styles.meta}>
+            {meta}
+          </Text>
+        </View>
+        {onOpenProfile ? (
+          <Feather
+            accessibilityElementsHidden
+            importantForAccessibility='no'
+            name='chevron-right'
+            color={mobileColors.muted}
+            size={16}
+          />
+        ) : null}
+      </Pressable>
       {onOpenInbox ? (
         <Pressable
           accessibilityLabel={t('navigation.openTab', { tab: t('navigation.inbox') })}
@@ -76,6 +104,7 @@ const createStyles = (mobileColors: MobileColors) =>
       flex: 1,
       minWidth: 0
     },
+    identity: { alignItems: 'center', flex: 1, flexDirection: 'row', gap: 11, minHeight: 44, minWidth: 0 },
     initials: {
       color: mobileColors.primaryInk,
       fontSize: 14,

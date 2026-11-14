@@ -63,6 +63,11 @@ does not assume the newer proposed one-step manager-self-request routing has bee
 implemented by the backend.
 Password recovery on the login screen directs the
 user to web until the real reset-link flow is implemented.
+The authenticated account header opens `/profile`, a read-only account information
+screen for the signed-in user using the shared `/me` query. It shows the department
+managed when the account is a Manager; profile editing and password changes remain
+web-only. This account-information screen is an additional UX convenience not explicitly
+listed in the four mobile MVP tasks and requires Owner confirmation of its scope.
 The manager demo uses bottom tabs for assigned approvals, department-visible context,
 and the shared in-app inbox. The spending demo uses assigned decisions, session-only
 decision history, and the shared in-app inbox; budget snapshots remain inside the
@@ -118,12 +123,14 @@ app/
   live-need-approvals.tsx  authenticated need approval handoff
   live-requests/           authenticated request detail handoff
   my-software.tsx          employee software handoff
+  profile.tsx              read-only signed-in account handoff
   manager.tsx              manager need-approval demo handoff
   spending-approvals.tsx   spending-approver demo handoff
   my-requests/             employee request routes
 src/
   providers/               application-wide framework providers
   features/
+    account/                read-only signed-in account information
     auth/                   backend login and prototype password recovery
     inbox/                  authenticated and prototype in-app notifications
     licenses/               employee software screens and models

@@ -99,17 +99,33 @@ export function LiveNeedApprovalsScreen() {
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps='handled'>
           {!selected && isManager && profile.data ? (
             <View style={styles.profile}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {profile.data.employee.fullName.trim().slice(0, 1).toLocaleUpperCase()}
-                </Text>
-              </View>
-              <View style={styles.headingCopy}>
-                <Text style={styles.name}>{profile.data.employee.fullName}</Text>
-                <Text style={styles.muted}>
-                  {profile.data.managerScope?.departmentName ?? t('licenses.live.noDepartment')}
-                </Text>
-              </View>
+              <Pressable
+                accessibilityRole='button'
+                accessibilityLabel={t('account.openProfile', { name: profile.data.employee.fullName })}
+                onPress={() => router.push('/profile')}
+                style={styles.profileIdentity}
+              >
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>
+                    {profile.data.employee.fullName.trim().slice(0, 1).toLocaleUpperCase()}
+                  </Text>
+                </View>
+                <View style={styles.headingCopy}>
+                  <Text numberOfLines={1} style={styles.name}>
+                    {profile.data.employee.fullName}
+                  </Text>
+                  <Text numberOfLines={1} style={styles.muted}>
+                    {profile.data.managerScope?.departmentName ?? t('licenses.live.noDepartment')}
+                  </Text>
+                </View>
+                <Feather
+                  accessibilityElementsHidden
+                  importantForAccessibility='no'
+                  name='chevron-right'
+                  size={16}
+                  color={mobileColors.muted}
+                />
+              </Pressable>
               <ThemeSwitch />
             </View>
           ) : null}
@@ -533,6 +549,7 @@ const createStyles = (mobileColors: MobileColors) =>
       borderBottomWidth: 1,
       borderBottomColor: mobileColors.border
     },
+    profileIdentity: { flex: 1, minWidth: 0, minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 9 },
     profileActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
     personalButton: {
       flex: 1,

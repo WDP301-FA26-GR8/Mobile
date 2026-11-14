@@ -114,6 +114,8 @@ test('shows only server account and rights, without invented license keys', asyn
   expect(mockPush).toHaveBeenCalledWith('/live-request-create')
   await fireEvent.press(screen.getByRole('button', { name: 'Mở mục Thông báo' }))
   expect(mockPush).toHaveBeenCalledWith('/live-inbox')
+  await fireEvent.press(screen.getByRole('button', { name: 'Mở thông tin tài khoản của Nguyễn An' }))
+  expect(mockPush).toHaveBeenCalledWith('/profile')
   expect(screen.queryByRole('button', { name: 'Duyệt nhu cầu' })).toBeNull()
   expect(screen.queryByText(/FIG-PRO/)).toBeNull()
   expect(meSoftwareRightList).toHaveBeenCalledWith(

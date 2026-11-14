@@ -26,6 +26,22 @@ export const resources = {
           vietnameseShort: 'VI'
         }
       },
+      account: {
+        openProfile: 'Open account information for {{name}}',
+        title: 'Account information',
+        subtitle: 'Your signed-in account',
+        details: 'Account details',
+        name: 'Full name',
+        email: 'Sign-in email',
+        employeeCode: 'Employee ID',
+        department: 'Department',
+        jobTitle: 'Job title',
+        managerScope: 'Department managed',
+        noValue: 'Not provided',
+        loading: 'Loading account information…',
+        error: 'Could not load account information. Check your connection and try again.',
+        retry: 'Try again'
+      },
       navigation: {
         createRequest: 'Create request',
         inbox: 'Inbox',
@@ -793,6 +809,22 @@ export const resources = {
           vietnamese: 'Tiếng Việt',
           vietnameseShort: 'VI'
         }
+      },
+      account: {
+        openProfile: 'Mở thông tin tài khoản của {{name}}',
+        title: 'Thông tin tài khoản',
+        subtitle: 'Tài khoản bạn đang đăng nhập',
+        details: 'Chi tiết tài khoản',
+        name: 'Họ và tên',
+        email: 'Email đăng nhập',
+        employeeCode: 'Mã nhân viên',
+        department: 'Phòng ban',
+        jobTitle: 'Chức danh',
+        managerScope: 'Phòng ban phụ trách',
+        noValue: 'Chưa cập nhật',
+        loading: 'Đang tải thông tin tài khoản…',
+        error: 'Không thể tải thông tin tài khoản. Kiểm tra kết nối và thử lại.',
+        retry: 'Thử lại'
       },
       navigation: {
         createRequest: 'Tạo yêu cầu',
