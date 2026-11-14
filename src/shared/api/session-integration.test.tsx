@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, waitFor } from '@testing-library/react-native'
 
+import { AccountProfileScreen } from '@/features/account'
 import { LoginScreen } from '@/features/auth'
 import { MySoftwareScreen } from '@/features/licenses'
 import { setAppLanguage } from '@/shared/i18n/i18n'
@@ -8,7 +9,7 @@ import { setAppLanguage } from '@/shared/i18n/i18n'
 import { SessionProvider, useSession } from './session-context'
 
 let mockStoredToken: string | null = null
-const mockRouter = { replace: jest.fn() }
+const mockRouter = { replace: jest.fn(), push: jest.fn() }
 
 jest.mock('expo-router', () => ({ Redirect: () => null, useRouter: () => mockRouter }))
 jest.mock('@/shared/native/session-storage', () => ({
@@ -23,16 +24,16 @@ jest.mock('@/shared/native/session-storage', () => ({
   }
 }))
 
-function Screens() {
+function Screens({ showProfile = false }: { showProfile?: boolean }) {
   const { state } = useSession()
   if (state === 'loading') return null
-  return state === 'authenticated' ? <MySoftwareScreen /> : <LoginScreen />
+  return state === 'authenticated' ? showProfile ? <AccountProfileScreen /> : <MySoftwareScreen /> : <LoginScreen />
 }
 
 test('signs in, loads account rights with bearer auth, and logs out', async () => {
   await setAppLanguage('vi', false)
   mockStoredToken = null
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0, staleTime: Infinity } } })
   const fetchMock = jest.spyOn(globalThis, 'fetch').mockImplementation(async (input, options) => {
     const url = String(input)
     if (url.endsWith('/auth/login')) {
@@ -122,7 +123,17 @@ test('signs in, loads account rights with bearer auth, and logs out', async () =
   await screen.findByText('Nguyễn An')
   await screen.findByText('Bạn chưa có quyền phần mềm hiện tại.')
   expect(mockStoredToken).toBe('refresh-test')
+  await fireEvent.press(screen.getByRole('button', { name: 'Mở thông tin tài khoản của Nguyễn An' }))
+  expect(mockRouter.push).toHaveBeenCalledWith('/profile')
+  await screen.rerender(
+    <QueryClientProvider client={client}>
+      <SessionProvider>
+        <Screens showProfile />
+      </SessionProvider>
+    </QueryClientProvider>
+  )
   await fireEvent.press(screen.getByRole('button', { name: 'Đăng xuất' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận đăng xuất' }))
   await waitFor(() => screen.getByLabelText('Email công ty'))
   expect(mockStoredToken).toBeNull()
   expect(

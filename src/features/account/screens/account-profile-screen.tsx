@@ -1,7 +1,8 @@
 import { Feather } from '@expo/vector-icons'
 import { Redirect, useRouter } from 'expo-router'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useSession } from '@/shared/api/session-context'
@@ -17,7 +18,26 @@ export function AccountProfileScreen() {
   const router = useRouter()
   const session = useSession()
   const profile = useAccountProfile()
+  const [confirmLogout, setConfirmLogout] = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
+  const [logoutError, setLogoutError] = useState(false)
+  const logoutPending = useRef(false)
   const account = !profile.isError && session.state === 'authenticated' ? profile.data : undefined
+
+  async function logout() {
+    if (logoutPending.current) return
+    logoutPending.current = true
+    setLoggingOut(true)
+    setLogoutError(false)
+    try {
+      await session.logout()
+    } catch {
+      setLogoutError(true)
+    } finally {
+      logoutPending.current = false
+      setLoggingOut(false)
+    }
+  }
 
   if (session.state === 'anonymous') return <Redirect href='/' />
 
@@ -97,7 +117,67 @@ export function AccountProfileScreen() {
             </View>
           </>
         ) : null}
+        {session.state === 'authenticated' ? (
+          <Pressable
+            accessibilityRole='button'
+            accessibilityLabel={t('licenses.live.logout')}
+            onPress={() => {
+              setLogoutError(false)
+              setConfirmLogout(true)
+            }}
+            style={styles.logout}
+          >
+            <Feather
+              accessibilityElementsHidden
+              importantForAccessibility='no'
+              name='log-out'
+              size={19}
+              color={colors.danger}
+            />
+            <Text style={styles.logoutText}>{t('licenses.live.logout')}</Text>
+          </Pressable>
+        ) : null}
       </ScrollView>
+      <Modal
+        transparent
+        animationType='fade'
+        visible={confirmLogout}
+        onRequestClose={() => {
+          if (!loggingOut) setConfirmLogout(false)
+        }}
+      >
+        <View style={styles.backdrop}>
+          <View accessibilityViewIsModal style={styles.dialog}>
+            <Text accessibilityRole='header' style={styles.dialogTitle}>
+              {t('account.logoutTitle')}
+            </Text>
+            <Text style={styles.subtitle}>{t('account.logoutMessage')}</Text>
+            {logoutError ? (
+              <Text accessibilityRole='alert' style={styles.error}>
+                {t('licenses.live.logoutError')}
+              </Text>
+            ) : null}
+            <Pressable
+              accessibilityRole='button'
+              disabled={loggingOut}
+              accessibilityState={{ disabled: loggingOut, busy: loggingOut }}
+              onPress={() => void logout()}
+              style={[styles.confirmButton, loggingOut && styles.disabled]}
+            >
+              <Text style={styles.confirmText}>{loggingOut ? t('auth.loading') : t('account.logoutConfirm')}</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole='button'
+              disabled={loggingOut}
+              accessibilityState={{ disabled: loggingOut }}
+              onPress={() => setConfirmLogout(false)}
+              style={[styles.cancelButton, loggingOut && styles.disabled]}
+            >
+              <Text style={styles.cancelText}>{t('account.logoutCancel')}</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -144,5 +224,37 @@ const createStyles = (colors: MobileColors) =>
     value: { color: colors.foreground, fontSize: 15, fontWeight: '600', lineHeight: 22 },
     error: { color: colors.danger, fontSize: 14, lineHeight: 21 },
     retry: { alignSelf: 'flex-start', justifyContent: 'center', minHeight: 44, marginTop: 4 },
-    retryText: { color: colors.primaryInk, fontWeight: '700' }
+    retryText: { color: colors.primaryInk, fontWeight: '700' },
+    logout: {
+      minHeight: 52,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 16,
+      backgroundColor: colors.surface,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10
+    },
+    logoutText: { color: colors.danger, fontSize: 15, fontWeight: '700' },
+    backdrop: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.55)', justifyContent: 'flex-end' },
+    dialog: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      padding: 24,
+      gap: 12
+    },
+    dialogTitle: { color: colors.foreground, fontSize: 20, fontWeight: '700' },
+    confirmButton: {
+      backgroundColor: colors.danger,
+      borderRadius: 14,
+      minHeight: 48,
+      justifyContent: 'center',
+      alignItems: 'center'
+    },
+    confirmText: { color: colors.onDanger, fontWeight: '700' },
+    cancelButton: { minHeight: 48, justifyContent: 'center', alignItems: 'center' },
+    cancelText: { color: colors.primaryInk, fontWeight: '700' },
+    disabled: { opacity: 0.5 }
   })

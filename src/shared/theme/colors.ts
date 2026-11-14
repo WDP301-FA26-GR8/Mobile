@@ -2,6 +2,7 @@ export type MobileColors = {
   background: string
   border: string
   danger: string
+  onDanger: string
   foreground: string
   muted: string
   primary: string
@@ -10,6 +11,8 @@ export type MobileColors = {
   onPrimary: string
   sidebar: string
   success: string
+  successBackground: string
+  successDot: string
   surface: string
   surfaceSubtle: string
   warning: string
@@ -21,6 +24,7 @@ export const mobileColors: MobileColors = {
   background: '#fef7ef',
   border: '#efe3d7',
   danger: '#b12a22',
+  onDanger: '#ffffff',
   foreground: '#241c18',
   muted: '#7c7068',
   primary: '#ff7020',
@@ -29,6 +33,8 @@ export const mobileColors: MobileColors = {
   onPrimary: '#241c18',
   sidebar: '#fdfaf5',
   success: '#146b4a',
+  successBackground: '#e1f5e9',
+  successDot: '#40b880',
   surface: '#fefbf6',
   surfaceSubtle: '#fdf3e7',
   warning: '#7a4500',
@@ -40,6 +46,7 @@ export const darkMobileColors: MobileColors = {
   background: '#05162a',
   border: '#1b3553',
   danger: '#f04850',
+  onDanger: '#05162a',
   foreground: '#f8fcff',
   muted: '#a8b8cc',
   primary: '#2888ff',
@@ -48,6 +55,8 @@ export const darkMobileColors: MobileColors = {
   onPrimary: '#05162a',
   sidebar: '#011226',
   success: '#10b8c0',
+  successBackground: '#103d3d',
+  successDot: '#10b8c0',
   surface: '#0d1c33',
   surfaceSubtle: '#102440',
   warning: '#f0a830',

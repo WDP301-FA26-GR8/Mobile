@@ -11,6 +11,7 @@ const mockRouter = { back: jest.fn(), canGoBack: jest.fn(() => true), replace: j
 const mockRedirect = jest.fn()
 const mockSession = {
   state: 'authenticated',
+  logout: jest.fn(),
   read: <T,>(operation: (token: string) => Promise<T>) => operation('test-token')
 }
 
@@ -170,4 +171,52 @@ test('redirects an anonymous session without fetching account data', async () =>
   await renderScreen()
   expect(mockRedirect).toHaveBeenCalledWith('/')
   expect(meGet).not.toHaveBeenCalled()
+})
+
+test('requires confirmation before signing out and supports cancellation', async () => {
+  const screen = await renderScreen()
+  await screen.findByText('person@example.test')
+  await fireEvent.press(screen.getByRole('button', { name: 'Đăng xuất' }))
+  screen.getByRole('header', { name: 'Đăng xuất?' })
+  expect(mockSession.logout).not.toHaveBeenCalled()
+  await fireEvent.press(screen.getByRole('button', { name: 'Hủy' }))
+  expect(mockSession.logout).not.toHaveBeenCalled()
+  await fireEvent.press(screen.getByRole('button', { name: 'Đăng xuất' }))
+  mockSession.logout.mockResolvedValueOnce(undefined)
+  await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận đăng xuất' }))
+  expect(mockSession.logout).toHaveBeenCalledTimes(1)
+})
+
+test('allows retrying a failed logout even when account details are unavailable', async () => {
+  jest.mocked(meGet).mockRejectedValueOnce(new Error('offline'))
+  mockSession.logout.mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce(undefined)
+  const screen = await renderScreen()
+  await screen.findByText('Không thể tải thông tin tài khoản. Kiểm tra kết nối và thử lại.')
+  await fireEvent.press(screen.getByRole('button', { name: 'Đăng xuất' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận đăng xuất' }))
+  await screen.findByText('Chưa thể xác nhận đăng xuất với máy chủ. Vui lòng kiểm tra kết nối và thử lại.')
+  await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận đăng xuất' }))
+  expect(mockSession.logout).toHaveBeenCalledTimes(2)
+})
+
+test('prevents repeated logout while the request is in flight', async () => {
+  let resolveLogout: () => void = () => {
+    throw new Error('Missing logout')
+  }
+  mockSession.logout.mockImplementationOnce(
+    () =>
+      new Promise<void>((resolve) => {
+        resolveLogout = resolve
+      })
+  )
+  const screen = await renderScreen()
+  await screen.findByText('person@example.test')
+  await fireEvent.press(screen.getByRole('button', { name: 'Đăng xuất' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận đăng xuất' }))
+  const pending = screen.getByRole('button', { name: 'Vui lòng đợi…' })
+  expect(pending).toBeDisabled()
+  await fireEvent.press(pending)
+  expect(mockSession.logout).toHaveBeenCalledTimes(1)
+  resolveLogout()
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Xác nhận đăng xuất' })).toBeEnabled())
 })

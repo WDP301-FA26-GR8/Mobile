@@ -23,26 +23,11 @@ export function MySoftwareScreen() {
   const router = useRouter()
   const [page, setPage] = useState(1)
   const [filter, setFilter] = useState<'all' | 'expiring'>('all')
-  const [loggingOut, setLoggingOut] = useState(false)
-  const [logoutError, setLogoutError] = useState(false)
   const { profile, software, summary } = useMySoftware(page)
   const items = software.data?.items.filter((item) => filter === 'all' || item.expiringSoon) ?? []
   const expiring = summary.data?.expiringRights
   const expiringCount = expiring?.state === 'COUNTED' && expiring.count !== null ? expiring.count : undefined
   const formatCount = (value: number) => new Intl.NumberFormat(i18n.language).format(value)
-
-  async function logout() {
-    if (loggingOut) return
-    setLogoutError(false)
-    setLoggingOut(true)
-    try {
-      await session.logout()
-    } catch {
-      setLogoutError(true)
-    } finally {
-      setLoggingOut(false)
-    }
-  }
 
   if (session.state === 'anonymous') return <Redirect href='/' />
 
@@ -60,30 +45,30 @@ export function MySoftwareScreen() {
                     meta={profile.data.employee.department?.name ?? t('licenses.live.noDepartment')}
                     onOpenProfile={() => router.push('/profile')}
                   />
+                ) : profile.isError ? (
+                  <Pressable
+                    accessibilityRole='button'
+                    accessibilityLabel={t('account.title')}
+                    onPress={() => router.push('/profile')}
+                    style={styles.profileFallback}
+                  >
+                    <Feather
+                      accessibilityElementsHidden
+                      importantForAccessibility='no'
+                      name='user'
+                      size={19}
+                      color={mobileColors.primaryInk}
+                    />
+                    <Text style={styles.buttonText}>{t('account.title')}</Text>
+                  </Pressable>
                 ) : null}
               </View>
               <ThemeSwitch />
               <Pressable
                 accessibilityRole='button'
-                accessibilityLabel={loggingOut ? t('auth.loading') : t('licenses.live.logout')}
-                accessibilityState={{ disabled: loggingOut, busy: loggingOut }}
-                disabled={loggingOut}
-                onPress={() => void logout()}
-                style={styles.inboxButton}
-              >
-                <Feather
-                  accessibilityElementsHidden
-                  importantForAccessibility='no'
-                  name='log-out'
-                  size={18}
-                  color={mobileColors.primaryInk}
-                />
-              </Pressable>
-              <Pressable
-                accessibilityRole='button'
                 accessibilityLabel={t('navigation.openTab', { tab: t('navigation.inbox') })}
                 onPress={() => router.push('/live-inbox')}
-                style={styles.inboxButton}
+                style={({ pressed }) => [styles.inboxButton, pressed && styles.pressed]}
               >
                 <Feather
                   accessibilityElementsHidden
@@ -94,11 +79,6 @@ export function MySoftwareScreen() {
                 />
               </Pressable>
             </View>
-          ) : null}
-          {logoutError ? (
-            <Text accessibilityRole='alert' style={styles.error}>
-              {t('licenses.live.logoutError')}
-            </Text>
           ) : null}
           <View style={styles.heading}>
             <View style={styles.headingMain}>
@@ -139,7 +119,7 @@ export function MySoftwareScreen() {
           </View>
 
           <View style={styles.summary}>
-            <View style={styles.summaryCard}>
+            <View style={[styles.summaryCard, styles.summaryPrimary]}>
               <View style={styles.summaryIcon}>
                 <Feather
                   accessibilityElementsHidden
@@ -159,7 +139,7 @@ export function MySoftwareScreen() {
               </Text>
               <Text style={styles.summaryLabel}>{t('licenses.live.currentRights')}</Text>
             </View>
-            <View style={styles.summaryCard}>
+            <View style={[styles.summaryCard, styles.summaryWarning]}>
               <View style={[styles.summaryIcon, styles.summaryIconWarning]}>
                 <Feather
                   accessibilityElementsHidden
@@ -201,7 +181,11 @@ export function MySoftwareScreen() {
                 accessibilityRole='button'
                 accessibilityState={{ selected: filter === value }}
                 onPress={() => setFilter(value)}
-                style={[styles.filterButton, filter === value && styles.filterSelected]}
+                style={({ pressed }) => [
+                  styles.filterButton,
+                  filter === value && styles.filterSelected,
+                  pressed && styles.pressed
+                ]}
               >
                 <Text style={[styles.filterText, filter === value && styles.filterTextSelected]}>
                   {t(`licenses.listFilters.${value}`)}
@@ -343,6 +327,7 @@ const createStyles = (mobileColors: MobileColors) =>
     content: { gap: 18, padding: 20, paddingBottom: 28 },
     profile: { flexDirection: 'row', alignItems: 'center', gap: 10 },
     profileCopy: { flex: 1 },
+    profileFallback: { minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 8 },
     inboxButton: {
       width: 44,
       height: 44,
@@ -353,7 +338,7 @@ const createStyles = (mobileColors: MobileColors) =>
       alignItems: 'center',
       justifyContent: 'center'
     },
-    heading: { gap: 8, padding: 18, borderRadius: 20, backgroundColor: mobileColors.primarySoft },
+    heading: { gap: 8, padding: 20, borderRadius: 22, backgroundColor: mobileColors.primarySoft },
     headingMain: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
     headingCopy: { flex: 1, minWidth: 0, gap: 7 },
     headingIcon: {
@@ -383,8 +368,11 @@ const createStyles = (mobileColors: MobileColors) =>
       borderWidth: 1,
       flex: 1,
       gap: 5,
+      minHeight: 130,
       padding: 16
     },
+    summaryPrimary: { backgroundColor: mobileColors.surfaceSubtle, borderColor: mobileColors.primarySoft },
+    summaryWarning: { backgroundColor: mobileColors.warningBackground, borderColor: mobileColors.warningBackground },
     summaryIcon: {
       alignItems: 'center',
       backgroundColor: mobileColors.primarySoft,
@@ -394,11 +382,11 @@ const createStyles = (mobileColors: MobileColors) =>
       marginBottom: 2,
       width: 34
     },
-    summaryIconWarning: { backgroundColor: mobileColors.warningBackground },
+    summaryIconWarning: { backgroundColor: mobileColors.surface },
     summaryValue: { color: mobileColors.foreground, fontSize: 20, fontWeight: '700' },
     summaryLabel: { color: mobileColors.muted, fontSize: 12, lineHeight: 17, fontWeight: '500' },
     sectionHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    sectionTitle: { color: mobileColors.foreground, fontSize: 16, fontWeight: '700' },
+    sectionTitle: { color: mobileColors.foreground, fontSize: 18, fontWeight: '700' },
     filters: {
       alignSelf: 'flex-start',
       backgroundColor: mobileColors.surfaceSubtle,
@@ -416,7 +404,7 @@ const createStyles = (mobileColors: MobileColors) =>
     filterSelected: { backgroundColor: mobileColors.primary },
     filterText: { color: mobileColors.muted, fontSize: 12, fontWeight: '600' },
     filterTextSelected: { color: mobileColors.onPrimary },
-    list: { gap: 9 },
+    list: { gap: 12 },
     messageCard: { backgroundColor: mobileColors.white, borderRadius: 16, padding: 16, gap: 8 },
     emptyCard: {
       alignItems: 'center',
@@ -440,7 +428,7 @@ const createStyles = (mobileColors: MobileColors) =>
     pagination: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
     button: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 12 },
     disabledButton: { opacity: 0.4 },
+    pressed: { opacity: 0.7 },
     buttonText: { color: mobileColors.primaryInk, fontWeight: '700' },
-    retryInline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: 44 },
-    error: { color: mobileColors.danger, fontSize: 13, lineHeight: 19 }
+    retryInline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, minHeight: 44 }
   })

@@ -68,6 +68,9 @@ screen for the signed-in user using the shared `/me` query. It shows the departm
 managed when the account is a Manager; profile editing and password changes remain
 web-only. This account-information screen is an additional UX convenience not explicitly
 listed in the four mobile MVP tasks and requires Owner confirmation of its scope.
+Employee self-service opens a confirmation before signing out from the account
+screen; the profile remains reachable when account loading fails. The software list
+uses local brand icons where available, with a generic fallback for other names.
 The manager demo uses bottom tabs for assigned approvals, department-visible context,
 and the shared in-app inbox. The spending demo uses assigned decisions, session-only
 decision history, and the shared in-app inbox; budget snapshots remain inside the

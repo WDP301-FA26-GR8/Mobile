@@ -40,7 +40,11 @@ export const resources = {
         noValue: 'Not provided',
         loading: 'Loading account information…',
         error: 'Could not load account information. Check your connection and try again.',
-        retry: 'Try again'
+        retry: 'Try again',
+        logoutTitle: 'Sign out?',
+        logoutMessage: 'You will need to sign in again to access your account.',
+        logoutCancel: 'Cancel',
+        logoutConfirm: 'Confirm sign out'
       },
       navigation: {
         createRequest: 'Create request',
@@ -500,7 +504,7 @@ export const resources = {
           status: {
             UPCOMING: 'Upcoming',
             PROVISIONING: 'Provisioning',
-            ACTIVE: 'Active',
+            ACTIVE: 'In use',
             EXPIRED: 'Expired',
             REVOKING: 'Revoking',
             ENDING: 'Ending',
@@ -824,7 +828,11 @@ export const resources = {
         noValue: 'Chưa cập nhật',
         loading: 'Đang tải thông tin tài khoản…',
         error: 'Không thể tải thông tin tài khoản. Kiểm tra kết nối và thử lại.',
-        retry: 'Thử lại'
+        retry: 'Thử lại',
+        logoutTitle: 'Đăng xuất?',
+        logoutMessage: 'Bạn sẽ cần đăng nhập lại để truy cập tài khoản.',
+        logoutCancel: 'Hủy',
+        logoutConfirm: 'Xác nhận đăng xuất'
       },
       navigation: {
         createRequest: 'Tạo yêu cầu',
@@ -1279,7 +1287,7 @@ export const resources = {
           status: {
             UPCOMING: 'Sắp bắt đầu',
             PROVISIONING: 'Đang cấp',
-            ACTIVE: 'Đang hoạt động',
+            ACTIVE: 'Đang sử dụng',
             EXPIRED: 'Đã hết hạn',
             REVOKING: 'Đang thu hồi',
             ENDING: 'Sắp kết thúc',

@@ -105,7 +105,7 @@ test('shows only server account and rights, without invented license keys', asyn
   await screen.findByText('Figma')
   screen.getByText('Nguyễn An')
   screen.getByText('Gói: Professional')
-  screen.getByText('Đang hoạt động')
+  screen.getByText('Đang sử dụng')
   screen.getByText('0 quyền')
   screen.getByText('1 quyền')
   expect(screen.queryByText('Không gian nhân viên · demo')).toBeNull()
@@ -116,6 +116,7 @@ test('shows only server account and rights, without invented license keys', asyn
   expect(mockPush).toHaveBeenCalledWith('/live-inbox')
   await fireEvent.press(screen.getByRole('button', { name: 'Mở thông tin tài khoản của Nguyễn An' }))
   expect(mockPush).toHaveBeenCalledWith('/profile')
+  expect(screen.queryByRole('button', { name: 'Đăng xuất' })).toBeNull()
   expect(screen.queryByRole('button', { name: 'Duyệt nhu cầu' })).toBeNull()
   expect(screen.queryByText(/FIG-PRO/)).toBeNull()
   expect(meSoftwareRightList).toHaveBeenCalledWith(
@@ -172,6 +173,25 @@ test('filters the current page and explains the filter scope', async () => {
   expect(screen.queryByText('Figma')).toBeNull()
   await fireEvent.press(screen.getByRole('button', { name: 'Tất cả' }))
   screen.getByText('Figma')
+})
+
+test('keeps the active status visible alongside an expiry warning', async () => {
+  const response = await jest.mocked(meSoftwareRightList)()
+  if (!response.data.data) throw new Error('Expected software page')
+  jest.mocked(meSoftwareRightList).mockResolvedValue({
+    ...response,
+    data: {
+      ...response.data,
+      data: {
+        ...response.data.data,
+        items: response.data.data.items.map((item) => ({ ...item, expiringSoon: true }))
+      }
+    }
+  })
+  const screen = await renderScreen()
+  await screen.findByText('Figma')
+  screen.getByText('Đang sử dụng')
+  screen.getByText('Sắp hết hạn trong bảy ngày')
 })
 
 test('shows unavailable rather than a fabricated total when the dashboard fails', async () => {
@@ -253,20 +273,10 @@ test('loads subsequent pages from the server', async () => {
   expect(meSoftwareRightList).toHaveBeenLastCalledWith({ view: 'current', page: 2, pageSize: 20 }, expect.anything())
 })
 
-test('reports failed server logout without claiming success', async () => {
-  mockLogout.mockRejectedValueOnce(new Error('offline'))
-  const screen = await renderScreen()
-  await screen.findByText('Figma')
-  await fireEvent.press(screen.getByRole('button', { name: 'Đăng xuất' }))
-  await waitFor(() =>
-    screen.getByText('Chưa thể xác nhận đăng xuất với máy chủ. Vui lòng kiểm tra kết nối và thử lại.')
-  )
-})
-
-test('allows sign out when the profile cannot be loaded', async () => {
+test('allows opening account information when the profile cannot be loaded', async () => {
   jest.mocked(meGet).mockRejectedValueOnce(new Error('offline'))
   const screen = await renderScreen()
   await screen.findByText('Không thể tải thông tin. Vui lòng kiểm tra kết nối và thử lại.')
-  await fireEvent.press(screen.getByRole('button', { name: 'Đăng xuất' }))
-  expect(mockLogout).toHaveBeenCalledTimes(1)
+  await fireEvent.press(screen.getByRole('button', { name: 'Thông tin tài khoản' }))
+  expect(mockPush).toHaveBeenCalledWith('/profile')
 })
