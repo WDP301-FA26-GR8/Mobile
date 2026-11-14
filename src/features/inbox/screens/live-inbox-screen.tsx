@@ -43,7 +43,7 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
               <Text accessibilityRole='header' style={styles.title}>
                 {t('inbox.title')}
               </Text>
-              <Text style={styles.muted}>
+              <Text style={styles.headerSubtitle}>
                 {count.data !== undefined
                   ? t('inbox.live.unreadCount', {
                       count: count.data,
@@ -148,41 +148,52 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
                     <Text style={styles.itemTitle}>
                       {code ? t(`inbox.live.codes.${code}`) : t('inbox.live.unknown', { code: item.code })}
                     </Text>
-                    <Text style={styles.muted}>{item.readAt ? t('inbox.live.read') : t('inbox.live.unread')}</Text>
+                    <View style={styles.readStatus}>
+                      {!item.readAt ? (
+                        <View accessibilityElementsHidden importantForAccessibility='no' style={styles.unreadDot} />
+                      ) : null}
+                      <Text style={!item.readAt ? styles.unreadText : styles.muted}>
+                        {item.readAt ? t('inbox.live.read') : t('inbox.live.unread')}
+                      </Text>
+                    </View>
+                    <Text style={styles.muted}>
+                      {Number.isNaN(date.getTime())
+                        ? t('licenses.live.dateUnavailable')
+                        : new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeStyle: 'short' }).format(
+                            date
+                          )}
+                    </Text>
                   </View>
                 </View>
-                <Text style={styles.muted}>
-                  {Number.isNaN(date.getTime())
-                    ? t('licenses.live.dateUnavailable')
-                    : new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeStyle: 'short' }).format(date)}
-                </Text>
-                {typeof requestId === 'string' &&
-                /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(requestId) ? (
-                  <>
-                    <Text style={styles.muted}>{t('inbox.live.requestReference', { id: requestId })}</Text>
+                <View style={styles.itemActions}>
+                  {typeof requestId === 'string' &&
+                  /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(requestId) ? (
+                    <>
+                      <Text style={styles.muted}>{t('inbox.live.requestReference', { id: requestId })}</Text>
+                      <Pressable
+                        accessibilityRole='button'
+                        onPress={() => router.push({ pathname: '/live-requests/[requestId]', params: { requestId } })}
+                        style={styles.action}
+                      >
+                        <Text style={styles.actionText}>{t('requests.live.viewRequest')}</Text>
+                      </Pressable>
+                    </>
+                  ) : null}
+                  {!item.readAt ? (
                     <Pressable
                       accessibilityRole='button'
-                      onPress={() => router.push({ pathname: '/live-requests/[requestId]', params: { requestId } })}
+                      accessibilityLabel={t('inbox.live.markNamed', {
+                        code: code ? t(`inbox.live.codes.${code}`) : item.code
+                      })}
+                      accessibilityState={{ disabled: markRead.isPending }}
+                      disabled={markRead.isPending}
+                      onPress={() => markRead.mutate(item.id)}
                       style={styles.action}
                     >
-                      <Text style={styles.actionText}>{t('requests.live.viewRequest')}</Text>
+                      <Text style={styles.actionText}>{t('inbox.live.markRead')}</Text>
                     </Pressable>
-                  </>
-                ) : null}
-                {!item.readAt ? (
-                  <Pressable
-                    accessibilityRole='button'
-                    accessibilityLabel={t('inbox.live.markNamed', {
-                      code: code ? t(`inbox.live.codes.${code}`) : item.code
-                    })}
-                    accessibilityState={{ disabled: markRead.isPending }}
-                    disabled={markRead.isPending}
-                    onPress={() => markRead.mutate(item.id)}
-                    style={styles.action}
-                  >
-                    <Text style={styles.actionText}>{t('inbox.live.markRead')}</Text>
-                  </Pressable>
-                ) : null}
+                  ) : null}
+                </View>
               </View>
             )
           })}
@@ -259,14 +270,21 @@ const createStyles = (mobileColors: MobileColors) =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: mobileColors.background },
     screen: { flex: 1 },
-    content: { padding: 16, gap: 14, paddingBottom: 24 },
-    header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    content: { padding: 20, gap: 14, paddingBottom: 24 },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      padding: 20,
+      borderRadius: 22,
+      backgroundColor: mobileColors.primarySoft
+    },
     heading: { flex: 1, gap: 4 },
     headerIcon: {
       width: 44,
       height: 44,
       borderRadius: 16,
-      backgroundColor: mobileColors.primarySoft,
+      backgroundColor: mobileColors.surface,
       alignItems: 'center',
       justifyContent: 'center'
     },
@@ -278,16 +296,17 @@ const createStyles = (mobileColors: MobileColors) =>
       textTransform: 'uppercase'
     },
     title: { color: mobileColors.foreground, fontSize: 25, fontWeight: '700' },
+    headerSubtitle: { color: mobileColors.foreground, fontSize: 13, lineHeight: 19 },
     muted: { color: mobileColors.muted, fontSize: 13, lineHeight: 19 },
     card: {
       backgroundColor: mobileColors.white,
       borderColor: mobileColors.border,
       borderWidth: 1,
-      borderRadius: 16,
-      padding: 16,
+      borderRadius: 20,
+      padding: 18,
       gap: 8
     },
-    unread: { borderColor: mobileColors.primary, borderLeftWidth: 4 },
+    unread: { borderColor: mobileColors.primary, backgroundColor: mobileColors.surfaceSubtle },
     itemHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     itemIcon: {
       width: 40,
@@ -298,6 +317,10 @@ const createStyles = (mobileColors: MobileColors) =>
       backgroundColor: mobileColors.primarySoft
     },
     itemCopy: { flex: 1, minWidth: 0, gap: 3 },
+    readStatus: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    unreadDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: mobileColors.primary },
+    unreadText: { color: mobileColors.primaryInk, fontSize: 13, fontWeight: '700' },
+    itemActions: { gap: 0 },
     itemTitle: { color: mobileColors.foreground, fontSize: 15, fontWeight: '700' },
     action: { minHeight: 44, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 8 },
     actionText: { color: mobileColors.primaryInk, fontWeight: '700' },

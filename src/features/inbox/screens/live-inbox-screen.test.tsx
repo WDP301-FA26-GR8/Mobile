@@ -1,5 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, waitFor } from '@testing-library/react-native'
+import type { ReactNode } from 'react'
+import { Text } from 'react-native'
 
 import { LiveInboxScreen } from '@/features/inbox'
 import {
@@ -8,7 +10,7 @@ import {
   notificationMarkRead,
   notificationUnreadCount
 } from '@/shared/api/generated/api/notifications/notifications'
-import { setAppLanguage } from '@/shared/i18n/i18n'
+import { i18n, setAppLanguage } from '@/shared/i18n/i18n'
 
 const mockRouter = { replace: jest.fn(), push: jest.fn(), back: jest.fn(), canGoBack: jest.fn(() => true) }
 const mockSession = {
@@ -25,13 +27,13 @@ jest.mock('@/shared/api/generated/api/notifications/notifications', () => ({
   notificationMarkAllRead: jest.fn()
 }))
 
-function renderScreen() {
+function renderScreen(navigation?: ReactNode) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { retry: false, gcTime: 0 } }
   })
   return render(
     <QueryClientProvider client={client}>
-      <LiveInboxScreen />
+      <LiveInboxScreen navigation={navigation} />
     </QueryClientProvider>
   )
 }
@@ -113,6 +115,25 @@ test('shows real notifications and updates one using authenticated API', async (
   expect(mockRouter.replace).toHaveBeenCalledWith('/my-software')
 })
 
+test('keeps manager navigation and distinguishes read notifications without marking on open', async () => {
+  const response = await jest.mocked(notificationList)()
+  if (!response.data.data) throw new Error('Expected notifications')
+  response.data.data.items.push({
+    ...response.data.data.items[0],
+    id: 'notice-2',
+    code: 'REQUEST_WITHDRAWN',
+    readAt: '2026-11-09T01:00:00Z'
+  })
+  const screen = await renderScreen(<Text>{i18n.t('navigation.tabs')}</Text>)
+  await screen.findByText('Đã cấp quyền sử dụng')
+  screen.getByText('Điều hướng chính')
+  screen.getByText('Chưa đọc')
+  screen.getByText('Đã đọc')
+  expect(screen.queryByRole('tab', { name: 'Mở mục Phần mềm' })).toBeNull()
+  await fireEvent.press(screen.getAllByRole('button', { name: 'Xem yêu cầu' })[0])
+  expect(notificationMarkRead).not.toHaveBeenCalled()
+  expect(notificationMarkAllRead).not.toHaveBeenCalled()
+})
 test('marks all read and reports an uncertain failed update without automatic retry', async () => {
   jest.mocked(notificationMarkAllRead).mockRejectedValueOnce(new Error('offline'))
   const screen = await renderScreen()

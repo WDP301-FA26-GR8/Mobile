@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { SoftwareIcon } from '@/entities/software'
 import { useSession } from '@/shared/api/session-context'
 import { goBackOr } from '@/shared/lib/go-back-or'
 import type { MobileColors } from '@/shared/theme/colors'
@@ -43,7 +44,7 @@ export function LiveRequestsScreen() {
               <Text accessibilityRole='header' style={styles.title}>
                 {t('requests.title')}
               </Text>
-              <Text style={styles.muted}>{t('requests.live.subtitle')}</Text>
+              <Text style={styles.headerSubtitle}>{t('requests.live.subtitle')}</Text>
             </View>
             <View style={styles.icon}>
               <Feather
@@ -155,16 +156,13 @@ export function LiveRequestsScreen() {
                   }
                 >
                   <View style={styles.row}>
-                    <View style={styles.itemIcon}>
-                      <Feather
-                        accessibilityElementsHidden
-                        importantForAccessibility='no'
-                        name='file-text'
-                        size={19}
-                        color={mobileColors.primaryInk}
-                      />
+                    <SoftwareIcon name={name} />
+                    <View style={styles.itemHeading}>
+                      <Text style={styles.itemTitle}>{name}</Text>
+                      {item.plan ? (
+                        <Text style={styles.muted}>{t('licenses.live.plan', { plan: item.plan.planName })}</Text>
+                      ) : null}
                     </View>
-                    <Text style={styles.itemTitle}>{name}</Text>
                     <Feather
                       accessibilityElementsHidden
                       importantForAccessibility='no'
@@ -173,11 +171,10 @@ export function LiveRequestsScreen() {
                       color={mobileColors.muted}
                     />
                   </View>
-                  {item.plan ? (
-                    <Text style={styles.muted}>{t('licenses.live.plan', { plan: item.plan.planName })}</Text>
-                  ) : null}
-                  <LiveRequestType type={item.type} />
-                  <LiveRequestStatus state={item.state} />
+                  <View style={styles.statusRow}>
+                    <LiveRequestType type={item.type} />
+                    <LiveRequestStatus state={item.state} />
+                  </View>
                   <Text style={styles.muted}>
                     {t('requests.live.submitted', {
                       date: Number.isNaN(date.getTime())
@@ -272,8 +269,15 @@ const createStyles = (mobileColors: MobileColors) =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: mobileColors.background },
     screen: { flex: 1 },
-    content: { padding: 16, paddingBottom: 24, gap: 14 },
-    header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    content: { padding: 20, paddingBottom: 24, gap: 14 },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      padding: 20,
+      borderRadius: 22,
+      backgroundColor: mobileColors.primarySoft
+    },
     heading: { flex: 1, gap: 5 },
     kicker: {
       color: mobileColors.primaryInk,
@@ -283,12 +287,13 @@ const createStyles = (mobileColors: MobileColors) =>
       textTransform: 'uppercase'
     },
     title: { color: mobileColors.foreground, fontSize: 25, fontWeight: '700' },
+    headerSubtitle: { color: mobileColors.foreground, fontSize: 13, lineHeight: 19 },
     muted: { color: mobileColors.muted, fontSize: 13, lineHeight: 19 },
     icon: {
       width: 44,
       height: 44,
       borderRadius: 16,
-      backgroundColor: mobileColors.primarySoft,
+      backgroundColor: mobileColors.surface,
       alignItems: 'center',
       justifyContent: 'center'
     },
@@ -307,20 +312,14 @@ const createStyles = (mobileColors: MobileColors) =>
       backgroundColor: mobileColors.white,
       borderColor: mobileColors.border,
       borderWidth: 1,
-      borderRadius: 16,
-      padding: 16,
+      borderRadius: 20,
+      padding: 18,
       gap: 9
     },
     row: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 },
-    itemIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 14,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: mobileColors.primarySoft
-    },
-    itemTitle: { flex: 1, color: mobileColors.foreground, fontWeight: '700', fontSize: 16 },
+    itemHeading: { flex: 1, minWidth: 0, gap: 3 },
+    statusRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
+    itemTitle: { color: mobileColors.foreground, fontWeight: '700', fontSize: 16 },
     error: { color: mobileColors.danger, fontSize: 13 },
     action: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 8, alignSelf: 'flex-start' },
     actionText: { color: mobileColors.primaryInk, fontWeight: '700' },

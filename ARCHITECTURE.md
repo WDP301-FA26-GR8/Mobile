@@ -35,8 +35,10 @@ the caller chooses a requestable plan and must receive a current successful prev
 before submitting. The list offers withdrawal only when the server indicates it is
 available, and displays the returned status rather than assuming immediate withdrawal.
 The create screen includes the employee tabs and asks for confirmation before its
-back button or tabs discard entered details. Tabs are disabled while a submission is
-in flight; system back and other external navigation are not covered by this prompt.
+back button, tabs, or navigation actions that remove the route discard entered details.
+On Android, system back also asks before exiting when this is the last route. Navigation
+is blocked while a submission is in flight. Forced app termination, closing a browser
+tab and parent unmounts outside navigation cannot be intercepted.
 Writes are never automatically retried; an uncertain result requires checking the list
 before trying again. The backend has no client-provided idempotency key in this contract,
 so this cannot guarantee prevention of duplicate submissions across navigation/restarts.

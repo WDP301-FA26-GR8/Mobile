@@ -1,19 +1,17 @@
-import { Feather, FontAwesome6 } from '@expo/vector-icons'
+import { Feather } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
 import { StyleSheet, Text, View } from 'react-native'
 
+import { SoftwareIcon } from '@/entities/software'
 import type { MySoftwarePageResponseDtoDataItemsItem } from '@/shared/api/generated/contracts/me'
 import { MySoftwarePageResponseDtoDataItemsItemStatus } from '@/shared/api/generated/contracts/me'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
 
-import { getSoftwareBrand } from '../model/software-brand'
-
 export function LiveSoftwareCard({ item }: { item: MySoftwarePageResponseDtoDataItemsItem }) {
   const { colors: mobileColors } = useMobileTheme()
   const styles = createStyles(mobileColors)
   const { t, i18n } = useTranslation()
-  const brand = getSoftwareBrand(item.application.name)
   const status = Object.values(MySoftwarePageResponseDtoDataItemsItemStatus).includes(item.status)
     ? t(`licenses.live.status.${item.status}`)
     : t('licenses.live.unknownStatus', { status: item.status })
@@ -27,21 +25,7 @@ export function LiveSoftwareCard({ item }: { item: MySoftwarePageResponseDtoData
   return (
     <View style={styles.card}>
       <View style={styles.row}>
-        <View
-          style={[styles.icon, { backgroundColor: brand?.background ?? mobileColors.primarySoft }]}
-          accessibilityElementsHidden
-          importantForAccessibility='no'
-        >
-          {brand?.icon ? (
-            <FontAwesome6 name={brand.icon} brand size={24} color={brand.foreground} />
-          ) : brand ? (
-            <Text style={[styles.initial, { color: brand.foreground }]}>
-              {item.application.name.trim().slice(0, 1).toLocaleUpperCase()}
-            </Text>
-          ) : (
-            <Feather name='box' size={23} color={mobileColors.primaryInk} />
-          )}
-        </View>
+        <SoftwareIcon name={item.application.name} />
         <View style={styles.copy}>
           <Text style={styles.name}>{item.application.name}</Text>
           <Text style={styles.secondary}>{t('licenses.live.plan', { plan: item.plan.name })}</Text>
@@ -114,14 +98,6 @@ const createStyles = (mobileColors: MobileColors) =>
       gap: 12
     },
     row: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-    icon: {
-      borderRadius: 16,
-      width: 52,
-      height: 52,
-      alignItems: 'center',
-      justifyContent: 'center'
-    },
-    initial: { fontSize: 22, fontWeight: '700' },
     copy: { flex: 1, minWidth: 0 },
     name: { color: mobileColors.foreground, fontSize: 16, fontWeight: '700' },
     secondary: { color: mobileColors.muted, fontSize: 13, lineHeight: 20 },

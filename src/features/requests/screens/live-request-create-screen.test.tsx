@@ -1,18 +1,32 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, waitFor } from '@testing-library/react-native'
+import type { NavigationAction } from '@react-navigation/native'
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native'
+import { BackHandler, Platform } from 'react-native'
 
 import { LiveRequestCreateScreen } from '@/features/requests'
 import { accessRequestPreview, accessRequestSubmit } from '@/shared/api/generated/api/access-requests/access-requests'
 import { requestablePlanList } from '@/shared/api/generated/api/requestable-software/requestable-software'
 import { setAppLanguage } from '@/shared/i18n/i18n'
 
-const mockRouter = { replace: jest.fn() }
+const mockRouter = { replace: jest.fn(), canGoBack: jest.fn(() => true) }
+const mockNavigation = { dispatch: jest.fn() }
+const mockPreventRemove = jest.fn<void, [boolean, (event: { data: { action: NavigationAction } }) => void]>()
 const mockSession = {
   state: 'authenticated',
   read: <T,>(operation: (token: string) => Promise<T>) => operation('test-token'),
   write: <T,>(operation: (token: string) => Promise<T>) => operation('test-token')
 }
-jest.mock('expo-router', () => ({ Redirect: () => null, useRouter: () => mockRouter }))
+jest.mock('expo-router', () => ({
+  Redirect: () => null,
+  useRouter: () => mockRouter,
+  useFocusEffect: (callback: () => void | (() => void)) =>
+    jest.requireActual<typeof import('react')>('react').useEffect(callback, [callback])
+}))
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => mockNavigation,
+  usePreventRemove: (prevent: boolean, callback: (event: { data: { action: NavigationAction } }) => void) =>
+    mockPreventRemove(prevent, callback)
+}))
 jest.mock('@/shared/api/session-context', () => ({ useSession: () => mockSession }))
 jest.mock('@/shared/api/generated/api/requestable-software/requestable-software', () => ({
   requestablePlanList: jest.fn()
@@ -35,6 +49,8 @@ function renderScreen() {
 }
 beforeEach(async () => {
   jest.clearAllMocks()
+  mockRouter.canGoBack.mockReturnValue(true)
+  mockSession.state = 'authenticated'
   await setAppLanguage('vi', false)
   jest.mocked(requestablePlanList).mockResolvedValue({
     status: 200,
@@ -149,6 +165,88 @@ test('removes preview on form changes and blocks submission if server rejects pr
   expect(accessRequestSubmit).not.toHaveBeenCalled()
 })
 
+test('shows the form immediately and allows changing plans without losing entered details', async () => {
+  const response = await jest.mocked(requestablePlanList)()
+  if (!response.data.data) throw new Error('Expected catalog')
+  const first = response.data.data.items[0]
+  response.data.data.items.push({
+    ...first,
+    id: '11234567-89ab-cdef-0123-456789abcdef',
+    name: 'Team',
+    application: { ...first.application, name: 'Slack' }
+  })
+  const screen = await renderScreen()
+  await screen.findByText('Slack')
+  await fireEvent.press(screen.getByRole('button', { name: 'Chọn Figma, Pro' }))
+  expect(screen.queryByText('Slack')).toBeNull()
+  await fireEvent.changeText(screen.getByLabelText('Lý do nghiệp vụ (bắt buộc)'), 'Thiết kế')
+  await fireEvent.press(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }))
+  await screen.findByText('Có thể gửi yêu cầu. Máy chủ sẽ kiểm tra lại khi gửi.')
+  await fireEvent.press(screen.getByRole('button', { name: 'Đổi gói' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Chọn Slack, Team' }))
+  expect(screen.getByLabelText('Lý do nghiệp vụ (bắt buộc)').props.value).toBe('Thiết kế')
+  expect(screen.queryByRole('button', { name: 'Gửi yêu cầu' })).toBeNull()
+  screen.getByText('Slack')
+})
+
+test('confirms a navigation removal and replays its original action only after approval', async () => {
+  const screen = await renderScreen()
+  await screen.findByText('Figma')
+  await fireEvent.press(screen.getByRole('button', { name: 'Chọn Figma, Pro' }))
+  const action = { type: 'GO_BACK' }
+  let [prevent, callback] = mockPreventRemove.mock.calls[mockPreventRemove.mock.calls.length - 1]
+  expect(prevent).toBe(true)
+  await act(() => callback({ data: { action } }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Tiếp tục chỉnh sửa' }))
+  expect(mockNavigation.dispatch).not.toHaveBeenCalled()
+  ;[, callback] = mockPreventRemove.mock.calls[mockPreventRemove.mock.calls.length - 1]
+  await act(() => callback({ data: { action } }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Rời yêu cầu' }))
+  expect(mockNavigation.dispatch).toHaveBeenCalledWith(action)
+})
+
+test('does not prevent the authentication redirect after session expiration', async () => {
+  const screen = await renderScreen()
+  await screen.findByText('Figma')
+  await fireEvent.press(screen.getByRole('button', { name: 'Chọn Figma, Pro' }))
+  mockSession.state = 'anonymous'
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { retry: false, gcTime: 0 } }
+  })
+  await screen.rerender(
+    <QueryClientProvider client={client}>
+      <LiveRequestCreateScreen />
+    </QueryClientProvider>
+  )
+  expect(mockPreventRemove.mock.calls[mockPreventRemove.mock.calls.length - 1][0]).toBe(false)
+})
+
+test('confirms Android system back when this is the last route', async () => {
+  const oldPlatform = Platform.OS
+  Platform.OS = 'android'
+  mockRouter.canGoBack.mockReturnValue(false)
+  const listeners: (() => boolean | null | undefined)[] = []
+  const subscription = jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_event, handler) => {
+    listeners.push(handler)
+    return { remove: jest.fn() }
+  })
+  const exit = jest.spyOn(BackHandler, 'exitApp').mockImplementation(() => {})
+  try {
+    const screen = await renderScreen()
+    await screen.findByText('Figma')
+    await fireEvent.press(screen.getByRole('button', { name: 'Chọn Figma, Pro' }))
+    await act(() => expect(listeners[listeners.length - 1]()).toBe(true))
+    await fireEvent.press(screen.getByRole('button', { name: 'Tiếp tục chỉnh sửa' }))
+    expect(exit).not.toHaveBeenCalled()
+    await act(() => expect(listeners[listeners.length - 1]()).toBe(true))
+    await fireEvent.press(screen.getByRole('button', { name: 'Rời yêu cầu' }))
+    expect(exit).toHaveBeenCalledTimes(1)
+  } finally {
+    Platform.OS = oldPlatform
+    subscription.mockRestore()
+    exit.mockRestore()
+  }
+})
 test('loads catalog errors and retries', async () => {
   jest.mocked(requestablePlanList).mockRejectedValueOnce(new Error('offline'))
   const screen = await renderScreen()
@@ -197,6 +295,11 @@ test('disables tab navigation while submitting', async () => {
   await waitFor(() =>
     expect(screen.getByRole('tab', { name: 'Mở mục Thông báo' }).props.accessibilityState.disabled).toBe(true)
   )
+  const [prevent, callback] = mockPreventRemove.mock.calls[mockPreventRemove.mock.calls.length - 1]
+  expect(prevent).toBe(true)
+  await act(() => callback({ data: { action: { type: 'GO_BACK' } } }))
+  expect(screen.queryByText('Rời khỏi yêu cầu này?')).toBeNull()
+  expect(mockNavigation.dispatch).not.toHaveBeenCalled()
   rejectSubmit(new Error('offline'))
   await screen.findByText('Chưa thể xác nhận kết quả. Hãy kiểm tra danh sách yêu cầu trước khi gửi lại để tránh trùng.')
 })
@@ -273,5 +376,9 @@ test('navigates to the created request after successful submission', async () =>
       params: { requestId: id }
     })
   )
+  const [, callback] = mockPreventRemove.mock.calls[mockPreventRemove.mock.calls.length - 1]
+  const action = { type: 'REPLACE' }
+  await act(() => callback({ data: { action } }))
+  expect(mockNavigation.dispatch).toHaveBeenCalledWith(action)
   await screen.findByText('Đang gửi yêu cầu. Vui lòng chờ.')
 })

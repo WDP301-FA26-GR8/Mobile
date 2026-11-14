@@ -240,7 +240,7 @@ test('shows detail from server and handles missing authorization with retry', as
     id,
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
-  await fireEvent.press(screen.getByRole('button', { name: 'Quay lại yêu cầu' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Quay lại' }))
   expect(mockRouter.replace).toHaveBeenCalledWith('/live-requests')
 })
 
