@@ -235,13 +235,24 @@ test('shows detail from server and handles missing authorization with retry', as
   await fireEvent.press(screen.getByRole('button', { name: 'Thử lại' }))
   await screen.findByText('Thiết kế')
   screen.getByText('Figma')
-  screen.getByText('12 tháng')
+  screen.getByText('Không có ngày dự kiến kết thúc')
   expect(accessRequestGet).toHaveBeenLastCalledWith(
     id,
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
   await fireEvent.press(screen.getByRole('button', { name: 'Quay lại' }))
   expect(mockRouter.replace).toHaveBeenCalledWith('/live-requests')
+})
+
+test('shows the expected end date returned by the server', async () => {
+  const response = await jest.mocked(accessRequestGet)(id)
+  const request = response.data.data && 'request' in response.data.data ? response.data.data.request : undefined
+  if (!request) throw new Error('Expected request')
+  request.expectedEndDate = '2027-06-01'
+  const screen = await renderScreen(<LiveRequestDetailsScreen requestId={id} />)
+  await screen.findByText(
+    new Intl.DateTimeFormat('vi', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date('2027-06-01T00:00:00Z'))
+  )
 })
 
 test('handles draft details without displaying invented request information in English', async () => {

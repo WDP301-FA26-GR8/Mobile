@@ -24,6 +24,7 @@ export function LiveRequestDetailsScreen({ requestId }: { requestId: string }) {
   const request = data && 'request' in data ? data.request : undefined
   const draft = data && 'draft' in data ? data.draft : undefined
   const submitted = request ? new Date(request.submittedAt) : null
+  const expectedEnd = request?.expectedEndDate ? new Date(`${request.expectedEndDate}T00:00:00.000Z`) : null
   const name = request?.plan?.applicationName ?? request?.proposal?.softwareName ?? t('requests.live.unnamed')
 
   if (session.state === 'anonymous') return <Redirect href='/' />
@@ -83,9 +84,15 @@ export function LiveRequestDetailsScreen({ requestId }: { requestId: string }) {
               </Text>
               <Text style={styles.label}>{t('requests.live.reason')}</Text>
               <Text style={styles.value}>{request.businessReason}</Text>
-              <Text style={styles.label}>{t('requests.live.term')}</Text>
+              <Text style={styles.label}>{t('requests.live.endDate')}</Text>
               <Text style={styles.value}>
-                {t('requests.live.months', { months: new Intl.NumberFormat(i18n.language).format(request.termMonths) })}
+                {expectedEnd
+                  ? Number.isNaN(expectedEnd.getTime())
+                    ? t('licenses.live.dateUnavailable')
+                    : new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeZone: 'UTC' }).format(
+                        expectedEnd
+                      )
+                  : t('requests.live.noEndDate')}
               </Text>
               <Text style={styles.label}>{t('requests.live.requester')}</Text>
               <Text style={styles.value}>{request.requester.fullName}</Text>

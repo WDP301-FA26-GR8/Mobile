@@ -7967,7 +7967,11 @@ export const getDraftSubmitResponseDtoMock = (
 export const getSubmitBodyDtoMock = (overrideResponse: Partial<SubmitBodyDto> = {}): SubmitBodyDto => ({
   planId: faker.string.uuid(),
   businessReason: faker.string.alpha({ length: { min: 1, max: 1000 } }),
-  termMonths: faker.number.int({ min: 1, max: 12 }),
+  expectedEndDate: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), undefined]),
+  manyPaidSoftwareReason: faker.helpers.arrayElement([
+    faker.string.alpha({ length: { min: 1, max: 1000 } }),
+    undefined
+  ]),
   ...overrideResponse
 })
 
@@ -8283,7 +8287,7 @@ export const getAccessRequestResponseDtoMock = (
 
 export const getPreviewBodyDtoMock = (overrideResponse: Partial<PreviewBodyDto> = {}): PreviewBodyDto => ({
   planId: faker.string.uuid(),
-  termMonths: faker.number.int({ min: 1, max: 12 }),
+  expectedEndDate: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), undefined]),
   ...overrideResponse
 })
 
@@ -8301,7 +8305,7 @@ export const getPreviewResponseDtoMock = (overrideResponse: Partial<PreviewRespo
             applicationName: faker.string.alpha({ length: { min: 10, max: 20 } })
           },
           branch: faker.helpers.arrayElement(['INTERNAL_FREE', 'PAID_IN_CATALOG'] as const),
-          termMonths: faker.number.int({ min: 0, max: 9007199254740991 }),
+          expectedEndDate: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
           department: {
             id: faker.string.uuid(),
             code: faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -8318,10 +8322,18 @@ export const getPreviewResponseDtoMock = (overrideResponse: Partial<PreviewRespo
             ]),
             null
           ]),
-          termLimit: {
-            maxMonths: faker.number.int({ min: 0, max: 9007199254740991 }),
-            endsBy: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null])
-          },
+          maxEndDate: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          termRequired: faker.datatype.boolean(),
+          annualVendorAmount: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+              {
+                amount: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                currency: faker.string.alpha({ length: { min: 10, max: 20 } })
+              },
+              null
+            ]),
+            null
+          ]),
           existingAccess: faker.helpers.arrayElement([
             faker.helpers.arrayElement([
               {
@@ -8344,6 +8356,22 @@ export const getPreviewResponseDtoMock = (overrideResponse: Partial<PreviewRespo
               },
               null
             ]),
+            null
+          ]),
+          limits: {
+            openNewCount: faker.number.int({ min: 0, max: 9007199254740991 }),
+            openNewMax: faker.number.int({ min: 0, max: 9007199254740991 }),
+            paidSoftwareCount: faker.number.int({ min: 0, max: 9007199254740991 }),
+            paidSoftwareThreshold: faker.number.int({ min: 0, max: 9007199254740991 }),
+            reasonRequired: faker.datatype.boolean(),
+            refusal: faker.helpers.arrayElement([
+              faker.helpers.arrayElement(['HAS_OPEN_REQUEST', 'OPEN_LIMIT_REACHED'] as const),
+              null
+            ]),
+            openRequestId: faker.helpers.arrayElement([faker.string.uuid(), null])
+          },
+          limitExemption: faker.helpers.arrayElement([
+            faker.helpers.arrayElement(['TRANSFER_GRACE', 'ROLE_ENDED'] as const),
             null
           ]),
           canSubmit: faker.datatype.boolean(),
@@ -8386,10 +8414,28 @@ export const getPreviewResponseDtoMock = (overrideResponse: Partial<PreviewRespo
               faker.helpers.arrayElement(['MONTHLY', 'QUARTERLY', 'ANNUAL', 'OTHER'] as const),
               null
             ]),
-            periodCount: faker.helpers.arrayElement([faker.number.int({ min: 0, max: 9007199254740991 }), null]),
-            bindingPeriodCount: faker.helpers.arrayElement([faker.number.int({ min: 0, max: 9007199254740991 }), null]),
-            firstDueOn: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
-            lastDueOn: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null])
+            kind: faker.helpers.arrayElement([faker.helpers.arrayElement(['RECURRING', 'ONE_TIME'] as const), null]),
+            months: faker.helpers.arrayElement([faker.number.int({ min: 0, max: 12 }), null]),
+            monthlyPrice: faker.helpers.arrayElement([
+              faker.helpers.arrayElement([
+                {
+                  amount: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                  currency: faker.string.alpha({ length: { min: 10, max: 20 } })
+                },
+                null
+              ]),
+              null
+            ]),
+            nextYearAmount: faker.helpers.arrayElement([
+              faker.helpers.arrayElement([
+                {
+                  amount: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                  currency: faker.string.alpha({ length: { min: 10, max: 20 } })
+                },
+                null
+              ]),
+              null
+            ])
           },
           costEstimate: faker.helpers.arrayElement([
             faker.helpers.arrayElement([
@@ -8457,12 +8503,6 @@ export const getPreviewResponseDtoMock = (overrideResponse: Partial<PreviewRespo
               null
             ])
           })),
-          possibleExtraSteps: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(
-            () => ({
-              kind: faker.helpers.arrayElement(['FINANCE_REVIEW'] as const),
-              beforeStep: faker.helpers.arrayElement(['SPEND_APPROVAL'] as const)
-            })
-          ),
           totalExpectedWorkingDays: faker.number.int({ min: 0, max: 9007199254740991 })
         }
       },

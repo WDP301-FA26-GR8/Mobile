@@ -5,6 +5,7 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { PreviewResponseDtoDataPreviewAnnualVendorAmount } from './previewResponseDtoDataPreviewAnnualVendorAmount'
 import type { PreviewResponseDtoDataPreviewBlockedBy } from './previewResponseDtoDataPreviewBlockedBy'
 import type { PreviewResponseDtoDataPreviewBranch } from './previewResponseDtoDataPreviewBranch'
 import type { PreviewResponseDtoDataPreviewChainItem } from './previewResponseDtoDataPreviewChainItem'
@@ -12,28 +13,31 @@ import type { PreviewResponseDtoDataPreviewCostCenter } from './previewResponseD
 import type { PreviewResponseDtoDataPreviewCostEstimate } from './previewResponseDtoDataPreviewCostEstimate'
 import type { PreviewResponseDtoDataPreviewDepartment } from './previewResponseDtoDataPreviewDepartment'
 import type { PreviewResponseDtoDataPreviewExistingAccess } from './previewResponseDtoDataPreviewExistingAccess'
+import type { PreviewResponseDtoDataPreviewLimitExemption } from './previewResponseDtoDataPreviewLimitExemption'
+import type { PreviewResponseDtoDataPreviewLimits } from './previewResponseDtoDataPreviewLimits'
 import type { PreviewResponseDtoDataPreviewPlan } from './previewResponseDtoDataPreviewPlan'
-import type { PreviewResponseDtoDataPreviewPossibleExtraStepsItem } from './previewResponseDtoDataPreviewPossibleExtraStepsItem'
 import type { PreviewResponseDtoDataPreviewPricing } from './previewResponseDtoDataPreviewPricing'
 import type { PreviewResponseDtoDataPreviewSpendSubmission } from './previewResponseDtoDataPreviewSpendSubmission'
-import type { PreviewResponseDtoDataPreviewTermLimit } from './previewResponseDtoDataPreviewTermLimit'
 
 export type PreviewResponseDtoDataPreview = {
   plan: PreviewResponseDtoDataPreviewPlan
   branch: PreviewResponseDtoDataPreviewBranch
-  /**
-   * @maximum 9007199254740991
-   * @exclusiveMinimum 0
-   */
-  termMonths: number
+  /** @nullable */
+  expectedEndDate: string | null
   department: PreviewResponseDtoDataPreviewDepartment
   /** @nullable */
   costCenter: PreviewResponseDtoDataPreviewCostCenter
-  termLimit: PreviewResponseDtoDataPreviewTermLimit
+  maxEndDate: string
+  termRequired: boolean
+  /** @nullable */
+  annualVendorAmount: PreviewResponseDtoDataPreviewAnnualVendorAmount
   /** @nullable */
   existingAccess: PreviewResponseDtoDataPreviewExistingAccess
   /** @nullable */
   blockedBy: PreviewResponseDtoDataPreviewBlockedBy
+  limits: PreviewResponseDtoDataPreviewLimits
+  /** @nullable */
+  limitExemption: PreviewResponseDtoDataPreviewLimitExemption
   canSubmit: boolean
   /**
    * @minimum -9007199254740991
@@ -46,7 +50,6 @@ export type PreviewResponseDtoDataPreview = {
   costEstimate: PreviewResponseDtoDataPreviewCostEstimate
   spendSubmission: PreviewResponseDtoDataPreviewSpendSubmission
   chain: PreviewResponseDtoDataPreviewChainItem[]
-  possibleExtraSteps: PreviewResponseDtoDataPreviewPossibleExtraStepsItem[]
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0

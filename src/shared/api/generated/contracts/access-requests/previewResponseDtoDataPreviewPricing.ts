@@ -7,7 +7,10 @@
  */
 import type { PreviewResponseDtoDataPreviewPricingAmount } from './previewResponseDtoDataPreviewPricingAmount'
 import type { PreviewResponseDtoDataPreviewPricingBillingCycle } from './previewResponseDtoDataPreviewPricingBillingCycle'
+import type { PreviewResponseDtoDataPreviewPricingKind } from './previewResponseDtoDataPreviewPricingKind'
 import type { PreviewResponseDtoDataPreviewPricingMissingReason } from './previewResponseDtoDataPreviewPricingMissingReason'
+import type { PreviewResponseDtoDataPreviewPricingMonthlyPrice } from './previewResponseDtoDataPreviewPricingMonthlyPrice'
+import type { PreviewResponseDtoDataPreviewPricingNextYearAmount } from './previewResponseDtoDataPreviewPricingNextYearAmount'
 import type { PreviewResponseDtoDataPreviewPricingStatus } from './previewResponseDtoDataPreviewPricingStatus'
 import type { PreviewResponseDtoDataPreviewPricingUnitPrice } from './previewResponseDtoDataPreviewPricingUnitPrice'
 
@@ -21,20 +24,16 @@ export type PreviewResponseDtoDataPreviewPricing = {
   unitPrice: PreviewResponseDtoDataPreviewPricingUnitPrice
   /** @nullable */
   billingCycle: PreviewResponseDtoDataPreviewPricingBillingCycle
-  /**
-   * @maximum 9007199254740991
-   * @exclusiveMinimum 0
-   * @nullable
-   */
-  periodCount: number | null
+  /** @nullable */
+  kind: PreviewResponseDtoDataPreviewPricingKind
   /**
    * @minimum 0
-   * @maximum 9007199254740991
+   * @maximum 12
    * @nullable
    */
-  bindingPeriodCount: number | null
+  months: number | null
   /** @nullable */
-  firstDueOn: string | null
+  monthlyPrice: PreviewResponseDtoDataPreviewPricingMonthlyPrice
   /** @nullable */
-  lastDueOn: string | null
+  nextYearAmount: PreviewResponseDtoDataPreviewPricingNextYearAmount
 }

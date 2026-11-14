@@ -6,9 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 
-export type PreviewResponseDtoDataPreviewPossibleExtraStepsItemKind =
-  (typeof PreviewResponseDtoDataPreviewPossibleExtraStepsItemKind)[keyof typeof PreviewResponseDtoDataPreviewPossibleExtraStepsItemKind]
-
-export const PreviewResponseDtoDataPreviewPossibleExtraStepsItemKind = {
-  FINANCE_REVIEW: 'FINANCE_REVIEW'
-} as const
+/**
+ * @nullable
+ */
+export type PreviewResponseDtoDataPreviewPricingMonthlyPrice = {
+  amount: string
+  currency: string
+} | null

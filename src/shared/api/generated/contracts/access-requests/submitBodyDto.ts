@@ -13,9 +13,11 @@ export interface SubmitBodyDto {
    * @maxLength 1000
    */
   businessReason: string
+  /** A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused). */
+  expectedEndDate?: string
   /**
-   * @minimum 1
-   * @maximum 12
+   * @minLength 1
+   * @maxLength 1000
    */
-  termMonths: number
+  manyPaidSoftwareReason?: string
 }

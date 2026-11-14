@@ -78550,14 +78550,17 @@ components:
           type: string
           minLength: 1
           maxLength: 1000
-        termMonths:
-          type: integer
-          minimum: 1
-          maximum: 12
+        expectedEndDate:
+          type: string
+          format: date
+          description: A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused).
+        manyPaidSoftwareReason:
+          type: string
+          minLength: 1
+          maxLength: 1000
       required:
         - planId
         - businessReason
-        - termMonths
       additionalProperties: false
     AccessRequestResponseDto:
       type: object
@@ -79204,13 +79207,12 @@ components:
         planId:
           type: string
           format: uuid
-        termMonths:
-          type: integer
-          minimum: 1
-          maximum: 12
+        expectedEndDate:
+          type: string
+          format: date
+          description: A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused).
       required:
         - planId
-        - termMonths
       additionalProperties: false
     PreviewResponseDto:
       type: object
@@ -79252,11 +79254,9 @@ components:
                   enum:
                     - INTERNAL_FREE
                     - PAID_IN_CATALOG
-                termMonths:
-                  type: integer
-                  exclusiveMinimum: true
-                  maximum: 9007199254740991
-                  minimum: 0
+                expectedEndDate:
+                  type: string
+                  nullable: true
                 department:
                   type: object
                   properties:
@@ -79288,21 +79288,22 @@ components:
                     - name
                   additionalProperties: false
                   nullable: true
-                termLimit:
+                maxEndDate:
+                  type: string
+                termRequired:
+                  type: boolean
+                annualVendorAmount:
                   type: object
                   properties:
-                    maxMonths:
-                      type: integer
-                      exclusiveMinimum: true
-                      maximum: 9007199254740991
-                      minimum: 0
-                    endsBy:
+                    amount:
                       type: string
-                      nullable: true
+                    currency:
+                      type: string
                   required:
-                    - maxMonths
-                    - endsBy
+                    - amount
+                    - currency
                   additionalProperties: false
+                  nullable: true
                 existingAccess:
                   type: object
                   properties:
@@ -79343,6 +79344,56 @@ components:
                     - party
                     - employeeIds
                   additionalProperties: false
+                  nullable: true
+                limits:
+                  type: object
+                  properties:
+                    openNewCount:
+                      type: integer
+                      minimum: 0
+                      maximum: 9007199254740991
+                    openNewMax:
+                      type: integer
+                      exclusiveMinimum: true
+                      maximum: 9007199254740991
+                      minimum: 0
+                    paidSoftwareCount:
+                      type: integer
+                      minimum: 0
+                      maximum: 9007199254740991
+                    paidSoftwareThreshold:
+                      type: integer
+                      exclusiveMinimum: true
+                      maximum: 9007199254740991
+                      minimum: 0
+                    reasonRequired:
+                      type: boolean
+                    refusal:
+                      type: string
+                      enum:
+                        - HAS_OPEN_REQUEST
+                        - OPEN_LIMIT_REACHED
+                        - null
+                      nullable: true
+                    openRequestId:
+                      type: string
+                      format: uuid
+                      nullable: true
+                  required:
+                    - openNewCount
+                    - openNewMax
+                    - paidSoftwareCount
+                    - paidSoftwareThreshold
+                    - reasonRequired
+                    - refusal
+                    - openRequestId
+                  additionalProperties: false
+                limitExemption:
+                  type: string
+                  enum:
+                    - TRANSFER_GRACE
+                    - ROLE_ENDED
+                    - null
                   nullable: true
                 canSubmit:
                   type: boolean
@@ -79402,22 +79453,41 @@ components:
                         - OTHER
                         - null
                       nullable: true
-                    periodCount:
-                      type: integer
-                      exclusiveMinimum: true
-                      maximum: 9007199254740991
-                      nullable: true
-                      minimum: 0
-                    bindingPeriodCount:
-                      type: integer
-                      minimum: 0
-                      maximum: 9007199254740991
-                      nullable: true
-                    firstDueOn:
+                    kind:
                       type: string
+                      enum:
+                        - RECURRING
+                        - ONE_TIME
+                        - null
                       nullable: true
-                    lastDueOn:
-                      type: string
+                    months:
+                      type: integer
+                      minimum: 0
+                      maximum: 12
+                      nullable: true
+                    monthlyPrice:
+                      type: object
+                      properties:
+                        amount:
+                          type: string
+                        currency:
+                          type: string
+                      required:
+                        - amount
+                        - currency
+                      additionalProperties: false
+                      nullable: true
+                    nextYearAmount:
+                      type: object
+                      properties:
+                        amount:
+                          type: string
+                        currency:
+                          type: string
+                      required:
+                        - amount
+                        - currency
+                      additionalProperties: false
                       nullable: true
                   required:
                     - status
@@ -79425,10 +79495,10 @@ components:
                     - amount
                     - unitPrice
                     - billingCycle
-                    - periodCount
-                    - bindingPeriodCount
-                    - firstDueOn
-                    - lastDueOn
+                    - kind
+                    - months
+                    - monthlyPrice
+                    - nextYearAmount
                   additionalProperties: false
                 costEstimate:
                   type: object
@@ -79598,23 +79668,6 @@ components:
                       - explanation
                       - waitingReason
                     additionalProperties: false
-                possibleExtraSteps:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      kind:
-                        type: string
-                        enum:
-                          - FINANCE_REVIEW
-                      beforeStep:
-                        type: string
-                        enum:
-                          - SPEND_APPROVAL
-                    required:
-                      - kind
-                      - beforeStep
-                    additionalProperties: false
                 totalExpectedWorkingDays:
                   type: integer
                   exclusiveMinimum: true
@@ -79623,19 +79676,22 @@ components:
               required:
                 - plan
                 - branch
-                - termMonths
+                - expectedEndDate
                 - department
                 - costCenter
-                - termLimit
+                - maxEndDate
+                - termRequired
+                - annualVendorAmount
                 - existingAccess
                 - blockedBy
+                - limits
+                - limitExemption
                 - canSubmit
                 - budgetYear
                 - pricing
                 - costEstimate
                 - spendSubmission
                 - chain
-                - possibleExtraSteps
                 - totalExpectedWorkingDays
               additionalProperties: false
           required:

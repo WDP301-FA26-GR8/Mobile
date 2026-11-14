@@ -32,7 +32,11 @@ request list and detail routes are `/live-requests` and `/live-requests/[request
 The list contains requests sent by the caller, while notification detail access is
 authorized by the backend. Individual catalog requests use `/live-request-create`:
 the caller chooses a requestable plan and must receive a current successful preview
-before submitting. The list offers withdrawal only when the server indicates it is
+before submitting. The preview determines whether an end date or an additional
+reason for paid software is required; submission uses the same optional end date.
+Request detail displays the expected end date rather than interpreting the legacy
+`termMonths` field.
+The list offers withdrawal only when the server indicates it is
 available, and displays the returned status rather than assuming immediate withdrawal.
 The create screen includes the employee tabs and asks for confirmation before its
 back button, tabs, or navigation actions that remove the route discard entered details.
@@ -250,6 +254,11 @@ it supports safe mutation retries.
 The initial business snapshot was imported from the backend OpenAPI export reviewed
 on 2026-11-09 (SHA-256
 `8bc889bce6d092a25173c6eeb9e31da44847a4de1e7f024e08ab0a288672bda0`).
+On 2026-11-14, the `PreviewBodyDto`, `SubmitBodyDto`, and `PreviewResponseDto`
+schemas alone were updated from the deployed server's public `/api/docs-json`
+(SHA-256 `912512d998bec5651bc8abbe2a5f33398bf82d132c58b459d300eee531b27f92`)
+to match its individual request preview and submit contract. The rest of the
+snapshot retains the earlier provenance and may differ from the deployed server.
 The import adds missing top-level tag declarations and request/response aliases
 to satisfy the mobile naming conventions without renaming the backend DTOs. It also
 adds the already-inherited string type to example-only `message` overlays, and

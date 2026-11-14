@@ -17,6 +17,37 @@ import { useLiveRequestCreate } from '../hooks/use-live-request-create'
 
 type Destination = '/my-software' | '/live-requests' | '/live-inbox'
 
+function validDate(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || value.startsWith('0000')) return false
+  const date = new Date(`${value}T00:00:00.000Z`)
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value
+}
+
+function previewErrorKey(error: unknown) {
+  if (typeof error !== 'object' || error === null || !('info' in error)) return 'previewError'
+  const info = error.info
+  if (typeof info !== 'object' || info === null || !('error' in info)) return 'previewError'
+  const detail = info.error
+  if (typeof detail !== 'object' || detail === null || !('code' in detail)) return 'previewError'
+  switch (detail.code) {
+    case 'FINANCE.SETUP_INCOMPLETE':
+      return 'previewNoCostCenter'
+    case 'ACCESS_REQUEST.NO_DEPARTMENT':
+    case 'REQUEST_PARTY.INELIGIBLE':
+      return 'previewNoDepartment'
+    case 'ACCESS_REQUEST.PLAN_NOT_FOUND':
+    case 'ACCESS_REQUEST.APPLICATION_RETIRED':
+      return 'previewPlanUnavailable'
+    case 'AUTHENTICATION_REQUIRED':
+    case 'INVALID_ACCESS_TOKEN':
+      return 'previewAuthentication'
+    case 'VALIDATION_ERROR':
+      return 'previewInvalid'
+    default:
+      return 'previewError'
+  }
+}
+
 export function LiveRequestCreateScreen() {
   const { colors: mobileColors } = useMobileTheme()
   const styles = createStyles(mobileColors)
@@ -27,8 +58,9 @@ export function LiveRequestCreateScreen() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<RequestablePlanPageResponseDtoDataItemsItem>()
-  const [term, setTerm] = useState('12')
+  const [endDate, setEndDate] = useState('')
   const [reason, setReason] = useState('')
+  const [manyPaidReason, setManyPaidReason] = useState('')
   const [validation, setValidation] = useState(false)
   const [destination, setDestination] = useState<Destination>()
   const [pendingAction, setPendingAction] = useState<NavigationAction>()
@@ -38,7 +70,7 @@ export function LiveRequestCreateScreen() {
   const allowRemoval = useRef(false)
   const scroll = useRef<ScrollView>(null)
   const { plans, preview, submit } = useLiveRequestCreate(search.trim(), page)
-  const dirty = !!selected || !!search || !!reason || term !== '12'
+  const dirty = !!selected || !!search || !!reason || !!endDate || !!manyPaidReason
   usePreventRemove(session.state === 'authenticated' && (dirty || submit.isPending), ({ data }) => {
     if (allowRemoval.current) navigation.dispatch(data.action)
     else if (!submit.isPending) setPendingAction(data.action)
@@ -54,22 +86,20 @@ export function LiveRequestCreateScreen() {
       return () => subscription.remove()
     }, [dirty, router, submit.isPending])
   )
-  const months = Number(term)
-  const valid =
-    /^\d+$/.test(term) &&
-    Number.isInteger(months) &&
-    months >= 1 &&
-    months <= 12 &&
-    reason.trim().length > 0 &&
-    reason.trim().length <= 1000
+  const valid = (!endDate || validDate(endDate)) && reason.trim().length > 0 && reason.trim().length <= 1000
   const currentPreview =
     preview.data &&
     selected &&
     preview.data.input.planId === selected.id &&
-    preview.data.input.termMonths === months &&
+    (preview.data.input.expectedEndDate ?? '') === endDate &&
     preview.data.reason === reason.trim()
       ? preview.data.preview
       : undefined
+  const canSend =
+    !!currentPreview?.canSubmit &&
+    (!currentPreview.termRequired || !!endDate) &&
+    (!endDate || endDate <= currentPreview.maxEndDate) &&
+    (!currentPreview.limits.reasonRequired || !!manyPaidReason.trim())
 
   if (session.state === 'anonymous') return <Redirect href='/' />
   const locked = submit.isPending || submit.isError || submit.isSuccess
@@ -79,13 +109,21 @@ export function LiveRequestCreateScreen() {
       return
     }
     setValidation(false)
-    preview.mutate({ body: { planId: selected.id, termMonths: months }, reason: reason.trim() })
+    preview.mutate({
+      body: { planId: selected.id, ...(endDate ? { expectedEndDate: endDate } : {}) },
+      reason: reason.trim()
+    })
   }
   function send() {
-    if (!selected || !valid || !currentPreview?.canSubmit || locked || sent.current) return
+    if (!selected || !valid || !canSend || locked || sent.current) return
     sent.current = true
     submit.mutate(
-      { planId: selected.id, termMonths: months, businessReason: reason.trim() },
+      {
+        planId: selected.id,
+        businessReason: reason.trim(),
+        ...(endDate ? { expectedEndDate: endDate } : {}),
+        ...(currentPreview?.limits.reasonRequired ? { manyPaidSoftwareReason: manyPaidReason.trim() } : {})
+      },
       {
         onSuccess: (id) => {
           allowRemoval.current = true
@@ -273,15 +311,17 @@ export function LiveRequestCreateScreen() {
               <Text style={styles.actionText}>{t('requests.createLive.changePlan')}</Text>
             </Pressable>
             <View style={styles.divider} />
-            <Text style={styles.label}>{t('requests.createLive.term')}</Text>
+            <Text style={styles.label}>{t('requests.createLive.endDate')}</Text>
             <TextInput
-              accessibilityLabel={t('requests.createLive.term')}
-              keyboardType='number-pad'
-              value={term}
-              maxLength={2}
+              accessibilityLabel={t('requests.createLive.endDate')}
+              placeholder={t('requests.createLive.endDatePlaceholder')}
+              placeholderTextColor={mobileColors.muted}
+              keyboardType='numbers-and-punctuation'
+              value={endDate}
+              maxLength={10}
               editable={!locked}
               onChangeText={(value) => {
-                setTerm(value)
+                setEndDate(value)
                 preview.reset()
               }}
               style={styles.input}
@@ -320,16 +360,14 @@ export function LiveRequestCreateScreen() {
             ) : null}
             {preview.isError ? (
               <Text accessibilityRole='alert' style={styles.error}>
-                {t('requests.createLive.previewError')}
+                {t(`requests.createLive.${previewErrorKey(preview.error)}`)}
               </Text>
             ) : null}
             {currentPreview ? (
               <View style={styles.review}>
                 <Text style={styles.name}>{t('requests.createLive.review')}</Text>
                 <Text style={styles.muted}>
-                  {currentPreview.canSubmit
-                    ? t('requests.createLive.canSubmit')
-                    : t('requests.createLive.cannotSubmit')}
+                  {canSend ? t('requests.createLive.canSubmit') : t('requests.createLive.cannotSubmit')}
                 </Text>
                 {currentPreview.blockedBy ? (
                   <Text style={styles.error}>
@@ -340,10 +378,37 @@ export function LiveRequestCreateScreen() {
                   <Text style={styles.error}>{t('requests.createLive.existingAccess')}</Text>
                 ) : null}
                 <Text style={styles.muted}>
-                  {t('requests.createLive.maxTerm', {
-                    months: new Intl.NumberFormat(i18n.language).format(currentPreview.termLimit.maxMonths)
+                  {t('requests.createLive.maxEndDate', {
+                    date: validDate(currentPreview.maxEndDate)
+                      ? new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeZone: 'UTC' }).format(
+                          new Date(`${currentPreview.maxEndDate}T00:00:00.000Z`)
+                        )
+                      : t('licenses.live.dateUnavailable')
                   })}
                 </Text>
+                {currentPreview.termRequired && !endDate ? (
+                  <Text style={styles.error}>{t('requests.createLive.endDateRequired')}</Text>
+                ) : null}
+                {endDate && endDate > currentPreview.maxEndDate ? (
+                  <Text style={styles.error}>{t('requests.createLive.endDateTooLate')}</Text>
+                ) : null}
+                {currentPreview.limits.refusal ? (
+                  <Text style={styles.error}>{t(`requests.createLive.refusals.${currentPreview.limits.refusal}`)}</Text>
+                ) : null}
+                {currentPreview.limits.reasonRequired ? (
+                  <>
+                    <Text style={styles.label}>{t('requests.createLive.manyPaidReason')}</Text>
+                    <TextInput
+                      accessibilityLabel={t('requests.createLive.manyPaidReason')}
+                      multiline
+                      value={manyPaidReason}
+                      maxLength={1000}
+                      editable={!locked}
+                      onChangeText={setManyPaidReason}
+                      style={[styles.input, styles.reason]}
+                    />
+                  </>
+                ) : null}
                 {currentPreview.spendSubmission === 'BLOCKED_UNTIL_PRICED' ? (
                   <Text style={styles.error}>{t('requests.createLive.pricingBlocked')}</Text>
                 ) : null}
@@ -354,10 +419,10 @@ export function LiveRequestCreateScreen() {
                 </Text>
                 <Pressable
                   accessibilityRole='button'
-                  accessibilityState={{ disabled: !currentPreview.canSubmit || locked }}
-                  disabled={!currentPreview.canSubmit || locked}
+                  accessibilityState={{ disabled: !canSend || locked }}
+                  disabled={!canSend || locked}
                   onPress={send}
-                  style={[styles.primary, (!currentPreview.canSubmit || locked) && styles.disabled]}
+                  style={[styles.primary, (!canSend || locked) && styles.disabled]}
                 >
                   <Text style={styles.primaryText}>{t('requests.createLive.submit')}</Text>
                 </Pressable>

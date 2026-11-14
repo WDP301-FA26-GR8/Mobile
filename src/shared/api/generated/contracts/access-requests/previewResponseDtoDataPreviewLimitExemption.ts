@@ -6,12 +6,13 @@
  * OpenAPI spec version: 1.0
  */
 
-export type PreviewResponseDtoDataPreviewTermLimit = {
-  /**
-   * @maximum 9007199254740991
-   * @exclusiveMinimum 0
-   */
-  maxMonths: number
-  /** @nullable */
-  endsBy: string | null
-}
+/**
+ * @nullable
+ */
+export type PreviewResponseDtoDataPreviewLimitExemption =
+  (typeof PreviewResponseDtoDataPreviewLimitExemption)[keyof typeof PreviewResponseDtoDataPreviewLimitExemption] | null
+
+export const PreviewResponseDtoDataPreviewLimitExemption = {
+  TRANSFER_GRACE: 'TRANSFER_GRACE',
+  ROLE_ENDED: 'ROLE_ENDED'
+} as const

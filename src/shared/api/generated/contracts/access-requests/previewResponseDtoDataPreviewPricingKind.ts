@@ -6,9 +6,13 @@
  * OpenAPI spec version: 1.0
  */
 
-export type PreviewResponseDtoDataPreviewPossibleExtraStepsItemBeforeStep =
-  (typeof PreviewResponseDtoDataPreviewPossibleExtraStepsItemBeforeStep)[keyof typeof PreviewResponseDtoDataPreviewPossibleExtraStepsItemBeforeStep]
+/**
+ * @nullable
+ */
+export type PreviewResponseDtoDataPreviewPricingKind =
+  (typeof PreviewResponseDtoDataPreviewPricingKind)[keyof typeof PreviewResponseDtoDataPreviewPricingKind] | null
 
-export const PreviewResponseDtoDataPreviewPossibleExtraStepsItemBeforeStep = {
-  SPEND_APPROVAL: 'SPEND_APPROVAL'
+export const PreviewResponseDtoDataPreviewPricingKind = {
+  RECURRING: 'RECURRING',
+  ONE_TIME: 'ONE_TIME'
 } as const
