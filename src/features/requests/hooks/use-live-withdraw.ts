@@ -11,8 +11,11 @@ export function useLiveWithdraw() {
     mutationFn: (id: string) =>
       session.write(async (token) => {
         const result = await accessRequestWithdraw(id, {}, { headers: { Authorization: `Bearer ${token}` } })
-        if (!result.data.data?.request) throw new Error('Missing withdrawal response')
-        return result.data.data.request
+        const request = result.data.data?.request
+        if (!request || request.id !== id || typeof request.state !== 'string' || !request.state) {
+          throw new Error('Missing or inconsistent withdrawal response')
+        }
+        return request
       }),
     onSettled: async (_, __, id) => {
       await Promise.all([

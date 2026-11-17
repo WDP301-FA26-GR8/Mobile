@@ -74,6 +74,9 @@ Request detail displays the expected end date rather than interpreting the legac
 `termMonths` field, and loads the paginated server event history separately.
 The list offers withdrawal only when the server indicates it is
 available, and displays the returned status rather than assuming immediate withdrawal.
+The withdrawal response must identify the same request; a missing or inconsistent
+response is treated as uncertain. Navigation and Android Back are blocked while
+withdrawal is in flight, but forced termination cannot be intercepted.
 The create screen includes the employee tabs and asks for confirmation before its
 back button, tabs, or navigation actions that remove the route discard entered details.
 On Android, system back also asks before exiting when this is the last route. Navigation

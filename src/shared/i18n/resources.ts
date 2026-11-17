@@ -955,6 +955,7 @@ export const resources = {
             'The server will check whether withdrawal is allowed. Some requests must wait for IT to close the task.',
           withdrawAction: 'Confirm withdrawal',
           withdrawSuccess: 'Withdrawal recorded. Check the current request status; it may still be waiting for IT.',
+          withdrawResultState: 'Status returned by the server:',
           withdrawError: 'The result could not be confirmed. Check the refreshed request status before trying again.'
         },
         live: {
@@ -2120,6 +2121,7 @@ export const resources = {
           withdrawNote: 'Máy chủ sẽ kiểm tra quyền rút. Một số yêu cầu phải chờ IT đóng tác vụ.',
           withdrawAction: 'Xác nhận rút',
           withdrawSuccess: 'Đã ghi nhận yêu cầu rút. Hãy xem trạng thái hiện tại; yêu cầu có thể vẫn đang chờ IT.',
+          withdrawResultState: 'Trạng thái máy chủ trả về:',
           withdrawError: 'Chưa thể xác nhận kết quả. Hãy kiểm tra trạng thái yêu cầu sau khi tải lại trước khi thử lại.'
         },
         live: {

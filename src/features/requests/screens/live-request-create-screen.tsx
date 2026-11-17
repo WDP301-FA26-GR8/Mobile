@@ -128,20 +128,23 @@ export function LiveRequestCreateScreen() {
   const permitted = !profile.isError && mayCreateRequest(profile.data)
   const { preview, submit } = useLiveRequestCreate()
   const dirty = !!selected || hasSearch || !!reason || !!term
-  usePreventRemove(session.state === 'authenticated' && (dirty || submit.isPending), ({ data }) => {
+  const inFlight = submit.isPending || (sent.current && !submit.isError && !submit.isSuccess)
+  usePreventRemove(session.state === 'authenticated' && (dirty || inFlight), ({ data }) => {
     if (allowRemoval.current) navigation.dispatch(data.action)
-    else if (!submit.isPending) setPendingAction(data.action)
+    else if (!inFlight && !(sent.current && !submit.isError && !submit.isSuccess)) setPendingAction(data.action)
   })
   useFocusEffect(
     useCallback(() => {
       if (Platform.OS !== 'android') return
       const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-        if (router.canGoBack() || (!dirty && !submit.isPending)) return false
-        if (!submit.isPending) setExitApp(true)
+        if (session.state !== 'authenticated') return false
+        if (inFlight || (sent.current && !submit.isError && !submit.isSuccess)) return true
+        if (router.canGoBack() || !dirty) return false
+        setExitApp(true)
         return true
       })
       return () => subscription.remove()
-    }, [dirty, router, submit.isPending])
+    }, [dirty, inFlight, router, session.state, submit.isError, submit.isSuccess])
   )
   const type = selected?.provisioningType
   const asksTerm = type === 'K1' || type === 'K2' || type === 'K5'
@@ -195,7 +198,7 @@ export function LiveRequestCreateScreen() {
       </SafeAreaView>
     )
   }
-  const locked = submit.isPending || submit.isError || submit.isSuccess
+  const locked = inFlight || submit.isError || submit.isSuccess
   const rejection = submit.isError ? submitRejection(submit.error) : undefined
   const conflictId = submit.isError ? submitConflictId(submit.error, rejection) : undefined
   function review() {
@@ -227,7 +230,7 @@ export function LiveRequestCreateScreen() {
     )
   }
   function navigateTo(target: Href) {
-    if (submit.isPending) return
+    if (inFlight || (sent.current && !submit.isError && !submit.isSuccess)) return
     if (dirty) {
       setDestination(target)
       return
@@ -239,8 +242,8 @@ export function LiveRequestCreateScreen() {
       <ScrollView ref={scroll} keyboardShouldPersistTaps='handled' contentContainerStyle={styles.content}>
         <Pressable
           accessibilityRole='button'
-          accessibilityState={{ disabled: submit.isPending }}
-          disabled={submit.isPending}
+          accessibilityState={{ disabled: inFlight }}
+          disabled={inFlight}
           onPress={() => navigateTo('/live-requests')}
           style={styles.action}
         >
@@ -490,7 +493,7 @@ export function LiveRequestCreateScreen() {
             label: t('navigation.software'),
             icon: 'grid',
             selected: false,
-            disabled: submit.isPending,
+            disabled: inFlight,
             accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') }),
             onPress: () => navigateTo('/my-software')
           },
@@ -499,7 +502,7 @@ export function LiveRequestCreateScreen() {
             label: t('navigation.createRequest'),
             icon: 'plus-circle',
             selected: true,
-            disabled: submit.isPending,
+            disabled: inFlight,
             accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') })
           },
           {
@@ -507,7 +510,7 @@ export function LiveRequestCreateScreen() {
             label: t('navigation.requests'),
             icon: 'clock',
             selected: false,
-            disabled: submit.isPending,
+            disabled: inFlight,
             accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') }),
             onPress: () => navigateTo('/live-requests')
           },
@@ -516,7 +519,7 @@ export function LiveRequestCreateScreen() {
             label: t('navigation.inbox'),
             icon: 'bell',
             selected: false,
-            disabled: submit.isPending,
+            disabled: inFlight,
             accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') }),
             onPress: () => navigateTo('/live-inbox')
           }

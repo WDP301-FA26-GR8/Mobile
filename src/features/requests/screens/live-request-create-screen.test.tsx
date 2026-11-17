@@ -570,8 +570,52 @@ test('disables tab navigation while submitting', async () => {
   await act(() => callback({ data: { action: { type: 'GO_BACK' } } }))
   expect(screen.queryByText('Rời khỏi yêu cầu này?')).toBeNull()
   expect(mockNavigation.dispatch).not.toHaveBeenCalled()
-  rejectSubmit(new Error('offline'))
+  await act(() => rejectSubmit(new Error('offline')))
   await screen.findByText('Chưa thể xác nhận kết quả. Hãy kiểm tra danh sách yêu cầu trước khi gửi lại để tránh trùng.')
+})
+
+test('blocks removal and Android back immediately when submission starts', async () => {
+  const previousPlatform = Platform.OS
+  Platform.OS = 'android'
+  let back: () => boolean | null | undefined = () => false
+  const subscription = jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_event, handler) => {
+    back = handler
+    return { remove: jest.fn() }
+  })
+  let rejectSubmit: (error: Error) => void = () => {
+    throw new Error('Submission was not started')
+  }
+  jest.mocked(accessRequestSubmit).mockImplementationOnce(
+    () =>
+      new Promise((_, reject) => {
+        rejectSubmit = reject
+      })
+  )
+  try {
+    const screen = await renderScreen()
+    await openFigma(screen)
+    await fireEvent.press(screen.getByRole('button', { name: 'Chọn Figma, Pro' }))
+    await fireEvent.changeText(screen.getByLabelText('Lý do nghiệp vụ (bắt buộc)'), 'Thiết kế')
+    await fireEvent.press(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }))
+    await screen.findByText('Có thể gửi yêu cầu. Máy chủ sẽ kiểm tra lại khi gửi.')
+    const [, beforeSubmit] = mockPreventRemove.mock.calls[mockPreventRemove.mock.calls.length - 1]
+    await act(() => {
+      fireEvent.press(screen.getByRole('button', { name: 'Gửi yêu cầu' }))
+      beforeSubmit({ data: { action: { type: 'GO_BACK' } } })
+      expect(back()).toBe(true)
+    })
+    expect(screen.queryByText('Rời khỏi yêu cầu này?')).toBeNull()
+    expect(mockNavigation.dispatch).not.toHaveBeenCalled()
+    await waitFor(() => expect(accessRequestSubmit).toHaveBeenCalledTimes(1))
+    await act(() => rejectSubmit(new Error('offline')))
+    await screen.findByText(
+      'Chưa thể xác nhận kết quả. Hãy kiểm tra danh sách yêu cầu trước khi gửi lại để tránh trùng.'
+    )
+    screen.unmount()
+  } finally {
+    subscription.mockRestore()
+    Platform.OS = previousPlatform
+  }
 })
 
 test('navigates to the created request after successful submission', async () => {
