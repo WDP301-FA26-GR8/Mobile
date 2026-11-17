@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, waitFor } from '@testing-library/react-native'
 
+import { NotificationReadErrorProvider } from '@/features/inbox'
 import { LiveNeedApprovalsScreen } from '@/features/manager'
 import {
   accessRequestGet,
@@ -51,7 +52,9 @@ function renderScreen() {
   })
   return render(
     <QueryClientProvider client={client}>
-      <LiveNeedApprovalsScreen />
+      <NotificationReadErrorProvider>
+        <LiveNeedApprovalsScreen />
+      </NotificationReadErrorProvider>
     </QueryClientProvider>
   )
 }
@@ -434,6 +437,42 @@ test('does not retry or report success for an uncertain approval', async () => {
   await screen.findByText('Chưa thể xác nhận quyết định. Hãy quay lại danh sách và kiểm tra trước khi thử lại.')
   expect(accessRequestNeedDecide).toHaveBeenCalledTimes(1)
   expect(screen.getByRole('button', { name: 'Xác nhận quyết định' }).props.accessibilityState.disabled).toBe(true)
+})
+
+test('reloads a changed checklist and requires a fresh answer before another decision', async () => {
+  const original = await jest.mocked(policyStepGet)('POL-MF1', '1.2')
+  if (!original.data.data) throw new Error('Expected checklist')
+  const policy = original.data.data
+  jest
+    .mocked(policyStepGet)
+    .mockResolvedValueOnce(original)
+    .mockResolvedValue({
+      ...original,
+      data: {
+        ...original.data,
+        data: {
+          ...policy,
+          policyVersionId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+          step: { ...policy.step, checklist: [{ code: 'Q2', text: 'Câu hỏi mới', check: 'PERSON' }] }
+        }
+      }
+    })
+  jest.mocked(accessRequestNeedDecide).mockRejectedValueOnce({
+    status: 409,
+    info: { success: false, error: { code: 'POLICY.VERSION_CHANGED' } }
+  })
+  const screen = await renderScreen()
+  await screen.findByText('Figma')
+  await fireEvent.press(screen.getByRole('button', { name: 'Xem Figma do An yêu cầu' }))
+  await screen.findByText('Thiết kế')
+  await fireEvent.press(screen.getByRole('button', { name: 'Duyệt nhu cầu' }))
+  await screen.findByText('Có (hệ thống kiểm tra)')
+  await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận quyết định' }))
+  await screen.findByText('Chính sách đã thay đổi. Hãy tải lại checklist và trả lời lại trước khi quyết định.')
+  await fireEvent.press(screen.getByRole('button', { name: 'Tải lại checklist' }))
+  await screen.findByText('Câu hỏi mới')
+  expect(screen.getByRole('button', { name: 'Xác nhận quyết định' }).props.accessibilityState.disabled).toBe(true)
+  expect(accessRequestNeedDecide).toHaveBeenCalledTimes(1)
 })
 
 test('confirms approval only after confirmation', async () => {

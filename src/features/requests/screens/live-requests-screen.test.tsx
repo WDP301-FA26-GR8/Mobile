@@ -3,7 +3,11 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native'
 import type { ReactElement } from 'react'
 
 import { LiveRequestDetailsScreen, LiveRequestsScreen } from '@/features/requests'
-import { accessRequestGet, accessRequestWithdraw } from '@/shared/api/generated/api/access-requests/access-requests'
+import {
+  accessRequestEventList,
+  accessRequestGet,
+  accessRequestWithdraw
+} from '@/shared/api/generated/api/access-requests/access-requests'
 import { meAccessRequestList } from '@/shared/api/generated/api/me/me'
 import { setAppLanguage } from '@/shared/i18n/i18n'
 
@@ -15,9 +19,13 @@ const mockSession = {
 }
 jest.mock('expo-router', () => ({ Redirect: () => null, useRouter: () => mockRouter }))
 jest.mock('@/shared/api/session-context', () => ({ useSession: () => mockSession }))
+jest.mock('@/shared/api/use-account-profile', () => ({
+  useAccountProfile: () => ({ data: { roles: ['EMPLOYEE'], employee: { unplaced: false } }, isError: false })
+}))
 jest.mock('@/shared/api/generated/api/me/me', () => ({ meAccessRequestList: jest.fn() }))
 jest.mock('@/shared/api/generated/api/access-requests/access-requests', () => ({
   accessRequestGet: jest.fn(),
+  accessRequestEventList: jest.fn(),
   accessRequestWithdraw: jest.fn()
 }))
 
@@ -39,6 +47,18 @@ beforeEach(async () => {
   await setAppLanguage('vi', false)
   jest.clearAllMocks()
   mockSession.state = 'authenticated'
+  jest.mocked(accessRequestEventList).mockResolvedValue({
+    status: 200,
+    headers: new Headers(),
+    data: {
+      success: true,
+      message: 'EVENTS',
+      data: {
+        items: [],
+        pagination: { page: 1, pageSize: 20, totalItems: 0, totalPages: 0 }
+      }
+    }
+  })
   jest.mocked(meAccessRequestList).mockResolvedValue({
     status: 200,
     headers: new Headers(),
@@ -180,6 +200,52 @@ test('shows the returned-for-revision state from the server', async () => {
   })
   const screen = await renderScreen(<LiveRequestsScreen />)
   await screen.findByText('Đã trả về để bổ sung')
+})
+
+test('shows actual request events and supports pagination', async () => {
+  jest.mocked(accessRequestEventList).mockResolvedValue({
+    status: 200,
+    headers: new Headers(),
+    data: {
+      success: true,
+      message: 'EVENTS',
+      data: {
+        items: [
+          {
+            id: 'event-1',
+            kind: 'RETURNED_TO_REQUESTER',
+            occurredAt: '2026-11-09T00:00:00Z',
+            actor: { employeeId: id, employeeCode: 'E1', fullName: 'An' },
+            actorKind: 'USER',
+            actorRole: 'MANAGER',
+            line: null,
+            reason: 'Cần bổ sung'
+          }
+        ],
+        pagination: { page: 1, pageSize: 20, totalItems: 21, totalPages: 2 }
+      }
+    }
+  })
+  const screen = await renderScreen(<LiveRequestDetailsScreen requestId={id} />)
+  await screen.findByText('Đã trả về để bổ sung')
+  screen.getByText('Lý do: Cần bổ sung')
+  expect(accessRequestEventList).toHaveBeenCalledWith(
+    id,
+    { page: 1, pageSize: 20 },
+    expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
+  )
+  await fireEvent.press(screen.getByRole('button', { name: 'Trang sau' }))
+  await waitFor(() =>
+    expect(accessRequestEventList).toHaveBeenCalledWith(id, { page: 2, pageSize: 20 }, expect.anything())
+  )
+})
+
+test('reports timeline failures and retries', async () => {
+  jest.mocked(accessRequestEventList).mockRejectedValueOnce(new Error('offline'))
+  const screen = await renderScreen(<LiveRequestDetailsScreen requestId={id} />)
+  await screen.findByText('Không thể tải lịch sử yêu cầu.')
+  await fireEvent.press(screen.getByRole('button', { name: 'Thử lại' }))
+  await screen.findByText('Chưa có lịch sử.')
 })
 
 test('confirms withdrawal, sends once and reloads the list', async () => {

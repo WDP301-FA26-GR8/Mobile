@@ -17,6 +17,15 @@ import { ManagerLiveTabs } from '../components/manager-live-tabs'
 import { SimilarSeats } from '../components/similar-seats'
 import { useLiveNeedApprovals } from '../hooks/use-live-need-approvals'
 
+function policyVersionChanged(error: unknown) {
+  if (typeof error !== 'object' || error === null || !('status' in error) || error.status !== 409 || !('info' in error))
+    return false
+  const info = error.info
+  if (typeof info !== 'object' || info === null || !('error' in info)) return false
+  const detail = info.error
+  return typeof detail === 'object' && detail !== null && 'code' in detail && detail.code === 'POLICY.VERSION_CHANGED'
+}
+
 export function LiveNeedApprovalsScreen() {
   const { colors: mobileColors } = useMobileTheme()
   const styles = createStyles(mobileColors)
@@ -32,7 +41,11 @@ export function LiveNeedApprovalsScreen() {
   const [activeTab, setActiveTab] = useState<'queue' | 'team' | 'inbox'>('queue')
   const [loggingOut, setLoggingOut] = useState(false)
   const [logoutError, setLogoutError] = useState(false)
+  const [recoveryBusy, setRecoveryBusy] = useState(false)
+  const [recoveryError, setRecoveryError] = useState(false)
   const sent = useRef(false)
+  const recoveryEpoch = useRef(0)
+  const recovering = useRef(false)
   const profile = useAccountProfile()
   const isManager = !!profile.data?.roles.includes('MANAGER') && !profile.isError
   const hasScope = isManager && !!profile.data?.managerScope
@@ -65,6 +78,35 @@ export function LiveNeedApprovalsScreen() {
     setResponse(undefined)
     setReason('')
     setValidation(false)
+    recoveryEpoch.current += 1
+    recovering.current = false
+    setRecoveryBusy(false)
+    setRecoveryError(false)
+    sent.current = false
+    decision.reset()
+  }
+  async function reloadChangedPolicy() {
+    if (recovering.current || !decision.isError || !policyVersionChanged(decision.error)) return
+    const epoch = recoveryEpoch.current
+    const previousVersion = decision.variables?.body.checklist.policyVersionId
+    recovering.current = true
+    setRecoveryBusy(true)
+    setRecoveryError(false)
+    setResponse(undefined)
+    const [updatedPolicy, updatedDetail] = await Promise.all([policy.refetch(), detail.refetch()])
+    if (epoch !== recoveryEpoch.current) return
+    recovering.current = false
+    setRecoveryBusy(false)
+    if (
+      updatedPolicy.isError ||
+      updatedDetail.isError ||
+      !previousVersion ||
+      !updatedPolicy.data ||
+      updatedPolicy.data.policyVersionId === previousVersion
+    ) {
+      setRecoveryError(true)
+      return
+    }
     sent.current = false
     decision.reset()
   }
@@ -151,6 +193,20 @@ export function LiveNeedApprovalsScreen() {
           ) : null}
           {!selected && isManager && profile.data ? (
             <View style={styles.profileActions}>
+              <Pressable
+                accessibilityRole='button'
+                accessibilityLabel={t('navigation.home')}
+                onPress={() => router.push('/home')}
+                style={styles.iconButton}
+              >
+                <Feather
+                  accessibilityElementsHidden
+                  importantForAccessibility='no'
+                  name='home'
+                  size={18}
+                  color={mobileColors.primaryInk}
+                />
+              </Pressable>
               <Pressable
                 accessibilityRole='button'
                 accessibilityLabel={t('manager.live.personal')}
@@ -415,9 +471,31 @@ export function LiveNeedApprovalsScreen() {
                 </Text>
               ) : null}
               {decision.isError ? (
-                <Text accessibilityRole='alert' style={styles.error}>
-                  {t('manager.live.uncertain')}
-                </Text>
+                policyVersionChanged(decision.error) ? (
+                  <View>
+                    <Text accessibilityRole='alert' style={styles.error}>
+                      {t('manager.live.policyChanged')}
+                    </Text>
+                    {recoveryError ? (
+                      <Text accessibilityRole='alert' style={styles.error}>
+                        {t('manager.live.policyReloadError')}
+                      </Text>
+                    ) : null}
+                    <Pressable
+                      accessibilityRole='button'
+                      disabled={recoveryBusy}
+                      accessibilityState={{ disabled: recoveryBusy, busy: recoveryBusy }}
+                      onPress={() => void reloadChangedPolicy()}
+                      style={styles.action}
+                    >
+                      <Text style={styles.link}>{t('manager.live.reloadChecklist')}</Text>
+                    </Pressable>
+                  </View>
+                ) : (
+                  <Text accessibilityRole='alert' style={styles.error}>
+                    {t('manager.live.uncertain')}
+                  </Text>
+                )
               ) : null}
               {request ? (
                 <View style={styles.card}>

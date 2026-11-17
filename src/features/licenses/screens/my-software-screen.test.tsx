@@ -61,7 +61,7 @@ beforeEach(async () => {
           employeeCode: 'E1',
           fullName: 'Nguyễn An',
           department: null,
-          unplaced: true,
+          unplaced: false,
           jobTitle: null
         },
         roles: ['EMPLOYEE'],
@@ -84,7 +84,7 @@ beforeEach(async () => {
         view: 'current',
         items: [
           {
-            assignmentId: 'assignment-id',
+            assignmentId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
             application: { id: 'application-id', name: 'Figma', logoUrl: null },
             plan: { id: 'plan-id', name: 'Professional' },
             provisioningType: 'K4',
@@ -127,6 +127,11 @@ test('shows only server account and rights, without invented license keys', asyn
     { view: 'current', page: 1, pageSize: 20 },
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
+  await fireEvent.press(screen.getByRole('button', { name: 'Mở quyền phần mềm: Figma, Professional' }))
+  expect(mockPush).toHaveBeenCalledWith({
+    pathname: '/my-software/[softwareId]',
+    params: { softwareId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }
+  })
 })
 
 test('switches the live software screen to dark appearance', async () => {
@@ -177,6 +182,34 @@ test('filters the current page and explains the filter scope', async () => {
   expect(screen.queryByText('Figma')).toBeNull()
   await fireEvent.press(screen.getByRole('button', { name: 'Tất cả' }))
   screen.getByText('Figma')
+})
+
+test('switches to ended software and resets the current-page filter', async () => {
+  const response = await jest.mocked(meSoftwareRightList)()
+  if (!response.data.data) throw new Error('Expected software data')
+  const current = response.data.data
+  jest.mocked(meSoftwareRightList).mockImplementation(async (params) => ({
+    ...response,
+    data: {
+      ...response.data,
+      data:
+        params?.view === 'ended'
+          ? { ...current, view: 'ended', items: [{ ...current.items[0], status: 'ENDED' }] }
+          : current
+    }
+  }))
+  const screen = await renderScreen()
+  await screen.findByText('Figma')
+  await fireEvent.press(screen.getByRole('button', { name: 'Sắp hết hạn' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Đã kết thúc' }))
+  await waitFor(() =>
+    expect(meSoftwareRightList).toHaveBeenCalledWith({ view: 'ended', page: 1, pageSize: 20 }, expect.anything())
+  )
+  await screen.findByText('Figma')
+  expect(screen.queryByRole('button', { name: 'Sắp hết hạn' })).toBeNull()
+  await fireEvent.press(screen.getByRole('button', { name: 'Hiện có' }))
+  await screen.findByText('Figma')
+  screen.getByRole('button', { name: 'Sắp hết hạn' })
 })
 
 test('keeps the active status visible alongside an expiry warning', async () => {

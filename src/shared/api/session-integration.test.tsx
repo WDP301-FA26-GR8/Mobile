@@ -71,7 +71,11 @@ test('signs in, loads account rights with bearer auth, and logs out', async () =
               jobTitle: null
             },
             roles: ['EMPLOYEE'],
-            managerScope: null
+            managerScope: null,
+            upcomingUnits: [],
+            pendingPolicyAcknowledgements: [],
+            avatar: null,
+            workPhone: null
           }
         }),
         { status: 200 }

@@ -49,27 +49,27 @@ test('submits the credentials and reports authentication failure', async () => {
   expect(mockReplace).not.toHaveBeenCalled()
 })
 
-test('redirects an authenticated account to its software', async () => {
+test('redirects an authenticated account to home', async () => {
   mockSession.state = 'authenticated'
   await render(<LoginScreen />)
-  await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/my-software'))
+  await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/home'))
 })
 
-test('redirects an active manager to the manager workspace', async () => {
+test('redirects an active manager to home', async () => {
   mockSession.state = 'authenticated'
   mockProfile.data = {
     roles: ['MANAGER'],
     managerScope: { departmentId: 'id', departmentCode: 'IT', departmentName: 'IT' }
   }
   await render(<LoginScreen />)
-  await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/live-need-approvals'))
+  await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/home'))
 })
 
-test('opens the manager workspace even if no department is currently assigned', async () => {
+test('opens home for a manager without a department assignment', async () => {
   mockSession.state = 'authenticated'
   mockProfile.data = { roles: ['MANAGER'], managerScope: null }
   await render(<LoginScreen />)
-  await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/live-need-approvals'))
+  await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/home'))
 })
 
 test('does not guess a role when account loading fails', async () => {

@@ -8,10 +8,14 @@ export function useAccountProfile() {
   return useQuery({
     queryKey: ['session', 'me'],
     enabled: session.state === 'authenticated',
+    refetchOnWindowFocus: 'always',
     queryFn: ({ signal }) =>
       session.read(async (token) => {
         const result = await meGet({ signal, headers: { Authorization: `Bearer ${token}` } })
         if (!result.data.data) throw new Error('Missing account response data')
+        if (!Array.isArray(result.data.data.pendingPolicyAcknowledgements)) {
+          throw new Error('Missing pending policy acknowledgements')
+        }
         return result.data.data
       })
   })

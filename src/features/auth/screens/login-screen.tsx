@@ -25,7 +25,7 @@ export function LoginScreen() {
 
   useEffect(() => {
     if (session.state === 'authenticated' && profile.data && !profile.isError) {
-      router.replace(profile.data.roles.includes('MANAGER') ? '/live-need-approvals' : '/my-software')
+      router.replace('/home')
     }
   }, [router, session.state, profile.data, profile.isError])
 

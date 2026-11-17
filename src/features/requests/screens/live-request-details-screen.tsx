@@ -11,6 +11,7 @@ import { useMobileTheme } from '@/shared/theme/theme-provider'
 
 import { LiveRequestStatus } from '../components/live-request-status'
 import { LiveRequestType } from '../components/live-request-type'
+import { RequestTimeline } from '../components/request-timeline'
 import { useLiveRequest } from '../hooks/use-live-requests'
 
 export function LiveRequestDetailsScreen({ requestId }: { requestId: string }) {
@@ -131,6 +132,7 @@ export function LiveRequestDetailsScreen({ requestId }: { requestId: string }) {
                 </>
               ) : null}
             </View>
+            <RequestTimeline key={request.id} requestId={request.id} />
           </>
         ) : null}
         {draft ? (

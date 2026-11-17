@@ -3,7 +3,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native'
 import type { ReactNode } from 'react'
 import { Text } from 'react-native'
 
-import { LiveInboxScreen } from '@/features/inbox'
+import { LiveInboxScreen, NotificationReadErrorProvider } from '@/features/inbox'
 import {
   notificationList,
   notificationMarkAllRead,
@@ -20,6 +20,9 @@ const mockSession = {
 }
 jest.mock('expo-router', () => ({ Redirect: () => null, useRouter: () => mockRouter }))
 jest.mock('@/shared/api/session-context', () => ({ useSession: () => mockSession }))
+jest.mock('@/shared/api/use-account-profile', () => ({
+  useAccountProfile: () => ({ data: { roles: ['EMPLOYEE'], employee: { unplaced: false } }, isError: false })
+}))
 jest.mock('@/shared/api/generated/api/notifications/notifications', () => ({
   notificationList: jest.fn(),
   notificationUnreadCount: jest.fn(),
@@ -33,7 +36,9 @@ function renderScreen(navigation?: ReactNode) {
   })
   return render(
     <QueryClientProvider client={client}>
-      <LiveInboxScreen navigation={navigation} />
+      <NotificationReadErrorProvider>
+        <LiveInboxScreen navigation={navigation} />
+      </NotificationReadErrorProvider>
     </QueryClientProvider>
   )
 }
@@ -89,13 +94,12 @@ beforeEach(async () => {
 test('shows real notifications and updates one using authenticated API', async () => {
   const screen = await renderScreen()
   await screen.findByText('Đã cấp quyền sử dụng')
-  screen.getByText('Mã yêu cầu: 01234567-89ab-cdef-0123-456789abcdef')
   screen.getByText('1 thông báo chưa đọc')
   expect(notificationList).toHaveBeenCalledWith(
     { page: 1, pageSize: 20 },
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
-  await fireEvent.press(screen.getByRole('button', { name: 'Đánh dấu đã đọc: Đã cấp quyền sử dụng' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Mở thông báo: Đã cấp quyền sử dụng' }))
   await waitFor(() =>
     expect(notificationMarkRead).toHaveBeenCalledWith(
       'notice-1',
@@ -104,11 +108,12 @@ test('shows real notifications and updates one using authenticated API', async (
   )
   await waitFor(() => expect(notificationList).toHaveBeenCalledTimes(2))
   expect(notificationUnreadCount).toHaveBeenCalledTimes(2)
-  await fireEvent.press(screen.getByRole('button', { name: 'Xem yêu cầu' }))
-  expect(mockRouter.push).toHaveBeenCalledWith({
-    pathname: '/live-requests/[requestId]',
-    params: { requestId: '01234567-89ab-cdef-0123-456789abcdef' }
-  })
+  await waitFor(() =>
+    expect(mockRouter.push).toHaveBeenCalledWith({
+      pathname: '/live-requests/[requestId]',
+      params: { requestId: '01234567-89ab-cdef-0123-456789abcdef' }
+    })
+  )
   await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Yêu cầu' }))
   expect(mockRouter.replace).toHaveBeenCalledWith('/live-requests')
   await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Phần mềm' }))
@@ -130,9 +135,10 @@ test('keeps manager navigation and distinguishes read notifications without mark
   screen.getByText('Chưa đọc')
   screen.getByText('Đã đọc')
   expect(screen.queryByRole('tab', { name: 'Mở mục Phần mềm' })).toBeNull()
-  await fireEvent.press(screen.getAllByRole('button', { name: 'Xem yêu cầu' })[0])
+  await fireEvent.press(screen.getByRole('button', { name: 'Mở thông báo: Yêu cầu đã được rút' }))
   expect(notificationMarkRead).not.toHaveBeenCalled()
   expect(notificationMarkAllRead).not.toHaveBeenCalled()
+  expect(mockRouter.push).toHaveBeenCalled()
 })
 test('marks all read and reports an uncertain failed update without automatic retry', async () => {
   jest.mocked(notificationMarkAllRead).mockRejectedValueOnce(new Error('offline'))
@@ -157,7 +163,98 @@ test('shows unknown codes rather than inventing a notification meaning', async (
   if (!response.data.data) throw new Error('Expected notification data')
   response.data.data.items[0].code = 'NEW_CODE'
   const screen = await renderScreen()
-  await screen.findByText('Cập nhật khác (NEW_CODE)')
+  await screen.findByText('Thông báo mới')
+  await fireEvent.press(screen.getByRole('button', { name: 'Mở thông báo: Thông báo mới' }))
+  await screen.findByText('Nội dung này chưa có trên ứng dụng. Vui lòng xem chi tiết trên web.')
+  expect(mockRouter.push).not.toHaveBeenCalled()
+})
+
+test('opens the request and shows a persistent warning when marking the notification fails', async () => {
+  jest.mocked(notificationMarkRead).mockRejectedValueOnce(new Error('offline'))
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { retry: false, gcTime: 0 } }
+  })
+  const screen = await render(
+    <QueryClientProvider client={client}>
+      <NotificationReadErrorProvider>
+        <LiveInboxScreen />
+      </NotificationReadErrorProvider>
+    </QueryClientProvider>
+  )
+  await screen.findByText('Đã cấp quyền sử dụng')
+  await fireEvent.press(screen.getByRole('button', { name: 'Mở thông báo: Đã cấp quyền sử dụng' }))
+  await screen.findByText('Chưa thể xác nhận kết quả. Hãy kiểm tra hộp thư trước khi thử lại.')
+  expect(notificationMarkRead).toHaveBeenCalledTimes(1)
+  expect(mockRouter.push).toHaveBeenCalledWith({
+    pathname: '/live-requests/[requestId]',
+    params: { requestId: '01234567-89ab-cdef-0123-456789abcdef' }
+  })
+  await screen.rerender(
+    <QueryClientProvider client={client}>
+      <NotificationReadErrorProvider>
+        <Text>{i18n.t('home.live.actions')}</Text>
+      </NotificationReadErrorProvider>
+    </QueryClientProvider>
+  )
+  screen.getByText('Chưa thể xác nhận kết quả. Hãy kiểm tra hộp thư trước khi thử lại.')
+  await fireEvent.press(screen.getByRole('button', { name: 'Đóng' }))
+  expect(screen.queryByText('Chưa thể xác nhận kết quả. Hãy kiểm tra hộp thư trước khi thử lại.')).toBeNull()
+})
+
+test('opens the backend subject rather than an unrelated legacy request id', async () => {
+  const response = await jest.mocked(notificationList)()
+  if (!response.data.data) throw new Error('Expected notification data')
+  response.data.data.items[0].subject = { type: 'ACCESS_REQUEST', id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }
+  const screen = await renderScreen()
+  await screen.findByText('Đã cấp quyền sử dụng')
+  await fireEvent.press(screen.getByRole('button', { name: 'Mở thông báo: Đã cấp quyền sử dụng' }))
+  await waitFor(() =>
+    expect(mockRouter.push).toHaveBeenCalledWith({
+      pathname: '/live-requests/[requestId]',
+      params: { requestId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }
+    })
+  )
+})
+
+test('does not open a malformed request id', async () => {
+  const response = await jest.mocked(notificationList)()
+  if (!response.data.data) throw new Error('Expected notification data')
+  response.data.data.items[0].subject = { type: 'ACCESS_REQUEST', id: 'invalid' }
+  const screen = await renderScreen()
+  await screen.findByText('Đã cấp quyền sử dụng')
+  await fireEvent.press(screen.getByRole('button', { name: 'Mở thông báo: Đã cấp quyền sử dụng' }))
+  await screen.findByText('Nội dung này chưa có trên ứng dụng. Vui lòng xem chi tiết trên web.')
+  expect(mockRouter.push).not.toHaveBeenCalled()
+})
+
+test('opens the holder’s software access from an expiry notification', async () => {
+  const response = await jest.mocked(notificationList)()
+  if (!response.data.data) throw new Error('Expected notification data')
+  response.data.data.items[0].code = 'LICENSE_EXPIRY_REMINDER'
+  response.data.data.items[0].subject = { type: 'LicenseAssignment', id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }
+  response.data.data.items[0].params = { audience: 'EMPLOYEE' }
+  const screen = await renderScreen()
+  await screen.findByText('Quyền phần mềm sắp hết hạn')
+  await fireEvent.press(screen.getByRole('button', { name: 'Mở thông báo: Quyền phần mềm sắp hết hạn' }))
+  await waitFor(() =>
+    expect(mockRouter.push).toHaveBeenCalledWith({
+      pathname: '/my-software/[softwareId]',
+      params: { softwareId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }
+    })
+  )
+})
+
+test('does not open another employee’s expiry notification as personal software', async () => {
+  const response = await jest.mocked(notificationList)()
+  if (!response.data.data) throw new Error('Expected notification data')
+  response.data.data.items[0].code = 'LICENSE_EXPIRY_REMINDER'
+  response.data.data.items[0].subject = { type: 'LicenseAssignment', id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }
+  response.data.data.items[0].params = { audience: 'HEAD' }
+  const screen = await renderScreen()
+  await screen.findByText('Quyền phần mềm sắp hết hạn')
+  await fireEvent.press(screen.getByRole('button', { name: 'Mở thông báo: Quyền phần mềm sắp hết hạn' }))
+  await screen.findByText('Nội dung này chưa có trên ứng dụng. Vui lòng xem chi tiết trên web.')
+  expect(mockRouter.push).not.toHaveBeenCalled()
 })
 
 test('loads subsequent pages and shows an empty page', async () => {

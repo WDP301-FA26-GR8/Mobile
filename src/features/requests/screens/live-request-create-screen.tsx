@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons'
 import { type NavigationAction, useNavigation, usePreventRemove } from '@react-navigation/native'
-import { Redirect, useFocusEffect, useRouter } from 'expo-router'
+import { type Href, Redirect, useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BackHandler, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
@@ -8,14 +8,16 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { SoftwareIcon } from '@/entities/software'
 import type { RequestablePlanPageResponseDtoDataItemsItem } from '@/shared/api/generated/contracts/requestable-software'
+import { mayCreateRequest } from '@/shared/api/request-eligibility'
 import { useSession } from '@/shared/api/session-context'
+import { useAccountProfile } from '@/shared/api/use-account-profile'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
 import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 
+import { RequestCatalog } from '../components/request-catalog'
+import { RequestPreview } from '../components/request-preview'
 import { useLiveRequestCreate } from '../hooks/use-live-request-create'
-
-type Destination = '/my-software' | '/live-requests' | '/live-inbox'
 
 function previewErrorKey(error: unknown) {
   if (typeof error !== 'object' || error === null || !('info' in error)) return 'previewError'
@@ -45,25 +47,26 @@ function previewErrorKey(error: unknown) {
 export function LiveRequestCreateScreen() {
   const { colors: mobileColors } = useMobileTheme()
   const styles = createStyles(mobileColors)
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const router = useRouter()
   const navigation = useNavigation()
   const session = useSession()
-  const [search, setSearch] = useState('')
-  const [page, setPage] = useState(1)
+  const profile = useAccountProfile()
+  const [hasSearch, setHasSearch] = useState(false)
   const [selected, setSelected] = useState<RequestablePlanPageResponseDtoDataItemsItem>()
   const [term, setTerm] = useState('')
   const [reason, setReason] = useState('')
   const [validation, setValidation] = useState(false)
-  const [destination, setDestination] = useState<Destination>()
+  const [destination, setDestination] = useState<Href>()
   const [pendingAction, setPendingAction] = useState<NavigationAction>()
   const [exitApp, setExitApp] = useState(false)
   const [choosing, setChoosing] = useState(true)
   const sent = useRef(false)
   const allowRemoval = useRef(false)
   const scroll = useRef<ScrollView>(null)
-  const { plans, preview, submit } = useLiveRequestCreate(search.trim(), page)
-  const dirty = !!selected || !!search || !!reason || !!term
+  const permitted = !profile.isError && mayCreateRequest(profile.data)
+  const { preview, submit } = useLiveRequestCreate()
+  const dirty = !!selected || hasSearch || !!reason || !!term
   usePreventRemove(session.state === 'authenticated' && (dirty || submit.isPending), ({ data }) => {
     if (allowRemoval.current) navigation.dispatch(data.action)
     else if (!submit.isPending) setPendingAction(data.action)
@@ -100,9 +103,37 @@ export function LiveRequestCreateScreen() {
     preview.data.reason === reason.trim()
       ? preview.data.preview
       : undefined
-  const canSend = !!currentPreview?.canSubmit && !currentPreview.termRefusal
+  const canSend =
+    !!currentPreview?.canSubmit &&
+    !currentPreview.termRefusal &&
+    !currentPreview.existingAccess &&
+    !currentPreview.blockedBy &&
+    !currentPreview.limits.refusal
 
   if (session.state === 'anonymous') return <Redirect href='/' />
+  if (!permitted) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.content}>
+          <Text accessibilityRole={profile.isError || profile.data ? 'alert' : 'progressbar'} style={styles.error}>
+            {profile.isError
+              ? t('account.error')
+              : profile.data
+                ? t('requests.createLive.ineligible')
+                : t('account.loading')}
+          </Text>
+          {profile.isError ? (
+            <Pressable accessibilityRole='button' onPress={() => void profile.refetch()} style={styles.action}>
+              <Text style={styles.actionText}>{t('account.retry')}</Text>
+            </Pressable>
+          ) : null}
+          <Pressable accessibilityRole='button' onPress={() => router.replace('/home')} style={styles.action}>
+            <Text style={styles.actionText}>{t('navigation.home')}</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    )
+  }
   const locked = submit.isPending || submit.isError || submit.isSuccess
   function review() {
     if (!selected || !valid) {
@@ -132,7 +163,7 @@ export function LiveRequestCreateScreen() {
       }
     )
   }
-  function navigateTo(target: Destination) {
+  function navigateTo(target: Href) {
     if (submit.isPending) return
     if (dirty) {
       setDestination(target)
@@ -177,212 +208,137 @@ export function LiveRequestCreateScreen() {
         ) : null}
         {!selected || choosing ? (
           <>
-            <Text style={styles.sectionTitle}>{t('requests.createLive.search')}</Text>
-            <View style={styles.searchBox}>
-              <Feather
-                accessibilityElementsHidden
-                importantForAccessibility='no'
-                name='search'
-                size={19}
-                color={mobileColors.primaryInk}
-              />
-              <TextInput
-                accessibilityLabel={t('requests.createLive.search')}
-                value={search}
-                maxLength={100}
-                editable={!locked}
-                placeholder={t('requests.createLive.searchPlaceholder')}
-                placeholderTextColor={mobileColors.muted}
-                onChangeText={(text) => {
-                  setSearch(text)
-                  setPage(1)
-                }}
-                style={styles.searchInput}
-              />
-            </View>
             {selected ? (
               <Pressable accessibilityRole='button' onPress={() => setChoosing(false)} style={styles.action}>
                 <Text style={styles.actionText}>{t('requests.createLive.keepPlan')}</Text>
               </Pressable>
             ) : null}
-            {session.state === 'loading' || plans.isLoading ? (
-              <Text accessibilityRole='progressbar' style={styles.muted}>
-                {t('requests.createLive.loading')}
-              </Text>
-            ) : null}
-            {plans.isError ? (
-              <View style={styles.card}>
-                <Text accessibilityRole='alert' style={styles.error}>
-                  {t('requests.createLive.catalogError')}
-                </Text>
-                <Pressable accessibilityRole='button' onPress={() => void plans.refetch()} style={styles.action}>
-                  <Text style={styles.actionText}>{t('licenses.live.retry')}</Text>
-                </Pressable>
-                {page > 1 ? (
-                  <Pressable accessibilityRole='button' onPress={() => setPage(page - 1)} style={styles.action}>
-                    <Text style={styles.actionText}>{t('licenses.live.previous')}</Text>
-                  </Pressable>
-                ) : null}
-              </View>
-            ) : null}
-            {plans.data?.items.length === 0 ? <Text style={styles.muted}>{t('requests.createLive.empty')}</Text> : null}
-            {plans.data?.items.map((plan) => (
-              <Pressable
-                key={plan.id}
-                accessibilityRole='button'
-                accessibilityLabel={t('requests.createLive.choosePlan', {
-                  app: plan.application.name,
-                  plan: plan.name
-                })}
-                accessibilityState={{ selected: selected?.id === plan.id, disabled: locked }}
-                disabled={locked}
-                onPress={() => {
-                  setSelected(plan)
-                  setTerm('')
-                  setChoosing(false)
-                  scroll.current?.scrollTo({ y: 0, animated: true })
-                  preview.reset()
-                }}
-                style={[styles.card, selected?.id === plan.id && styles.selected]}
-              >
-                <View style={styles.planRow}>
-                  <SoftwareIcon name={plan.application.name} />
-                  <View style={styles.headerCopy}>
-                    <Text style={styles.name}>{plan.application.name}</Text>
-                    <Text style={styles.muted}>{t('licenses.live.plan', { plan: plan.name })}</Text>
-                  </View>
-                  <Feather
-                    accessibilityElementsHidden
-                    importantForAccessibility='no'
-                    name={selected?.id === plan.id ? 'check-circle' : 'circle'}
-                    size={22}
-                    color={selected?.id === plan.id ? mobileColors.primary : mobileColors.muted}
-                  />
-                </View>
-                {!plan.canSubmit ? <Text style={styles.error}>{t('requests.createLive.planBlocked')}</Text> : null}
-              </Pressable>
-            ))}
-            {plans.data && plans.data.pagination.totalPages > 1 ? (
-              <View style={styles.row}>
-                <Pressable
-                  accessibilityRole='button'
-                  accessibilityState={{ disabled: page <= 1 }}
-                  disabled={page <= 1}
-                  onPress={() => setPage(page - 1)}
-                  style={[styles.action, page <= 1 && styles.disabled]}
-                >
-                  <Text style={styles.actionText}>{t('licenses.live.previous')}</Text>
-                </Pressable>
-                <Text style={styles.muted}>
-                  {t('licenses.live.page', { page: new Intl.NumberFormat(i18n.language).format(page) })}
-                </Text>
-                <Pressable
-                  accessibilityRole='button'
-                  accessibilityState={{ disabled: page >= plans.data.pagination.totalPages }}
-                  disabled={page >= plans.data.pagination.totalPages}
-                  onPress={() => setPage(page + 1)}
-                  style={[styles.action, page >= plans.data.pagination.totalPages && styles.disabled]}
-                >
-                  <Text style={styles.actionText}>{t('licenses.live.next')}</Text>
-                </Pressable>
-              </View>
-            ) : null}
+            <RequestCatalog
+              onSearchChange={setHasSearch}
+              onSelect={(plan) => {
+                if (locked) return
+                setHasSearch(false)
+                setSelected(plan)
+                setTerm('')
+                setChoosing(false)
+                scroll.current?.scrollTo({ y: 0, animated: true })
+                preview.reset()
+              }}
+            />
           </>
         ) : null}
         {selected && !choosing ? (
           <View style={styles.card}>
-            <Text accessibilityRole='header' style={styles.sectionTitle}>
-              {t('requests.createLive.selectedHeading')}
-            </Text>
-            <View style={styles.planRow}>
-              <SoftwareIcon name={selected.application.name} />
-              <View style={styles.headerCopy}>
-                <Text style={styles.name}>{selected.application.name}</Text>
-                <Text style={styles.muted}>{t('licenses.live.plan', { plan: selected.name })}</Text>
-              </View>
-            </View>
-            {!selected.canSubmit ? <Text style={styles.error}>{t('requests.createLive.planBlocked')}</Text> : null}
-            <Pressable
-              accessibilityRole='button'
-              disabled={locked}
-              accessibilityState={{ disabled: locked }}
-              onPress={() => setChoosing(true)}
-              style={styles.action}
-            >
-              <Text style={styles.actionText}>{t('requests.createLive.changePlan')}</Text>
-            </Pressable>
-            <View style={styles.divider} />
-            {asksTerm ? (
+            {!currentPreview ? (
               <>
-                <Text style={styles.label}>
-                  {t(type === 'K1' ? 'requests.createLive.termRequired' : 'requests.createLive.termOptional')}
+                <Text accessibilityRole='header' style={styles.sectionTitle}>
+                  {t('requests.createLive.selectedHeading')}
                 </Text>
+                <View style={styles.planRow}>
+                  <SoftwareIcon name={selected.application.name} />
+                  <View style={styles.headerCopy}>
+                    <Text style={styles.name}>{selected.application.name}</Text>
+                    <Text style={styles.muted}>{t('licenses.live.plan', { plan: selected.name })}</Text>
+                  </View>
+                </View>
+                {!selected.canSubmit ? <Text style={styles.error}>{t('requests.createLive.planBlocked')}</Text> : null}
+                <Pressable
+                  accessibilityRole='button'
+                  disabled={locked}
+                  accessibilityState={{ disabled: locked }}
+                  onPress={() => setChoosing(true)}
+                  style={styles.action}
+                >
+                  <Text style={styles.actionText}>{t('requests.createLive.changePlan')}</Text>
+                </Pressable>
+                <View style={styles.divider} />
+                {asksTerm ? (
+                  <>
+                    <Text style={styles.label}>
+                      {t(type === 'K1' ? 'requests.createLive.termRequired' : 'requests.createLive.termOptional')}
+                    </Text>
+                    <TextInput
+                      accessibilityLabel={t(
+                        type === 'K1' ? 'requests.createLive.termRequired' : 'requests.createLive.termOptional'
+                      )}
+                      keyboardType='number-pad'
+                      value={term}
+                      maxLength={2}
+                      editable={!locked}
+                      onChangeText={(value) => {
+                        setTerm(value)
+                        preview.reset()
+                      }}
+                      style={styles.input}
+                    />
+                  </>
+                ) : type !== 'K4' ? (
+                  <Text accessibilityRole='alert' style={styles.error}>
+                    {t('requests.createLive.unsupportedType')}
+                  </Text>
+                ) : null}
+                <Text style={styles.label}>{t('requests.createLive.reason')}</Text>
                 <TextInput
-                  accessibilityLabel={t(
-                    type === 'K1' ? 'requests.createLive.termRequired' : 'requests.createLive.termOptional'
-                  )}
-                  keyboardType='number-pad'
-                  value={term}
-                  maxLength={2}
+                  accessibilityLabel={t('requests.createLive.reason')}
+                  multiline
+                  value={reason}
+                  maxLength={1000}
                   editable={!locked}
                   onChangeText={(value) => {
-                    setTerm(value)
+                    setReason(value)
                     preview.reset()
                   }}
-                  style={styles.input}
+                  style={[styles.input, styles.reason]}
                 />
+                {validation ? (
+                  <Text accessibilityRole='alert' style={styles.error}>
+                    {t('requests.createLive.validation')}
+                  </Text>
+                ) : null}
+                <Pressable
+                  accessibilityRole='button'
+                  accessibilityState={{ disabled: locked || preview.isPending }}
+                  disabled={locked || preview.isPending}
+                  onPress={review}
+                  style={styles.primary}
+                >
+                  <Text style={styles.primaryText}>{t('requests.createLive.preview')}</Text>
+                </Pressable>
+                {preview.isPending ? (
+                  <Text accessibilityRole='progressbar' style={styles.muted}>
+                    {t('requests.createLive.previewLoading')}
+                  </Text>
+                ) : null}
+                {preview.isError ? (
+                  <Text accessibilityRole='alert' style={styles.error}>
+                    {t(`requests.createLive.${previewErrorKey(preview.error)}`)}
+                  </Text>
+                ) : null}
               </>
-            ) : type !== 'K4' ? (
-              <Text accessibilityRole='alert' style={styles.error}>
-                {t('requests.createLive.unsupportedType')}
-              </Text>
-            ) : null}
-            <Text style={styles.label}>{t('requests.createLive.reason')}</Text>
-            <TextInput
-              accessibilityLabel={t('requests.createLive.reason')}
-              multiline
-              value={reason}
-              maxLength={1000}
-              editable={!locked}
-              onChangeText={(value) => {
-                setReason(value)
-                preview.reset()
-              }}
-              style={[styles.input, styles.reason]}
-            />
-            {validation ? (
-              <Text accessibilityRole='alert' style={styles.error}>
-                {t('requests.createLive.validation')}
-              </Text>
-            ) : null}
-            <Pressable
-              accessibilityRole='button'
-              accessibilityState={{ disabled: locked || preview.isPending }}
-              disabled={locked || preview.isPending}
-              onPress={review}
-              style={styles.primary}
-            >
-              <Text style={styles.primaryText}>{t('requests.createLive.preview')}</Text>
-            </Pressable>
-            {preview.isPending ? (
-              <Text accessibilityRole='progressbar' style={styles.muted}>
-                {t('requests.createLive.previewLoading')}
-              </Text>
-            ) : null}
-            {preview.isError ? (
-              <Text accessibilityRole='alert' style={styles.error}>
-                {t(`requests.createLive.${previewErrorKey(preview.error)}`)}
-              </Text>
             ) : null}
             {currentPreview ? (
               <View style={styles.review}>
-                <Text style={styles.name}>{t('requests.createLive.review')}</Text>
+                <RequestPreview
+                  preview={currentPreview}
+                  reason={reason.trim()}
+                  isOneTime={type === 'K4'}
+                  onOpenAccess={(id) =>
+                    navigateTo({ pathname: '/my-software/[softwareId]', params: { softwareId: id } })
+                  }
+                  onOpenRequest={(id) =>
+                    navigateTo({ pathname: '/live-requests/[requestId]', params: { requestId: id } })
+                  }
+                />
                 <Text style={styles.muted}>
                   {canSend ? t('requests.createLive.canSubmit') : t('requests.createLive.cannotSubmit')}
                 </Text>
                 {currentPreview.blockedBy ? (
                   <Text style={styles.error}>
-                    {t('requests.createLive.blockedCode', { reason: currentPreview.blockedBy.reason })}
+                    {currentPreview.blockedBy.reason === 'SPENDING_APPROVER'
+                      ? t('requests.createLive.reviewDetails.blockedSpending')
+                      : currentPreview.blockedBy.reason === 'UNPLACED'
+                        ? t('requests.createLive.reviewDetails.blockedUnplaced')
+                        : t('requests.createLive.blockedCode', { reason: currentPreview.blockedBy.reason })}
                   </Text>
                 ) : null}
                 {currentPreview.existingAccess ? (
@@ -399,11 +355,15 @@ export function LiveRequestCreateScreen() {
                 {currentPreview.spendSubmission === 'BLOCKED_UNTIL_PRICED' ? (
                   <Text style={styles.error}>{t('requests.createLive.pricingBlocked')}</Text>
                 ) : null}
-                <Text style={styles.muted}>
-                  {t('requests.createLive.expectedDays', {
-                    days: new Intl.NumberFormat(i18n.language).format(currentPreview.totalExpectedWorkingDays)
-                  })}
-                </Text>
+                <Pressable
+                  accessibilityRole='button'
+                  disabled={locked}
+                  accessibilityState={{ disabled: locked }}
+                  onPress={() => preview.reset()}
+                  style={styles.action}
+                >
+                  <Text style={styles.actionText}>{t('requests.createLive.reviewDetails.edit')}</Text>
+                </Pressable>
                 <Pressable
                   accessibilityRole='button'
                   accessibilityState={{ disabled: !canSend || locked }}

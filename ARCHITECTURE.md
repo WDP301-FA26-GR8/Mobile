@@ -20,24 +20,37 @@ and the original manager demo screens remain prototypes. Prototype decisions are
 and are not submitted to a backend. Contract availability alone does not resolve
 the differences between the current backend and newer proposed business decisions.
 Manager and spending demos have separate direct route entry points; there is no
-in-session role switcher. The authenticated landing loads `/me` before routing:
-accounts with the MANAGER role enter the live Manager workspace, while others enter
-personal software. If the account cannot be loaded, the user can retry or sign out;
-the app does not guess the role. The personal software screen links Manager accounts
+in-session role switcher. The authenticated landing loads `/me` and opens `/home`,
+which shows self-service shortcuts and the live Manager queue only to an active
+Manager. Spending decisions remain unavailable in the live app. If the account
+cannot be loaded, the user can retry or sign out; the app does not guess the role.
+The personal software screen links Manager accounts
 back to the workspace but does not show that entry for employees. The live
 screen links to live request flows instead of opening the demo, to
 avoid presenting demo data as the signed-in user's data. The live inbox at `/live-inbox`
-uses the authenticated notification API; the prototype inbox remains separate. Live
+uses the authenticated notification API; the prototype inbox remains separate. Opening
+an unread notification marks it read once and opens a supported destination even if
+the update fails; a dismissible warning survives navigation. Request notifications
+open real request detail, assigned Manager need steps open the queue, personal expiry
+notices open the matching software access, and access revocation notices open the
+software list. Unsupported, malformed, and web-only
+notification destinations stay in the inbox with an explicit web guidance message.
+Exact Manager-item notification links are not yet available. Live
 request list and detail routes are `/live-requests` and `/live-requests/[requestId]`.
-The list contains requests sent by the caller, while notification detail access is
-authorized by the backend. Individual catalog requests use `/live-request-create`:
+The list contains requests sent by or made for the caller, while notification detail
+access is authorized by the backend. Individual catalog requests use `/live-request-create`:
 the caller chooses a requestable plan and must receive a current successful preview
-before submitting. The request uses `termMonths`: K1 requires 1–9 months, K2/K5
+before submitting. The review is a separate step showing server pricing, cost
+estimates, limits and the anticipated approval route. Editing the form discards the
+preview; opening an existing request or right confirms before discarding the form.
+The catalog starts with department suggestions, allows searching all requestable
+applications, then lists that application's requestable plans. Department suggestions
+are guidance, not a restriction. The request uses `termMonths`: K1 requires 1–9 months, K2/K5
 allow 1–12 months or an unspecified long-term duration, and K4 has no duration.
 The preview remains authoritative, including restrictions on long-term use. K3 is
 not submitted from this screen until its mobile request behavior is specified.
 Request detail displays the expected end date rather than interpreting the legacy
-`termMonths` field.
+`termMonths` field, and loads the paginated server event history separately.
 The list offers withdrawal only when the server indicates it is
 available, and displays the returned status rather than assuming immediate withdrawal.
 The create screen includes the employee tabs and asks for confirmation before its
@@ -66,6 +79,8 @@ An answer of No blocks approval; rejection or return requires a reason unless th
 server can derive it from a No answer.
 Backend authorization and stale-state checks remain authoritative. Failed or uncertain
 decisions are never retried automatically and require checking the refreshed queue.
+An explicit `POLICY.VERSION_CHANGED` rejection instead lets the Manager reload the
+request and a different checklist version, then answer again before deciding manually.
 Manager group request creation and spend-batch submission remain web-only; a GH-3 flag
 is not shown because the current detail contract does not expose it. The mobile app
 does not assume the newer proposed one-step manager-self-request routing has been
@@ -99,11 +114,12 @@ decided by the spending approver, with the result visible in department context;
 subsequent steps are not simulated. Notifications describe historical events, while
 request details show current status. All transitions are prototype assumptions to be
 replaced with the backend contract and enforced authorization.
-The authenticated software list is paginated and displays the backend's seven-day
-expiring flag. The dashboard supplies the overall expiring count; the filter explicitly
-applies only to the current page. The old mock details route redirects to the list; it must not expose
-invented accounts or keys as real data. Historical access, an all-pages expiring
-filter, and return workflows are not provided in this first live slice.
+The authenticated software list is paginated, supports current and ended access, and
+displays the backend's seven-day expiring flag. The dashboard supplies the overall
+expiring count; the filter explicitly applies only to the current page. Software
+details search the authenticated current and ended rights pages for the assignment;
+no separate detail endpoint exists. They do not expose invented accounts or keys.
+An all-pages expiring filter and return workflows are not provided.
 The canonical employee request list URL is `/my-requests`; unknown request IDs
 redirect there rather than to `/my-requests/index`, which matches a dynamic ID.
 
@@ -128,6 +144,7 @@ persistence, jobs, and financial/access decisions.
 app/
   _layout.tsx              root route/provider attachment
   index.tsx                thin route entry
+  home.tsx                 authenticated Home handoff
   inbox.tsx                prototype inbox handoff
   live-inbox.tsx           authenticated inbox handoff
   live-requests.tsx        authenticated request list handoff
@@ -147,6 +164,7 @@ src/
     inbox/                  authenticated and prototype in-app notifications
     licenses/               employee software screens and models
     manager/                department need-approval demo presentation
+    policy/                 pending policy acknowledgement gate
     spending-approval/      per-item spending queue and budget snapshots
     requests/               employee request screens and session mocks
     <capability>/           screens, components, hooks, feature-local tests/models
@@ -211,6 +229,16 @@ user can retry; successful logout clears the query cache and local token. The re
 boundary retries a 401 only for reads, not business mutations. Authenticated writes
 refresh an already expired token before sending, but never retry a sent operation.
 Inbox read updates invalidate both list and count even after an uncertain failure.
+
+The root layout keeps the navigator mounted behind a policy gate. While `/me` is
+unavailable or lists pending acknowledgements, the gate blocks touch, accessibility
+and Android Back interactions with the underlying screens, including direct route
+entry. The underlying screens can still mount and issue reads; this client-side
+gate is not backend authorization. Acknowledgement uses the displayed policy and
+reloads `/me`; if the returned version differs, the gate requires the current text
+to be read again. The API does not accept a version precondition, so a version
+change between reading and acknowledgement cannot be prevented atomically by the
+client, including across a process restart.
 
 Use an HTTPS API origin without credentials or a path in release builds. HTTP is
 allowed only in development for local emulators/devices; traffic and credentials

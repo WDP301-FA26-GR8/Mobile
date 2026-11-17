@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { mayCreateRequest } from '@/shared/api/request-eligibility'
 import { useSession } from '@/shared/api/session-context'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
@@ -22,11 +23,19 @@ export function MySoftwareScreen() {
   const session = useSession()
   const router = useRouter()
   const [page, setPage] = useState(1)
+  const [view, setView] = useState<'current' | 'ended'>('current')
   const [filter, setFilter] = useState<'all' | 'expiring'>('all')
-  const { profile, software, summary } = useMySoftware(page)
+  const { profile, software, summary } = useMySoftware(page, view)
   const items = software.data?.items.filter((item) => filter === 'all' || item.expiringSoon) ?? []
   const expiring = summary.data?.expiringRights
   const expiringCount = expiring?.state === 'COUNTED' && expiring.count !== null ? expiring.count : undefined
+  const currentSummary = summary.data?.softwareRights
+  const currentCount =
+    view === 'current'
+      ? software.data?.pagination.totalItems
+      : currentSummary?.state === 'COUNTED' && currentSummary.count !== null
+        ? currentSummary.count
+        : undefined
   const formatCount = (value: number) => new Intl.NumberFormat(i18n.language).format(value)
 
   if (session.state === 'anonymous') return <Redirect href='/' />
@@ -99,6 +108,21 @@ export function MySoftwareScreen() {
                 />
               </View>
             </View>
+            <Pressable
+              accessibilityRole='button'
+              accessibilityLabel={t('navigation.home')}
+              onPress={() => router.push('/home')}
+              style={styles.approvalsLink}
+            >
+              <Feather
+                accessibilityElementsHidden
+                importantForAccessibility='no'
+                name='home'
+                size={16}
+                color={mobileColors.primaryInk}
+              />
+              <Text style={styles.buttonText}>{t('navigation.home')}</Text>
+            </Pressable>
             {profile.data?.roles.includes('MANAGER') ? (
               <Pressable
                 accessibilityRole='button'
@@ -130,10 +154,10 @@ export function MySoftwareScreen() {
                 />
               </View>
               <Text style={styles.summaryValue}>
-                {software.data
+                {currentCount !== undefined
                   ? t('licenses.live.total', {
-                      count: software.data.pagination.totalItems,
-                      formattedCount: formatCount(software.data.pagination.totalItems)
+                      count: currentCount,
+                      formattedCount: formatCount(currentCount)
                     })
                   : t('licenses.live.countUnavailable')}
               </Text>
@@ -174,25 +198,46 @@ export function MySoftwareScreen() {
               {t('licenses.listTitle')}
             </Text>
           </View>
-          <View accessibilityLabel={t('licenses.filterLabel')} style={styles.filters}>
-            {(['all', 'expiring'] as const).map((value) => (
+          <View style={styles.filters}>
+            {(['current', 'ended'] as const).map((value) => (
               <Pressable
                 key={value}
                 accessibilityRole='button'
-                accessibilityState={{ selected: filter === value }}
-                onPress={() => setFilter(value)}
-                style={({ pressed }) => [
-                  styles.filterButton,
-                  filter === value && styles.filterSelected,
-                  pressed && styles.pressed
-                ]}
+                accessibilityState={{ selected: view === value }}
+                onPress={() => {
+                  setView(value)
+                  setPage(1)
+                  setFilter('all')
+                }}
+                style={[styles.filterButton, view === value && styles.filterSelected]}
               >
-                <Text style={[styles.filterText, filter === value && styles.filterTextSelected]}>
-                  {t(`licenses.listFilters.${value}`)}
+                <Text style={[styles.filterText, view === value && styles.filterTextSelected]}>
+                  {t(`licenses.live.views.${value}`)}
                 </Text>
               </Pressable>
             ))}
           </View>
+          {view === 'current' ? (
+            <View accessibilityLabel={t('licenses.filterLabel')} style={styles.filters}>
+              {(['all', 'expiring'] as const).map((value) => (
+                <Pressable
+                  key={value}
+                  accessibilityRole='button'
+                  accessibilityState={{ selected: filter === value }}
+                  onPress={() => setFilter(value)}
+                  style={({ pressed }) => [
+                    styles.filterButton,
+                    filter === value && styles.filterSelected,
+                    pressed && styles.pressed
+                  ]}
+                >
+                  <Text style={[styles.filterText, filter === value && styles.filterTextSelected]}>
+                    {t(`licenses.listFilters.${value}`)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
           {filter === 'expiring' ? <Text style={styles.subtitle}>{t('licenses.live.pageFilterNote')}</Text> : null}
           {session.state === 'loading' || profile.isLoading || software.isLoading ? (
             <Text accessibilityRole='progressbar' style={styles.subtitle}>
@@ -228,7 +273,13 @@ export function MySoftwareScreen() {
           {software.data ? (
             <View style={styles.list}>
               {items.map((item) => (
-                <LiveSoftwareCard key={item.assignmentId} item={item} />
+                <LiveSoftwareCard
+                  key={item.assignmentId}
+                  item={item}
+                  onPress={() =>
+                    router.push({ pathname: '/my-software/[softwareId]', params: { softwareId: item.assignmentId } })
+                  }
+                />
               ))}
               {items.length === 0 ? (
                 <View style={styles.emptyCard}>
@@ -244,11 +295,13 @@ export function MySoftwareScreen() {
                   <Text style={styles.emptyTitle}>
                     {filter === 'expiring'
                       ? t('licenses.live.noExpiringPage')
-                      : page === 1
-                        ? t('licenses.live.empty')
-                        : t('licenses.live.emptyPage')}
+                      : view === 'ended'
+                        ? t('licenses.live.endedEmpty')
+                        : page === 1
+                          ? t('licenses.live.empty')
+                          : t('licenses.live.emptyPage')}
                   </Text>
-                  {filter === 'all' && page === 1 ? (
+                  {view === 'current' && filter === 'all' && page === 1 ? (
                     <Text style={styles.emptyHint}>{t('licenses.live.emptyHint')}</Text>
                   ) : null}
                 </View>
@@ -289,14 +342,18 @@ export function MySoftwareScreen() {
               selected: true,
               accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') })
             },
-            {
-              id: 'create',
-              label: t('navigation.createRequest'),
-              icon: 'plus-circle',
-              selected: false,
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
-              onPress: () => router.push('/live-request-create')
-            },
+            ...(!profile.isError && mayCreateRequest(profile.data)
+              ? [
+                  {
+                    id: 'create',
+                    label: t('navigation.createRequest'),
+                    icon: 'plus-circle' as const,
+                    selected: false,
+                    accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
+                    onPress: () => router.push('/live-request-create')
+                  }
+                ]
+              : []),
             {
               id: 'requests',
               label: t('navigation.requests'),

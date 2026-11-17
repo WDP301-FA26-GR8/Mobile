@@ -6,7 +6,9 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { SoftwareIcon } from '@/entities/software'
+import { mayCreateRequest } from '@/shared/api/request-eligibility'
 import { useSession } from '@/shared/api/session-context'
+import { useAccountProfile } from '@/shared/api/use-account-profile'
 import { goBackOr } from '@/shared/lib/go-back-or'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
@@ -23,6 +25,7 @@ export function LiveRequestsScreen() {
   const { t, i18n } = useTranslation()
   const router = useRouter()
   const session = useSession()
+  const profile = useAccountProfile()
   const [view, setView] = useState<'open' | 'ended'>('open')
   const [page, setPage] = useState(1)
   const query = useLiveRequests(view, page)
@@ -236,14 +239,18 @@ export function LiveRequestsScreen() {
               accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') }),
               onPress: () => router.replace('/my-software')
             },
-            {
-              id: 'create',
-              label: t('navigation.createRequest'),
-              icon: 'plus-circle',
-              selected: false,
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
-              onPress: () => router.push('/live-request-create')
-            },
+            ...(!profile.isError && mayCreateRequest(profile.data)
+              ? [
+                  {
+                    id: 'create',
+                    label: t('navigation.createRequest'),
+                    icon: 'plus-circle' as const,
+                    selected: false,
+                    accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
+                    onPress: () => router.push('/live-request-create')
+                  }
+                ]
+              : []),
             {
               id: 'requests',
               label: t('navigation.requests'),

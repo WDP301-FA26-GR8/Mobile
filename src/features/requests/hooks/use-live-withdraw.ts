@@ -17,7 +17,8 @@ export function useLiveWithdraw() {
     onSettled: async (_, __, id) => {
       await Promise.all([
         client.invalidateQueries({ queryKey: ['session', 'requests'] }),
-        client.invalidateQueries({ queryKey: ['session', 'request', id] })
+        client.invalidateQueries({ queryKey: ['session', 'request', id] }),
+        client.invalidateQueries({ queryKey: ['session', 'request-events', id] })
       ])
     }
   })

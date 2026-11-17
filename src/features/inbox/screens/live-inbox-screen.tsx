@@ -1,17 +1,22 @@
 import { Feather } from '@expo/vector-icons'
 import { Redirect, useRouter } from 'expo-router'
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import type { NotificationListResponseDtoDataItemsItem } from '@/shared/api/generated/contracts/notifications'
+import { mayCreateRequest } from '@/shared/api/request-eligibility'
 import { useSession } from '@/shared/api/session-context'
+import { useAccountProfile } from '@/shared/api/use-account-profile'
 import { goBackOr } from '@/shared/lib/go-back-or'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
 import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 
+import { useNotificationReadError } from '../components/notification-read-error-provider'
 import { useLiveInbox } from '../hooks/use-live-inbox'
+import { notificationDestination, type NotificationDestination } from '../model/notification-destination'
 
 export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {}) {
   const { colors: mobileColors } = useMobileTheme()
@@ -19,8 +24,48 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
   const { t, i18n } = useTranslation()
   const router = useRouter()
   const session = useSession()
+  const profile = useAccountProfile()
   const [page, setPage] = useState(1)
+  const [webNotice, setWebNotice] = useState(false)
+  const opening = useRef(false)
   const { list, count, markRead } = useLiveInbox(page)
+  const showReadError = useNotificationReadError()
+
+  function navigate(target: NotificationDestination) {
+    switch (target.type) {
+      case 'request':
+        router.push({ pathname: '/live-requests/[requestId]', params: { requestId: target.requestId } })
+        break
+      case 'manager':
+        router.push('/live-need-approvals')
+        break
+      case 'software':
+        router.push('/my-software')
+        break
+      case 'software-detail':
+        router.push({ pathname: '/my-software/[softwareId]', params: { softwareId: target.assignmentId } })
+        break
+      case 'web':
+        setWebNotice(true)
+        break
+    }
+  }
+
+  async function open(item: NotificationListResponseDtoDataItemsItem) {
+    if (opening.current || markRead.isPending) return
+    opening.current = true
+    setWebNotice(false)
+    const target = notificationDestination(item, !profile.isError ? profile.data : undefined)
+    if (!item.readAt) {
+      try {
+        await markRead.mutateAsync(item.id)
+      } catch {
+        showReadError()
+      }
+    }
+    opening.current = false
+    navigate(target)
+  }
 
   if (session.state === 'anonymous') return <Redirect href='/' />
 
@@ -87,9 +132,14 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
             />
             <Text style={styles.actionText}>{t('inbox.live.markAll')}</Text>
           </Pressable>
-          {markRead.isError ? (
+          {markRead.isError && markRead.variables === null ? (
             <Text accessibilityRole='alert' style={styles.error}>
               {t('inbox.live.writeError')}
+            </Text>
+          ) : null}
+          {webNotice ? (
+            <Text accessibilityRole='alert' style={styles.muted}>
+              {t('inbox.live.webOnly')}
             </Text>
           ) : null}
           {session.state === 'loading' || list.isLoading ? (
@@ -127,13 +177,27 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
               'REQUEST_SPEND_REJECTED',
               'STEP_ASSIGNED',
               'REQUEST_WITHDRAWN',
-              'HANDOVER_REQUIRED'
+              'HANDOVER_REQUIRED',
+              'LICENSE_EXPIRY_REMINDER',
+              'RENEWAL_WINDOW_OPENED',
+              'REVOCATION_UPCOMING',
+              'REVOCATION_CANCELLED',
+              'TRANSFER_RIGHTS_REVOKING'
             ] as const
             const code = codes.find((value) => value === item.code)
             const date = new Date(item.createdAt)
-            const requestId = item.params.requestId
             return (
-              <View key={item.id} style={[styles.card, !item.readAt && styles.unread]}>
+              <Pressable
+                key={item.id}
+                accessibilityRole='button'
+                accessibilityLabel={t('inbox.live.openNamed', {
+                  name: code ? t(`inbox.live.codes.${code}`) : t('inbox.live.newNotification')
+                })}
+                accessibilityState={{ disabled: markRead.isPending, busy: markRead.isPending }}
+                disabled={markRead.isPending}
+                onPress={() => void open(item)}
+                style={[styles.card, !item.readAt && styles.unread]}
+              >
                 <View style={styles.itemHeader}>
                   <View style={styles.itemIcon}>
                     <Feather
@@ -146,7 +210,7 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
                   </View>
                   <View style={styles.itemCopy}>
                     <Text style={styles.itemTitle}>
-                      {code ? t(`inbox.live.codes.${code}`) : t('inbox.live.unknown', { code: item.code })}
+                      {code ? t(`inbox.live.codes.${code}`) : t('inbox.live.newNotification')}
                     </Text>
                     <View style={styles.readStatus}>
                       {!item.readAt ? (
@@ -165,36 +229,7 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
                     </Text>
                   </View>
                 </View>
-                <View style={styles.itemActions}>
-                  {typeof requestId === 'string' &&
-                  /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(requestId) ? (
-                    <>
-                      <Text style={styles.muted}>{t('inbox.live.requestReference', { id: requestId })}</Text>
-                      <Pressable
-                        accessibilityRole='button'
-                        onPress={() => router.push({ pathname: '/live-requests/[requestId]', params: { requestId } })}
-                        style={styles.action}
-                      >
-                        <Text style={styles.actionText}>{t('requests.live.viewRequest')}</Text>
-                      </Pressable>
-                    </>
-                  ) : null}
-                  {!item.readAt ? (
-                    <Pressable
-                      accessibilityRole='button'
-                      accessibilityLabel={t('inbox.live.markNamed', {
-                        code: code ? t(`inbox.live.codes.${code}`) : item.code
-                      })}
-                      accessibilityState={{ disabled: markRead.isPending }}
-                      disabled={markRead.isPending}
-                      onPress={() => markRead.mutate(item.id)}
-                      style={styles.action}
-                    >
-                      <Text style={styles.actionText}>{t('inbox.live.markRead')}</Text>
-                    </Pressable>
-                  ) : null}
-                </View>
-              </View>
+              </Pressable>
             )
           })}
           {list.data && list.data.pagination.totalPages > 1 ? (
@@ -235,14 +270,18 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
                 accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') }),
                 onPress: () => router.replace('/my-software')
               },
-              {
-                id: 'create',
-                label: t('navigation.createRequest'),
-                icon: 'plus-circle',
-                selected: false,
-                accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
-                onPress: () => router.push('/live-request-create')
-              },
+              ...(!profile.isError && mayCreateRequest(profile.data)
+                ? [
+                    {
+                      id: 'create',
+                      label: t('navigation.createRequest'),
+                      icon: 'plus-circle' as const,
+                      selected: false,
+                      accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
+                      onPress: () => router.push('/live-request-create')
+                    }
+                  ]
+                : []),
               {
                 id: 'requests',
                 label: t('navigation.requests'),
