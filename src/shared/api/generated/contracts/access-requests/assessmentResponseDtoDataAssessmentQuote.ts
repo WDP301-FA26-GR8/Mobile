@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { AssessmentResponseDtoDataAssessmentQuoteBillingCycle } from './assessmentResponseDtoDataAssessmentQuoteBillingCycle'
-import type { AssessmentResponseDtoDataAssessmentQuotePaymentFrequency } from './assessmentResponseDtoDataAssessmentQuotePaymentFrequency'
+import type { AssessmentResponseDtoDataAssessmentQuoteOriginalPrice } from './assessmentResponseDtoDataAssessmentQuoteOriginalPrice'
 import type { AssessmentResponseDtoDataAssessmentQuoteUnitPrice } from './assessmentResponseDtoDataAssessmentQuoteUnitPrice'
 
 /**
@@ -14,18 +14,10 @@ import type { AssessmentResponseDtoDataAssessmentQuoteUnitPrice } from './assess
  */
 export type AssessmentResponseDtoDataAssessmentQuote = {
   unitPrice: AssessmentResponseDtoDataAssessmentQuoteUnitPrice
+  /** @nullable */
+  originalPrice: AssessmentResponseDtoDataAssessmentQuoteOriginalPrice
   billingCycle: AssessmentResponseDtoDataAssessmentQuoteBillingCycle
   validFrom: string
   /** @nullable */
   validUntil: string | null
-  /**
-   * @maximum 9007199254740991
-   * @exclusiveMinimum 0
-   * @nullable
-   */
-  commitmentMonths: number | null
-  /** @nullable */
-  paymentFrequency: AssessmentResponseDtoDataAssessmentQuotePaymentFrequency
-  /** @nullable */
-  firstPaymentOn: string | null
 } | null

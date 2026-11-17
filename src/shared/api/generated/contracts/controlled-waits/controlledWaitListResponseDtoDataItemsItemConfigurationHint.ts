@@ -15,7 +15,6 @@ export type ControlledWaitListResponseDtoDataItemsItemConfigurationHint =
 
 export const ControlledWaitListResponseDtoDataItemsItemConfigurationHint = {
   CONFIGURE_SPENDING_APPROVER: 'CONFIGURE_SPENDING_APPROVER',
-  GRANT_FINANCE_ROLE: 'GRANT_FINANCE_ROLE',
   ASSIGN_DEPARTMENT_HEAD: 'ASSIGN_DEPARTMENT_HEAD',
   NAME_IT_ADMIN_IN_CHARGE: 'NAME_IT_ADMIN_IN_CHARGE'
 } as const

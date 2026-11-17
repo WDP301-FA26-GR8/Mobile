@@ -15,6 +15,10 @@ export type SaasIssueListParams = {
   overdue?: SaasIssueListOverdue
   reporterEmployeeId?: string
   /**
+   * Only the reports of the people placed in this department today. Only an IT Admin asks for it, and a department outside the ones they work answers an empty page.
+   */
+  departmentId?: string
+  /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0
    */

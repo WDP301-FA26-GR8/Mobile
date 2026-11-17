@@ -6,11 +6,14 @@
  * OpenAPI spec version: 1.0
  */
 import type { InternalRegistrationBodyDtoSpendQuoteBillingCycle } from './internalRegistrationBodyDtoSpendQuoteBillingCycle'
-import type { InternalRegistrationBodyDtoSpendQuotePaymentFrequency } from './internalRegistrationBodyDtoSpendQuotePaymentFrequency'
+import type { InternalRegistrationBodyDtoSpendQuoteOriginalPrice } from './internalRegistrationBodyDtoSpendQuoteOriginalPrice'
 import type { InternalRegistrationBodyDtoSpendQuoteUnitPrice } from './internalRegistrationBodyDtoSpendQuoteUnitPrice'
 
 export type InternalRegistrationBodyDtoSpendQuote = {
+  /** What one person costs for one billing cycle, in dong: a decimal string in major units, currency VND. Another currency is refused (ASSESSMENT.QUOTE_PRICE_NOT_VND). */
   unitPrice: InternalRegistrationBodyDtoSpendQuoteUnitPrice
+  /** The price the vendor quoted in another currency, kept beside the quote in dong for matching an invoice later: a decimal string in major units of its currency. It is only kept, never converted. */
+  originalPrice?: InternalRegistrationBodyDtoSpendQuoteOriginalPrice
   billingCycle: InternalRegistrationBodyDtoSpendQuoteBillingCycle
   /** A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused). */
   validFrom: string
@@ -19,17 +22,4 @@ export type InternalRegistrationBodyDtoSpendQuote = {
    * @nullable
    */
   validUntil?: string | null
-  /**
-   * @minimum 1
-   * @maximum 120
-   * @nullable
-   */
-  commitmentMonths?: number | null
-  /** @nullable */
-  paymentFrequency?: InternalRegistrationBodyDtoSpendQuotePaymentFrequency
-  /**
-   * A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused).
-   * @nullable
-   */
-  firstPaymentOn?: string | null
 }

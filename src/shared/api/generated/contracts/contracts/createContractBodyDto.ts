@@ -9,4 +9,24 @@
 export interface CreateContractBodyDto {
   /** @maxLength 200 */
   name?: string
+  /** The vendor of the contract, from the catalog. Needed to make one. */
+  vendorId?: string
+  /**
+   * The number of the contract, if it has one: unique in the company, compared ignoring case, accents and extra spaces.
+   * @maxLength 100
+   * @nullable
+   */
+  number?: string | null
+  /** The day the contract begins. Needed to make one. A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused). */
+  effectiveFrom?: string
+  /**
+   * The day the contract ends; empty when it never ends (a purchase for good). A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused).
+   * @nullable
+   */
+  effectiveTo?: string | null
+  /**
+   * @maxLength 2000
+   * @nullable
+   */
+  note?: string | null
 }

@@ -13,7 +13,8 @@ import type { RenewalResponseDtoDataRequestRenewalApplied } from './renewalRespo
 export type RenewalResponseDtoDataRequestRenewal = {
   assignmentId: string
   previousExpectedEndDate: string
-  newExpectedEndDate: string
+  /** @nullable */
+  newExpectedEndDate: string | null
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0

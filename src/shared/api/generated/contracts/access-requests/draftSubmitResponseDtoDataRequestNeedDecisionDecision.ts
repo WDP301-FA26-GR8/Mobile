@@ -11,5 +11,6 @@ export type DraftSubmitResponseDtoDataRequestNeedDecisionDecision =
 
 export const DraftSubmitResponseDtoDataRequestNeedDecisionDecision = {
   APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED'
+  REJECTED: 'REJECTED',
+  RETURNED: 'RETURNED'
 } as const

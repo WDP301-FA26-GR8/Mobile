@@ -32,8 +32,10 @@ request list and detail routes are `/live-requests` and `/live-requests/[request
 The list contains requests sent by the caller, while notification detail access is
 authorized by the backend. Individual catalog requests use `/live-request-create`:
 the caller chooses a requestable plan and must receive a current successful preview
-before submitting. The preview determines whether an end date or an additional
-reason for paid software is required; submission uses the same optional end date.
+before submitting. The request uses `termMonths`: K1 requires 1–9 months, K2/K5
+allow 1–12 months or an unspecified long-term duration, and K4 has no duration.
+The preview remains authoritative, including restrictions on long-term use. K3 is
+not submitted from this screen until its mobile request behavior is specified.
 Request detail displays the expected end date rather than interpreting the legacy
 `termMonths` field.
 The list offers withdrawal only when the server indicates it is
@@ -59,8 +61,9 @@ assignee-only similar seats endpoint separately, with pagination and explicit
 loading/error states. The contract supplies a due date but no exact deadline or
 all-queue urgent count; the UI does not invent an hourly SLA countdown.
 Group, renewal, service-account and department-wide views are not implemented. Decisions
-are confirmed explicitly, rejection requires a reason, and approvals for terms over
-12 months are blocked because the documented confirmation is absent from the payload.
+are confirmed explicitly and include the current policy step 1.2 checklist.
+An answer of No blocks approval; rejection or return requires a reason unless the
+server can derive it from a No answer.
 Backend authorization and stale-state checks remain authoritative. Failed or uncertain
 decisions are never retried automatically and require checking the refreshed queue.
 Manager group request creation and spend-batch submission remain web-only; a GH-3 flag
@@ -257,8 +260,12 @@ on 2026-11-09 (SHA-256
 On 2026-11-14, the `PreviewBodyDto`, `SubmitBodyDto`, and `PreviewResponseDto`
 schemas alone were updated from the deployed server's public `/api/docs-json`
 (SHA-256 `912512d998bec5651bc8abbe2a5f33398bf82d132c58b459d300eee531b27f92`)
-to match its individual request preview and submit contract. The rest of the
-snapshot retains the earlier provenance and may differ from the deployed server.
+to match its individual request preview and submit contract. On 2026-11-17 the
+entire snapshot was imported from the deployed public `/api/docs-json` (SHA-256
+`c4191d0c0bffe69eea79617e2c07497720c76753c950de02eb891ec676e2f39d`).
+That hash differs from the mobile API guide's documented export; recheck the deployed
+contract before further integration. The live request list includes both requests
+sent by the caller and requests made for the caller.
 The import adds missing top-level tag declarations and request/response aliases
 to satisfy the mobile naming conventions without renaming the backend DTOs. It also
 adds the already-inherited string type to example-only `message` overlays, and

@@ -6,6 +6,8 @@
  * OpenAPI spec version: 1.0
  */
 import type { UpdateSubscriptionBodyDtoBillingCycle } from './updateSubscriptionBodyDtoBillingCycle'
+import type { UpdateSubscriptionBodyDtoCommitmentTermMonths } from './updateSubscriptionBodyDtoCommitmentTermMonths'
+import type { UpdateSubscriptionBodyDtoOriginalPrice } from './updateSubscriptionBodyDtoOriginalPrice'
 import type { UpdateSubscriptionBodyDtoUnitPrice } from './updateSubscriptionBodyDtoUnitPrice'
 
 export interface UpdateSubscriptionBodyDto {
@@ -14,8 +16,15 @@ export interface UpdateSubscriptionBodyDto {
    * @maximum 1000000000
    */
   purchasedQuantity?: number
+  /** The unit price in dong: a decimal string in major units, currency VND. Another currency is refused (SUBSCRIPTION.PRICE_NOT_VND). */
   unitPrice?: UpdateSubscriptionBodyDtoUnitPrice
+  /**
+   * The original price the vendor quoted; null takes the recorded one away.
+   * @nullable
+   */
+  originalPrice?: UpdateSubscriptionBodyDtoOriginalPrice
   billingCycle?: UpdateSubscriptionBodyDtoBillingCycle
+  commitmentTermMonths?: (typeof UpdateSubscriptionBodyDtoCommitmentTermMonths)[keyof typeof UpdateSubscriptionBodyDtoCommitmentTermMonths]
   /** A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused). */
   startDate?: string
   /**
@@ -41,4 +50,12 @@ export interface UpdateSubscriptionBodyDto {
   noticePeriodDays?: number | null
   autoRenew?: boolean
   allowsMidTermReduction?: boolean
+  responsibleItAdminEmployeeId?: string
+  /**
+   * @minimum 1
+   * @maximum 1000000000
+   * @nullable
+   */
+  vendorMinimumSeats?: number | null
+  isPrimaryForPlan?: boolean
 }

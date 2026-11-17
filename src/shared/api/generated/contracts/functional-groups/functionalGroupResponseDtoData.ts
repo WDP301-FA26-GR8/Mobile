@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { FunctionalGroupResponseDtoDataStatus } from './functionalGroupResponseDtoDataStatus'
+import type { FunctionalGroupResponseDtoDataSystemKey } from './functionalGroupResponseDtoDataSystemKey'
 
 /**
  * @nullable
@@ -14,6 +15,11 @@ export type FunctionalGroupResponseDtoData = {
   id: string
   name: string
   status: FunctionalGroupResponseDtoDataStatus
+  /**
+   * COMMUNICATION (Liên lạc) or OTHER (Khác) for the two fixed groups, which are never renamed or switched off; null for every other group.
+   * @nullable
+   */
+  systemKey: FunctionalGroupResponseDtoDataSystemKey
   createdAt: string
   updatedAt: string
 } | null

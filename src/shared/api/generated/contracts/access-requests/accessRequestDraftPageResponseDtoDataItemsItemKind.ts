@@ -11,6 +11,5 @@ export type AccessRequestDraftPageResponseDtoDataItemsItemKind =
 
 export const AccessRequestDraftPageResponseDtoDataItemsItemKind = {
   INDIVIDUAL: 'INDIVIDUAL',
-  GROUP: 'GROUP',
-  SERVICE_ACCOUNT: 'SERVICE_ACCOUNT'
+  GROUP: 'GROUP'
 } as const

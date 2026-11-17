@@ -5,6 +5,11 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { BudgetSummaryResponseDtoDataAnnualCeiling } from './budgetSummaryResponseDtoDataAnnualCeiling'
+import type { BudgetSummaryResponseDtoDataCompanySpent } from './budgetSummaryResponseDtoDataCompanySpent'
+import type { BudgetSummaryResponseDtoDataSeatMonthsWithoutCostCenter } from './budgetSummaryResponseDtoDataSeatMonthsWithoutCostCenter'
+import type { BudgetSummaryResponseDtoDataSharedPoolReserve } from './budgetSummaryResponseDtoDataSharedPoolReserve'
+import type { BudgetSummaryResponseDtoDataSharedPoolUnallocated } from './budgetSummaryResponseDtoDataSharedPoolUnallocated'
 import type { BudgetSummaryResponseDtoDataTotals } from './budgetSummaryResponseDtoDataTotals'
 
 /**
@@ -16,7 +21,19 @@ export type BudgetSummaryResponseDtoData = {
    * @maximum 9007199254740991
    */
   year: number
+  /** @nullable */
+  annualCeiling: BudgetSummaryResponseDtoDataAnnualCeiling
+  /** @nullable */
+  sharedPoolReserve: BudgetSummaryResponseDtoDataSharedPoolReserve
   totals: BudgetSummaryResponseDtoDataTotals
   /** @nullable */
   lastInvoiceRecordedAt: string | null
+  /** @nullable */
+  companySpent: BudgetSummaryResponseDtoDataCompanySpent
+  /** @nullable */
+  sharedPoolUnallocated: BudgetSummaryResponseDtoDataSharedPoolUnallocated
+  /** @nullable */
+  sharedPoolOverReserve: boolean | null
+  /** @nullable */
+  seatMonthsWithoutCostCenter: BudgetSummaryResponseDtoDataSeatMonthsWithoutCostCenter
 } | null

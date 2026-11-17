@@ -17,12 +17,6 @@ import { useLiveRequestCreate } from '../hooks/use-live-request-create'
 
 type Destination = '/my-software' | '/live-requests' | '/live-inbox'
 
-function validDate(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || value.startsWith('0000')) return false
-  const date = new Date(`${value}T00:00:00.000Z`)
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value
-}
-
 function previewErrorKey(error: unknown) {
   if (typeof error !== 'object' || error === null || !('info' in error)) return 'previewError'
   const info = error.info
@@ -58,9 +52,8 @@ export function LiveRequestCreateScreen() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<RequestablePlanPageResponseDtoDataItemsItem>()
-  const [endDate, setEndDate] = useState('')
+  const [term, setTerm] = useState('')
   const [reason, setReason] = useState('')
-  const [manyPaidReason, setManyPaidReason] = useState('')
   const [validation, setValidation] = useState(false)
   const [destination, setDestination] = useState<Destination>()
   const [pendingAction, setPendingAction] = useState<NavigationAction>()
@@ -70,7 +63,7 @@ export function LiveRequestCreateScreen() {
   const allowRemoval = useRef(false)
   const scroll = useRef<ScrollView>(null)
   const { plans, preview, submit } = useLiveRequestCreate(search.trim(), page)
-  const dirty = !!selected || !!search || !!reason || !!endDate || !!manyPaidReason
+  const dirty = !!selected || !!search || !!reason || !!term
   usePreventRemove(session.state === 'authenticated' && (dirty || submit.isPending), ({ data }) => {
     if (allowRemoval.current) navigation.dispatch(data.action)
     else if (!submit.isPending) setPendingAction(data.action)
@@ -86,20 +79,28 @@ export function LiveRequestCreateScreen() {
       return () => subscription.remove()
     }, [dirty, router, submit.isPending])
   )
-  const valid = (!endDate || validDate(endDate)) && reason.trim().length > 0 && reason.trim().length <= 1000
+  const type = selected?.provisioningType
+  const asksTerm = type === 'K1' || type === 'K2' || type === 'K5'
+  const termMonths = term ? Number(term) : undefined
+  const validTerm =
+    type === 'K4' ||
+    (asksTerm &&
+      ((!term && type !== 'K1') ||
+        (termMonths !== undefined &&
+          /^\d+$/.test(term) &&
+          Number.isSafeInteger(termMonths) &&
+          termMonths >= 1 &&
+          termMonths <= (type === 'K1' ? 9 : 12))))
+  const valid = validTerm && reason.trim().length > 0 && reason.trim().length <= 1000
   const currentPreview =
     preview.data &&
     selected &&
     preview.data.input.planId === selected.id &&
-    (preview.data.input.expectedEndDate ?? '') === endDate &&
+    (preview.data.input.termMonths ?? undefined) === termMonths &&
     preview.data.reason === reason.trim()
       ? preview.data.preview
       : undefined
-  const canSend =
-    !!currentPreview?.canSubmit &&
-    (!currentPreview.termRequired || !!endDate) &&
-    (!endDate || endDate <= currentPreview.maxEndDate) &&
-    (!currentPreview.limits.reasonRequired || !!manyPaidReason.trim())
+  const canSend = !!currentPreview?.canSubmit && !currentPreview.termRefusal
 
   if (session.state === 'anonymous') return <Redirect href='/' />
   const locked = submit.isPending || submit.isError || submit.isSuccess
@@ -110,7 +111,7 @@ export function LiveRequestCreateScreen() {
     }
     setValidation(false)
     preview.mutate({
-      body: { planId: selected.id, ...(endDate ? { expectedEndDate: endDate } : {}) },
+      body: { planId: selected.id, ...(termMonths === undefined ? {} : { termMonths }) },
       reason: reason.trim()
     })
   }
@@ -121,8 +122,7 @@ export function LiveRequestCreateScreen() {
       {
         planId: selected.id,
         businessReason: reason.trim(),
-        ...(endDate ? { expectedEndDate: endDate } : {}),
-        ...(currentPreview?.limits.reasonRequired ? { manyPaidSoftwareReason: manyPaidReason.trim() } : {})
+        ...(termMonths === undefined ? {} : { termMonths })
       },
       {
         onSuccess: (id) => {
@@ -238,6 +238,7 @@ export function LiveRequestCreateScreen() {
                 disabled={locked}
                 onPress={() => {
                   setSelected(plan)
+                  setTerm('')
                   setChoosing(false)
                   scroll.current?.scrollTo({ y: 0, animated: true })
                   preview.reset()
@@ -311,21 +312,31 @@ export function LiveRequestCreateScreen() {
               <Text style={styles.actionText}>{t('requests.createLive.changePlan')}</Text>
             </Pressable>
             <View style={styles.divider} />
-            <Text style={styles.label}>{t('requests.createLive.endDate')}</Text>
-            <TextInput
-              accessibilityLabel={t('requests.createLive.endDate')}
-              placeholder={t('requests.createLive.endDatePlaceholder')}
-              placeholderTextColor={mobileColors.muted}
-              keyboardType='numbers-and-punctuation'
-              value={endDate}
-              maxLength={10}
-              editable={!locked}
-              onChangeText={(value) => {
-                setEndDate(value)
-                preview.reset()
-              }}
-              style={styles.input}
-            />
+            {asksTerm ? (
+              <>
+                <Text style={styles.label}>
+                  {t(type === 'K1' ? 'requests.createLive.termRequired' : 'requests.createLive.termOptional')}
+                </Text>
+                <TextInput
+                  accessibilityLabel={t(
+                    type === 'K1' ? 'requests.createLive.termRequired' : 'requests.createLive.termOptional'
+                  )}
+                  keyboardType='number-pad'
+                  value={term}
+                  maxLength={2}
+                  editable={!locked}
+                  onChangeText={(value) => {
+                    setTerm(value)
+                    preview.reset()
+                  }}
+                  style={styles.input}
+                />
+              </>
+            ) : type !== 'K4' ? (
+              <Text accessibilityRole='alert' style={styles.error}>
+                {t('requests.createLive.unsupportedType')}
+              </Text>
+            ) : null}
             <Text style={styles.label}>{t('requests.createLive.reason')}</Text>
             <TextInput
               accessibilityLabel={t('requests.createLive.reason')}
@@ -377,37 +388,13 @@ export function LiveRequestCreateScreen() {
                 {currentPreview.existingAccess ? (
                   <Text style={styles.error}>{t('requests.createLive.existingAccess')}</Text>
                 ) : null}
-                <Text style={styles.muted}>
-                  {t('requests.createLive.maxEndDate', {
-                    date: validDate(currentPreview.maxEndDate)
-                      ? new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeZone: 'UTC' }).format(
-                          new Date(`${currentPreview.maxEndDate}T00:00:00.000Z`)
-                        )
-                      : t('licenses.live.dateUnavailable')
-                  })}
-                </Text>
-                {currentPreview.termRequired && !endDate ? (
-                  <Text style={styles.error}>{t('requests.createLive.endDateRequired')}</Text>
-                ) : null}
-                {endDate && endDate > currentPreview.maxEndDate ? (
-                  <Text style={styles.error}>{t('requests.createLive.endDateTooLate')}</Text>
+                {currentPreview.termRefusal ? (
+                  <Text style={styles.error}>
+                    {t(`requests.createLive.termRefusals.${currentPreview.termRefusal}`)}
+                  </Text>
                 ) : null}
                 {currentPreview.limits.refusal ? (
                   <Text style={styles.error}>{t(`requests.createLive.refusals.${currentPreview.limits.refusal}`)}</Text>
-                ) : null}
-                {currentPreview.limits.reasonRequired ? (
-                  <>
-                    <Text style={styles.label}>{t('requests.createLive.manyPaidReason')}</Text>
-                    <TextInput
-                      accessibilityLabel={t('requests.createLive.manyPaidReason')}
-                      multiline
-                      value={manyPaidReason}
-                      maxLength={1000}
-                      editable={!locked}
-                      onChangeText={setManyPaidReason}
-                      style={[styles.input, styles.reason]}
-                    />
-                  </>
                 ) : null}
                 {currentPreview.spendSubmission === 'BLOCKED_UNTIL_PRICED' ? (
                   <Text style={styles.error}>{t('requests.createLive.pricingBlocked')}</Text>

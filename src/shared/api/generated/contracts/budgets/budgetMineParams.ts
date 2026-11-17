@@ -12,4 +12,8 @@ export type BudgetMineParams = {
    * @maximum 2200
    */
   year: number
+  /**
+   * The Cost Center asked about, when the caller answers for more than one that year (a department they head and one that starts on 1 January).
+   */
+  costCenterId?: string
 }

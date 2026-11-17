@@ -30,6 +30,8 @@ export type DepartmentPageResponseDtoDataItemsItem = {
    */
   memberCount: number
   warnings: DepartmentPageResponseDtoDataItemsItemWarningsItem[]
+  /** A calendar date as YYYY-MM-DD. */
+  effectiveFrom: string
   createdAt: string
   updatedAt: string
   /** @nullable */

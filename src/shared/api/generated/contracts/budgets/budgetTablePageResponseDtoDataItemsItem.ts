@@ -8,9 +8,15 @@
 import type { BudgetTablePageResponseDtoDataItemsItemBase } from './budgetTablePageResponseDtoDataItemsItemBase'
 import type { BudgetTablePageResponseDtoDataItemsItemCommitted } from './budgetTablePageResponseDtoDataItemsItemCommitted'
 import type { BudgetTablePageResponseDtoDataItemsItemCostCenter } from './budgetTablePageResponseDtoDataItemsItemCostCenter'
+import type { BudgetTablePageResponseDtoDataItemsItemEffectiveBudget } from './budgetTablePageResponseDtoDataItemsItemEffectiveBudget'
+import type { BudgetTablePageResponseDtoDataItemsItemPendingSpend } from './budgetTablePageResponseDtoDataItemsItemPendingSpend'
+import type { BudgetTablePageResponseDtoDataItemsItemPriorPeriodAdjustment } from './budgetTablePageResponseDtoDataItemsItemPriorPeriodAdjustment'
 import type { BudgetTablePageResponseDtoDataItemsItemRemaining } from './budgetTablePageResponseDtoDataItemsItemRemaining'
+import type { BudgetTablePageResponseDtoDataItemsItemRemainingBase } from './budgetTablePageResponseDtoDataItemsItemRemainingBase'
+import type { BudgetTablePageResponseDtoDataItemsItemRemainingWithReserve } from './budgetTablePageResponseDtoDataItemsItemRemainingWithReserve'
 import type { BudgetTablePageResponseDtoDataItemsItemReserve } from './budgetTablePageResponseDtoDataItemsItemReserve'
 import type { BudgetTablePageResponseDtoDataItemsItemSpent } from './budgetTablePageResponseDtoDataItemsItemSpent'
+import type { BudgetTablePageResponseDtoDataItemsItemStatus } from './budgetTablePageResponseDtoDataItemsItemStatus'
 import type { BudgetTablePageResponseDtoDataItemsItemTotal } from './budgetTablePageResponseDtoDataItemsItemTotal'
 
 export type BudgetTablePageResponseDtoDataItemsItem = {
@@ -20,17 +26,43 @@ export type BudgetTablePageResponseDtoDataItemsItem = {
    * @maximum 9007199254740991
    */
   year: number
-  versionId: string
+  status: BudgetTablePageResponseDtoDataItemsItemStatus
+  /** @nullable */
+  versionId: string | null
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0
+   * @nullable
    */
-  number: number
+  number: number | null
+  /**
+   * The base of the approved version, before the adjustments (the base with them is effectiveBudget.base; the check of a request names that one `base`).
+   * @nullable
+   */
   base: BudgetTablePageResponseDtoDataItemsItemBase
+  /** @nullable */
   reserve: BudgetTablePageResponseDtoDataItemsItemReserve
+  /**
+   * The base and the reserve of the approved version, before the adjustments.
+   * @nullable
+   */
   total: BudgetTablePageResponseDtoDataItemsItemTotal
+  /**
+   * Null when the Cost Center has no budget of the year. What is left below is worked out on this.
+   * @nullable
+   */
+  effectiveBudget: BudgetTablePageResponseDtoDataItemsItemEffectiveBudget
   committed: BudgetTablePageResponseDtoDataItemsItemCommitted
   spent: BudgetTablePageResponseDtoDataItemsItemSpent
+  pendingSpend: BudgetTablePageResponseDtoDataItemsItemPendingSpend
+  /** @nullable */
+  remainingBase: BudgetTablePageResponseDtoDataItemsItemRemainingBase
+  /** @nullable */
+  remainingWithReserve: BudgetTablePageResponseDtoDataItemsItemRemainingWithReserve
+  overBudget: boolean
+  /** @nullable */
   remaining: BudgetTablePageResponseDtoDataItemsItemRemaining
   overCommitted: boolean
+  /** Invoices of the commitment year recorded on or after local midnight on 1 January of the next year. */
+  priorPeriodAdjustment: BudgetTablePageResponseDtoDataItemsItemPriorPeriodAdjustment
 }

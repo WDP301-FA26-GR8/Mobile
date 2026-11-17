@@ -47,8 +47,10 @@ export type NeedQueueResponseDtoDataItemsItem = {
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0
+   * @nullable
    */
-  termMonths: number
+  termMonths: number | null
+  /** @nullable */
+  expectedEndDate: string | null
   pricing: NeedQueueResponseDtoDataItemsItemPricing
-  samePersonAsSpend: boolean
 }

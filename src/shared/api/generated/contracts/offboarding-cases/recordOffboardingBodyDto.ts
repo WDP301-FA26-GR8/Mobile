@@ -6,15 +6,18 @@
  * OpenAPI spec version: 1.0
  */
 import type { RecordOffboardingBodyDtoAccessBlockMode } from './recordOffboardingBodyDtoAccessBlockMode'
-import type { RecordOffboardingBodyDtoGrounds } from './recordOffboardingBodyDtoGrounds'
 import type { RecordOffboardingBodyDtoSuccessor } from './recordOffboardingBodyDtoSuccessor'
 
 export interface RecordOffboardingBodyDto {
   employeeId: string
   /** A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused). */
-  lastWorkingDay: string
+  lastWorkingDay?: string
   accessBlockMode: RecordOffboardingBodyDtoAccessBlockMode
-  grounds: RecordOffboardingBodyDtoGrounds
+  /**
+   * @minLength 1
+   * @maxLength 500
+   */
+  groundsNote: string
   successor?: RecordOffboardingBodyDtoSuccessor
   cancelPendingTransfer?: true
 }

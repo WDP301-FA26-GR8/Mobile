@@ -10,4 +10,9 @@ export type AssignmentPageResponseDtoDataItemsItemPlan = {
   planId: string
   planName: string
   applicationName: string
+  /**
+   * The https link to the logo image of the application that the IT Admin pasted, or null. The server never checks it: it may be broken, so show the first letter of the name when the image does not load.
+   * @nullable
+   */
+  logoUrl: string | null
 }

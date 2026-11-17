@@ -24,6 +24,4 @@ export type ApprovalDetailResponseDtoDataSpendApprovalStep = {
    * @exclusiveMinimum 0
    */
   slaWorkingDays: number
-  samePersonAsSpend: boolean
-  noIndependentReview: boolean
 }

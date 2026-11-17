@@ -11,5 +11,6 @@ export type AccessRequestResponseDtoDataRequestNeedDecisionDecision =
 
 export const AccessRequestResponseDtoDataRequestNeedDecisionDecision = {
   APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED'
+  REJECTED: 'REJECTED',
+  RETURNED: 'RETURNED'
 } as const

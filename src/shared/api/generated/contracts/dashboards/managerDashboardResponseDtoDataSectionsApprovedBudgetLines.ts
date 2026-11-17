@@ -9,7 +9,7 @@ import type { ManagerDashboardResponseDtoDataSectionsApprovedBudgetLinesReason }
 import type { ManagerDashboardResponseDtoDataSectionsApprovedBudgetLinesState } from './managerDashboardResponseDtoDataSectionsApprovedBudgetLinesState'
 
 /**
- * The lines of the approved budget version of the department.
+ * The approved budget of the department: one figure for the year, read at its source.
  */
 export type ManagerDashboardResponseDtoDataSectionsApprovedBudgetLines = {
   /** COUNTED: count is how many, in the scope of the caller. AT_SOURCE: the rows are listed by sourceOperationId in the same scope and are not counted here. NOT_AVAILABLE: the data has no source yet; reason says why. A section that is not counted is never shown as zero. */

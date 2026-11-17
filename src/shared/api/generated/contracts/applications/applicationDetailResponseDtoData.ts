@@ -5,12 +5,11 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
-import type { ApplicationDetailResponseDtoDataBusinessOwner } from './applicationDetailResponseDtoDataBusinessOwner'
-import type { ApplicationDetailResponseDtoDataCommunication } from './applicationDetailResponseDtoDataCommunication'
 import type { ApplicationDetailResponseDtoDataDataSensitivity } from './applicationDetailResponseDtoDataDataSensitivity'
 import type { ApplicationDetailResponseDtoDataFunctionalGroup } from './applicationDetailResponseDtoDataFunctionalGroup'
 import type { ApplicationDetailResponseDtoDataKind } from './applicationDetailResponseDtoDataKind'
 import type { ApplicationDetailResponseDtoDataRecommendationsItem } from './applicationDetailResponseDtoDataRecommendationsItem'
+import type { ApplicationDetailResponseDtoDataResponsibleItAdmin } from './applicationDetailResponseDtoDataResponsibleItAdmin'
 import type { ApplicationDetailResponseDtoDataSimilarApplicationsItem } from './applicationDetailResponseDtoDataSimilarApplicationsItem'
 import type { ApplicationDetailResponseDtoDataStatus } from './applicationDetailResponseDtoDataStatus'
 import type { ApplicationDetailResponseDtoDataUsageCollectionDefault } from './applicationDetailResponseDtoDataUsageCollectionDefault'
@@ -25,20 +24,30 @@ export type ApplicationDetailResponseDtoData = {
   kind: ApplicationDetailResponseDtoDataKind
   /** @nullable */
   vendor: ApplicationDetailResponseDtoDataVendor
+  /** @nullable */
   dataSensitivity: ApplicationDetailResponseDtoDataDataSensitivity
+  /**
+   * The https link to the logo image that the IT Admin pasted, or null. The server never checks it: it may be broken, so show the first letter of the name when the image does not load.
+   * @nullable
+   */
+  logoUrl: string | null
+  /** True when the application stands in the group Liên lạc (email, chat, meetings): the usage rules never collect it. */
   isCommunicationService: boolean
-  businessOwner: ApplicationDetailResponseDtoDataBusinessOwner
-  businessOwnerReplacementRequired: boolean
+  /**
+   * The IT Admin who answers for the application (the one who declared it, or who took it over); null when nobody does.
+   * @nullable
+   */
+  responsibleItAdmin: ApplicationDetailResponseDtoDataResponsibleItAdmin
+  /** True when nobody is responsible, or the one named is no longer a working IT Admin: any IT Admin may take it over with the responsibility transfer. */
+  needsResponsible: boolean
   /** @nullable */
   usageCollectionDefault: ApplicationDetailResponseDtoDataUsageCollectionDefault
-  /** @nullable */
   functionalGroup: ApplicationDetailResponseDtoDataFunctionalGroup
   status: ApplicationDetailResponseDtoDataStatus
   updatedAt: string
   /** @nullable */
   dictionaryServiceLineId: string | null
   domains: string[]
-  communication: ApplicationDetailResponseDtoDataCommunication
   createdAt: string
   /** @maxItems 20 */
   similarApplications: ApplicationDetailResponseDtoDataSimilarApplicationsItem[]

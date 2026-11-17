@@ -7,10 +7,15 @@
  */
 import type { TransferDetailResponseDtoDataCancellation } from './transferDetailResponseDtoDataCancellation'
 import type { TransferDetailResponseDtoDataClosure } from './transferDetailResponseDtoDataClosure'
+import type { TransferDetailResponseDtoDataCommitmentsReleasedItem } from './transferDetailResponseDtoDataCommitmentsReleasedItem'
 import type { TransferDetailResponseDtoDataEmployee } from './transferDetailResponseDtoDataEmployee'
 import type { TransferDetailResponseDtoDataFrom } from './transferDetailResponseDtoDataFrom'
-import type { TransferDetailResponseDtoDataGrounds } from './transferDetailResponseDtoDataGrounds'
+import type { TransferDetailResponseDtoDataGrace } from './transferDetailResponseDtoDataGrace'
 import type { TransferDetailResponseDtoDataHeadSuccessor } from './transferDetailResponseDtoDataHeadSuccessor'
+import type { TransferDetailResponseDtoDataItHandover } from './transferDetailResponseDtoDataItHandover'
+import type { TransferDetailResponseDtoDataOldRightsItem } from './transferDetailResponseDtoDataOldRightsItem'
+import type { TransferDetailResponseDtoDataPhase } from './transferDetailResponseDtoDataPhase'
+import type { TransferDetailResponseDtoDataSnapshot } from './transferDetailResponseDtoDataSnapshot'
 import type { TransferDetailResponseDtoDataStatus } from './transferDetailResponseDtoDataStatus'
 import type { TransferDetailResponseDtoDataTo } from './transferDetailResponseDtoDataTo'
 
@@ -24,8 +29,11 @@ export type TransferDetailResponseDtoData = {
   to: TransferDetailResponseDtoDataTo
   effectiveOn: string
   status: TransferDetailResponseDtoDataStatus
+  phase: TransferDetailResponseDtoDataPhase
   /** @nullable */
-  grounds: TransferDetailResponseDtoDataGrounds
+  grace: TransferDetailResponseDtoDataGrace
+  /** @nullable */
+  groundsNote: string | null
   /** @nullable */
   headSuccessor: TransferDetailResponseDtoDataHeadSuccessor
   /** @nullable */
@@ -38,4 +46,12 @@ export type TransferDetailResponseDtoData = {
   cancellation: TransferDetailResponseDtoDataCancellation
   /** @nullable */
   closure: TransferDetailResponseDtoDataClosure
+  /** @maxItems 200 */
+  oldRights: TransferDetailResponseDtoDataOldRightsItem[]
+  /** @maxItems 200 */
+  commitmentsReleased: TransferDetailResponseDtoDataCommitmentsReleasedItem[]
+  /** @nullable */
+  snapshot: TransferDetailResponseDtoDataSnapshot
+  /** @nullable */
+  itHandover: TransferDetailResponseDtoDataItHandover
 } | null

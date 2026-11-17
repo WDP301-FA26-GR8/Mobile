@@ -10,6 +10,5 @@ export type DecisionBodyDtoDecision = (typeof DecisionBodyDtoDecision)[keyof typ
 
 export const DecisionBodyDtoDecision = {
   APPROVE: 'APPROVE',
-  REJECT: 'REJECT',
-  REQUEST_CHANGES: 'REQUEST_CHANGES'
+  RETURN: 'RETURN'
 } as const

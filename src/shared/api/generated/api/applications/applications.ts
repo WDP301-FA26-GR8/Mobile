@@ -22,21 +22,17 @@ import type {
 } from '@tanstack/react-query'
 
 import type {
-  ApplicationBusinessOwnerHistory200,
-  ApplicationBusinessOwnerHistoryParams,
   ApplicationCreate201,
   ApplicationGet200,
   ApplicationList200,
   ApplicationListParams,
+  ApplicationResponsibilityTransfer200,
   ApplicationRetire200,
-  ApplicationRetirementConfirm201,
   ApplicationRetirementGet200,
   ApplicationUpdate200,
-  BusinessOwnerWarningList200,
-  BusinessOwnerWarningListParams,
-  ConfirmRetirementBodyDto,
-  DeclareApplicationBodyDto,
+  CreateApplicationBodyDto,
   ErrorEnvelopeDto,
+  ResponsibilityTransferBodyDto,
   UpdateApplicationBodyDto
 } from '../../contracts'
 
@@ -317,17 +313,17 @@ export const getApplicationCreateUrl = () => {
 }
 
 /**
- * @summary Declare an application
+ * @summary Declare an application with its first plan
  */
 export const applicationCreate = async (
-  declareApplicationBodyDto: DeclareApplicationBodyDto,
+  createApplicationBodyDto: CreateApplicationBodyDto,
   options?: RequestInit
 ): Promise<applicationCreateResponseSuccess> => {
   const res = await fetch(getApplicationCreateUrl(), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(declareApplicationBodyDto)
+    body: JSON.stringify(createApplicationBodyDto)
   })
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text()
@@ -350,14 +346,14 @@ export const getApplicationCreateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof applicationCreate>>,
     TError,
-    { data: DeclareApplicationBodyDto },
+    { data: CreateApplicationBodyDto },
     TContext
   >
   fetch?: RequestInit
 }): UseMutationOptions<
   Awaited<ReturnType<typeof applicationCreate>>,
   TError,
-  { data: DeclareApplicationBodyDto },
+  { data: CreateApplicationBodyDto },
   TContext
 > => {
   const mutationKey = ['applicationCreate']
@@ -369,7 +365,7 @@ export const getApplicationCreateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof applicationCreate>>,
-    { data: DeclareApplicationBodyDto }
+    { data: CreateApplicationBodyDto }
   > = (props) => {
     const { data } = props ?? {}
 
@@ -380,11 +376,11 @@ export const getApplicationCreateMutationOptions = <
 }
 
 export type ApplicationCreateMutationResult = NonNullable<Awaited<ReturnType<typeof applicationCreate>>>
-export type ApplicationCreateMutationBody = DeclareApplicationBodyDto
+export type ApplicationCreateMutationBody = CreateApplicationBodyDto
 export type ApplicationCreateMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
 
 /**
- * @summary Declare an application
+ * @summary Declare an application with its first plan
  */
 export const useApplicationCreate = <
   TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
@@ -394,7 +390,7 @@ export const useApplicationCreate = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof applicationCreate>>,
       TError,
-      { data: DeclareApplicationBodyDto },
+      { data: CreateApplicationBodyDto },
       TContext
     >
     fetch?: RequestInit
@@ -403,7 +399,7 @@ export const useApplicationCreate = <
 ): UseMutationResult<
   Awaited<ReturnType<typeof applicationCreate>>,
   TError,
-  { data: DeclareApplicationBodyDto },
+  { data: CreateApplicationBodyDto },
   TContext
 > => {
   return useMutation(getApplicationCreateMutationOptions(options), queryClient)
@@ -757,571 +753,6 @@ export const useApplicationUpdate = <
 > => {
   return useMutation(getApplicationUpdateMutationOptions(options), queryClient)
 }
-export type businessOwnerWarningListResponse200 = {
-  data: BusinessOwnerWarningList200
-  status: 200
-}
-
-export type businessOwnerWarningListResponse401 = {
-  data: ErrorEnvelopeDto
-  status: 401
-}
-
-export type businessOwnerWarningListResponse403 = {
-  data: ErrorEnvelopeDto
-  status: 403
-}
-
-export type businessOwnerWarningListResponse422 = {
-  data: ErrorEnvelopeDto
-  status: 422
-}
-
-export type businessOwnerWarningListResponse429 = {
-  data: ErrorEnvelopeDto
-  status: 429
-}
-
-export type businessOwnerWarningListResponse503 = {
-  data: ErrorEnvelopeDto
-  status: 503
-}
-
-export type businessOwnerWarningListResponseSuccess = businessOwnerWarningListResponse200 & {
-  headers: Headers
-}
-export type businessOwnerWarningListResponseError = (
-  | businessOwnerWarningListResponse401
-  | businessOwnerWarningListResponse403
-  | businessOwnerWarningListResponse422
-  | businessOwnerWarningListResponse429
-  | businessOwnerWarningListResponse503
-) & {
-  headers: Headers
-}
-
-export const getBusinessOwnerWarningListUrl = (params?: BusinessOwnerWarningListParams) => {
-  const normalizedParams = new URLSearchParams()
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  })
-
-  const stringifiedParams = normalizedParams.toString()
-
-  return stringifiedParams.length > 0
-    ? `${env.API_BASE_URL}/api/v1/business-owner-warnings?${stringifiedParams}`
-    : `${env.API_BASE_URL}/api/v1/business-owner-warnings`
-}
-
-/**
- * @summary List the applications whose Business Owner has left
- */
-export const businessOwnerWarningList = async (
-  params?: BusinessOwnerWarningListParams,
-  options?: RequestInit
-): Promise<businessOwnerWarningListResponseSuccess> => {
-  const res = await fetch(getBusinessOwnerWarningListUrl(params), {
-    ...options,
-    method: 'GET'
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  if (!res.ok) {
-    const err: globalThis.Error & { info?: businessOwnerWarningListResponseError['data']; status?: number } =
-      new globalThis.Error()
-    const data: businessOwnerWarningListResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data
-    err.status = res.status
-    throw err
-  }
-  const data: businessOwnerWarningListResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as businessOwnerWarningListResponseSuccess
-}
-
-export const getBusinessOwnerWarningListQueryKey = (params?: BusinessOwnerWarningListParams) => {
-  return [`${env.API_BASE_URL}/api/v1/business-owner-warnings`, ...(params ? [params] : [])] as const
-}
-
-export const getBusinessOwnerWarningListQueryOptions = <
-  TData = Awaited<ReturnType<typeof businessOwnerWarningList>>,
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
->(
-  params?: BusinessOwnerWarningListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof businessOwnerWarningList>>, TError, TData>>
-    fetch?: RequestInit
-  }
-) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
-
-  const queryKey = queryOptions?.queryKey ?? getBusinessOwnerWarningListQueryKey(params)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof businessOwnerWarningList>>> = ({ signal }) =>
-    businessOwnerWarningList(params, { signal, ...fetchOptions })
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof businessOwnerWarningList>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type BusinessOwnerWarningListQueryResult = NonNullable<Awaited<ReturnType<typeof businessOwnerWarningList>>>
-export type BusinessOwnerWarningListQueryError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
-
-export function useBusinessOwnerWarningList<
-  TData = Awaited<ReturnType<typeof businessOwnerWarningList>>,
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
->(
-  params: undefined | BusinessOwnerWarningListParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof businessOwnerWarningList>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof businessOwnerWarningList>>,
-          TError,
-          Awaited<ReturnType<typeof businessOwnerWarningList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useBusinessOwnerWarningList<
-  TData = Awaited<ReturnType<typeof businessOwnerWarningList>>,
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
->(
-  params?: BusinessOwnerWarningListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof businessOwnerWarningList>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof businessOwnerWarningList>>,
-          TError,
-          Awaited<ReturnType<typeof businessOwnerWarningList>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useBusinessOwnerWarningList<
-  TData = Awaited<ReturnType<typeof businessOwnerWarningList>>,
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
->(
-  params?: BusinessOwnerWarningListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof businessOwnerWarningList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary List the applications whose Business Owner has left
- */
-
-export function useBusinessOwnerWarningList<
-  TData = Awaited<ReturnType<typeof businessOwnerWarningList>>,
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
->(
-  params?: BusinessOwnerWarningListParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof businessOwnerWarningList>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getBusinessOwnerWarningListQueryOptions(params, options)
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
-
-  return withQueryKey(query, queryOptions.queryKey)
-}
-
-export type applicationBusinessOwnerHistoryResponse200 = {
-  data: ApplicationBusinessOwnerHistory200
-  status: 200
-}
-
-export type applicationBusinessOwnerHistoryResponse401 = {
-  data: ErrorEnvelopeDto
-  status: 401
-}
-
-export type applicationBusinessOwnerHistoryResponse403 = {
-  data: ErrorEnvelopeDto
-  status: 403
-}
-
-export type applicationBusinessOwnerHistoryResponse404 = {
-  data: ErrorEnvelopeDto
-  status: 404
-}
-
-export type applicationBusinessOwnerHistoryResponse422 = {
-  data: ErrorEnvelopeDto
-  status: 422
-}
-
-export type applicationBusinessOwnerHistoryResponse429 = {
-  data: ErrorEnvelopeDto
-  status: 429
-}
-
-export type applicationBusinessOwnerHistoryResponse503 = {
-  data: ErrorEnvelopeDto
-  status: 503
-}
-
-export type applicationBusinessOwnerHistoryResponseSuccess = applicationBusinessOwnerHistoryResponse200 & {
-  headers: Headers
-}
-export type applicationBusinessOwnerHistoryResponseError = (
-  | applicationBusinessOwnerHistoryResponse401
-  | applicationBusinessOwnerHistoryResponse403
-  | applicationBusinessOwnerHistoryResponse404
-  | applicationBusinessOwnerHistoryResponse422
-  | applicationBusinessOwnerHistoryResponse429
-  | applicationBusinessOwnerHistoryResponse503
-) & {
-  headers: Headers
-}
-
-export const getApplicationBusinessOwnerHistoryUrl = (id: string, params?: ApplicationBusinessOwnerHistoryParams) => {
-  const normalizedParams = new URLSearchParams()
-
-  Object.entries(params || {}).forEach(([key, value]) => {
-    if (value !== undefined) {
-      normalizedParams.append(key, value === null ? 'null' : String(value))
-    }
-  })
-
-  const stringifiedParams = normalizedParams.toString()
-
-  return stringifiedParams.length > 0
-    ? `${env.API_BASE_URL}/api/v1/applications/${id}/business-owners?${stringifiedParams}`
-    : `${env.API_BASE_URL}/api/v1/applications/${id}/business-owners`
-}
-
-/**
- * @summary List the Business Owners an application had
- */
-export const applicationBusinessOwnerHistory = async (
-  id: string,
-  params?: ApplicationBusinessOwnerHistoryParams,
-  options?: RequestInit
-): Promise<applicationBusinessOwnerHistoryResponseSuccess> => {
-  const res = await fetch(getApplicationBusinessOwnerHistoryUrl(id, params), {
-    ...options,
-    method: 'GET'
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  if (!res.ok) {
-    const err: globalThis.Error & { info?: applicationBusinessOwnerHistoryResponseError['data']; status?: number } =
-      new globalThis.Error()
-    const data: applicationBusinessOwnerHistoryResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data
-    err.status = res.status
-    throw err
-  }
-  const data: applicationBusinessOwnerHistoryResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as applicationBusinessOwnerHistoryResponseSuccess
-}
-
-export const getApplicationBusinessOwnerHistoryQueryKey = (
-  id: string,
-  params?: ApplicationBusinessOwnerHistoryParams
-) => {
-  return [`${env.API_BASE_URL}/api/v1/applications/${id}/business-owners`, ...(params ? [params] : [])] as const
-}
-
-export const getApplicationBusinessOwnerHistoryQueryOptions = <
-  TData = Awaited<ReturnType<typeof applicationBusinessOwnerHistory>>,
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
->(
-  id: string,
-  params?: ApplicationBusinessOwnerHistoryParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof applicationBusinessOwnerHistory>>, TError, TData>>
-    fetch?: RequestInit
-  }
-) => {
-  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
-
-  const queryKey = queryOptions?.queryKey ?? getApplicationBusinessOwnerHistoryQueryKey(id, params)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof applicationBusinessOwnerHistory>>> = ({ signal }) =>
-    applicationBusinessOwnerHistory(id, params, { signal, ...fetchOptions })
-
-  return { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof applicationBusinessOwnerHistory>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ApplicationBusinessOwnerHistoryQueryResult = NonNullable<
-  Awaited<ReturnType<typeof applicationBusinessOwnerHistory>>
->
-export type ApplicationBusinessOwnerHistoryQueryError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
-
-export function useApplicationBusinessOwnerHistory<
-  TData = Awaited<ReturnType<typeof applicationBusinessOwnerHistory>>,
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
->(
-  id: string,
-  params: undefined | ApplicationBusinessOwnerHistoryParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof applicationBusinessOwnerHistory>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof applicationBusinessOwnerHistory>>,
-          TError,
-          Awaited<ReturnType<typeof applicationBusinessOwnerHistory>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useApplicationBusinessOwnerHistory<
-  TData = Awaited<ReturnType<typeof applicationBusinessOwnerHistory>>,
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
->(
-  id: string,
-  params?: ApplicationBusinessOwnerHistoryParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof applicationBusinessOwnerHistory>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof applicationBusinessOwnerHistory>>,
-          TError,
-          Awaited<ReturnType<typeof applicationBusinessOwnerHistory>>
-        >,
-        'initialData'
-      >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useApplicationBusinessOwnerHistory<
-  TData = Awaited<ReturnType<typeof applicationBusinessOwnerHistory>>,
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
->(
-  id: string,
-  params?: ApplicationBusinessOwnerHistoryParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof applicationBusinessOwnerHistory>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary List the Business Owners an application had
- */
-
-export function useApplicationBusinessOwnerHistory<
-  TData = Awaited<ReturnType<typeof applicationBusinessOwnerHistory>>,
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
->(
-  id: string,
-  params?: ApplicationBusinessOwnerHistoryParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof applicationBusinessOwnerHistory>>, TError, TData>>
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getApplicationBusinessOwnerHistoryQueryOptions(id, params, options)
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
-
-  return withQueryKey(query, queryOptions.queryKey)
-}
-
-export type applicationRetirementConfirmResponse201 = {
-  data: ApplicationRetirementConfirm201
-  status: 201
-}
-
-export type applicationRetirementConfirmResponse400 = {
-  data: ErrorEnvelopeDto
-  status: 400
-}
-
-export type applicationRetirementConfirmResponse401 = {
-  data: ErrorEnvelopeDto
-  status: 401
-}
-
-export type applicationRetirementConfirmResponse403 = {
-  data: ErrorEnvelopeDto
-  status: 403
-}
-
-export type applicationRetirementConfirmResponse404 = {
-  data: ErrorEnvelopeDto
-  status: 404
-}
-
-export type applicationRetirementConfirmResponse409 = {
-  data: ErrorEnvelopeDto
-  status: 409
-}
-
-export type applicationRetirementConfirmResponse413 = {
-  data: ErrorEnvelopeDto
-  status: 413
-}
-
-export type applicationRetirementConfirmResponse415 = {
-  data: ErrorEnvelopeDto
-  status: 415
-}
-
-export type applicationRetirementConfirmResponse422 = {
-  data: ErrorEnvelopeDto
-  status: 422
-}
-
-export type applicationRetirementConfirmResponse429 = {
-  data: ErrorEnvelopeDto
-  status: 429
-}
-
-export type applicationRetirementConfirmResponse503 = {
-  data: ErrorEnvelopeDto
-  status: 503
-}
-
-export type applicationRetirementConfirmResponseSuccess = applicationRetirementConfirmResponse201 & {
-  headers: Headers
-}
-export type applicationRetirementConfirmResponseError = (
-  | applicationRetirementConfirmResponse400
-  | applicationRetirementConfirmResponse401
-  | applicationRetirementConfirmResponse403
-  | applicationRetirementConfirmResponse404
-  | applicationRetirementConfirmResponse409
-  | applicationRetirementConfirmResponse413
-  | applicationRetirementConfirmResponse415
-  | applicationRetirementConfirmResponse422
-  | applicationRetirementConfirmResponse429
-  | applicationRetirementConfirmResponse503
-) & {
-  headers: Headers
-}
-
-export const getApplicationRetirementConfirmUrl = (id: string) => {
-  return `${env.API_BASE_URL}/api/v1/applications/${id}/retirement-confirmations`
-}
-
-/**
- * @summary Record the confirmation of the Business Owner to retire an application
- */
-export const applicationRetirementConfirm = async (
-  id: string,
-  confirmRetirementBodyDto: ConfirmRetirementBodyDto,
-  options?: RequestInit
-): Promise<applicationRetirementConfirmResponseSuccess> => {
-  const res = await fetch(getApplicationRetirementConfirmUrl(id), {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(confirmRetirementBodyDto)
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  if (!res.ok) {
-    const err: globalThis.Error & { info?: applicationRetirementConfirmResponseError['data']; status?: number } =
-      new globalThis.Error()
-    const data: applicationRetirementConfirmResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data
-    err.status = res.status
-    throw err
-  }
-  const data: applicationRetirementConfirmResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as applicationRetirementConfirmResponseSuccess
-}
-
-export const getApplicationRetirementConfirmMutationOptions = <
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
-  TContext = unknown
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof applicationRetirementConfirm>>,
-    TError,
-    { id: string; data: ConfirmRetirementBodyDto },
-    TContext
-  >
-  fetch?: RequestInit
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof applicationRetirementConfirm>>,
-  TError,
-  { id: string; data: ConfirmRetirementBodyDto },
-  TContext
-> => {
-  const mutationKey = ['applicationRetirementConfirm']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof applicationRetirementConfirm>>,
-    { id: string; data: ConfirmRetirementBodyDto }
-  > = (props) => {
-    const { id, data } = props ?? {}
-
-    return applicationRetirementConfirm(id, data, fetchOptions)
-  }
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type ApplicationRetirementConfirmMutationResult = NonNullable<
-  Awaited<ReturnType<typeof applicationRetirementConfirm>>
->
-export type ApplicationRetirementConfirmMutationBody = ConfirmRetirementBodyDto
-export type ApplicationRetirementConfirmMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
-
-/**
- * @summary Record the confirmation of the Business Owner to retire an application
- */
-export const useApplicationRetirementConfirm = <
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
-  TContext = unknown
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof applicationRetirementConfirm>>,
-      TError,
-      { id: string; data: ConfirmRetirementBodyDto },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof applicationRetirementConfirm>>,
-  TError,
-  { id: string; data: ConfirmRetirementBodyDto },
-  TContext
-> => {
-  return useMutation(getApplicationRetirementConfirmMutationOptions(options), queryClient)
-}
 export type applicationRetirementGetResponse200 = {
   data: ApplicationRetirementGet200
   status: 200
@@ -1629,4 +1060,173 @@ export const useApplicationRetire = <
   queryClient?: QueryClient
 ): UseMutationResult<Awaited<ReturnType<typeof applicationRetire>>, TError, { id: string }, TContext> => {
   return useMutation(getApplicationRetireMutationOptions(options), queryClient)
+}
+export type applicationResponsibilityTransferResponse200 = {
+  data: ApplicationResponsibilityTransfer200
+  status: 200
+}
+
+export type applicationResponsibilityTransferResponse400 = {
+  data: ErrorEnvelopeDto
+  status: 400
+}
+
+export type applicationResponsibilityTransferResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type applicationResponsibilityTransferResponse403 = {
+  data: ErrorEnvelopeDto
+  status: 403
+}
+
+export type applicationResponsibilityTransferResponse404 = {
+  data: ErrorEnvelopeDto
+  status: 404
+}
+
+export type applicationResponsibilityTransferResponse413 = {
+  data: ErrorEnvelopeDto
+  status: 413
+}
+
+export type applicationResponsibilityTransferResponse415 = {
+  data: ErrorEnvelopeDto
+  status: 415
+}
+
+export type applicationResponsibilityTransferResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type applicationResponsibilityTransferResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type applicationResponsibilityTransferResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type applicationResponsibilityTransferResponseSuccess = applicationResponsibilityTransferResponse200 & {
+  headers: Headers
+}
+export type applicationResponsibilityTransferResponseError = (
+  | applicationResponsibilityTransferResponse400
+  | applicationResponsibilityTransferResponse401
+  | applicationResponsibilityTransferResponse403
+  | applicationResponsibilityTransferResponse404
+  | applicationResponsibilityTransferResponse413
+  | applicationResponsibilityTransferResponse415
+  | applicationResponsibilityTransferResponse422
+  | applicationResponsibilityTransferResponse429
+  | applicationResponsibilityTransferResponse503
+) & {
+  headers: Headers
+}
+
+export const getApplicationResponsibilityTransferUrl = (id: string) => {
+  return `${env.API_BASE_URL}/api/v1/applications/${id}/responsibility-transfer`
+}
+
+/**
+ * @summary Hand an application to another IT Admin
+ */
+export const applicationResponsibilityTransfer = async (
+  id: string,
+  responsibilityTransferBodyDto: ResponsibilityTransferBodyDto,
+  options?: RequestInit
+): Promise<applicationResponsibilityTransferResponseSuccess> => {
+  const res = await fetch(getApplicationResponsibilityTransferUrl(id), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(responsibilityTransferBodyDto)
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: applicationResponsibilityTransferResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: applicationResponsibilityTransferResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: applicationResponsibilityTransferResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as applicationResponsibilityTransferResponseSuccess
+}
+
+export const getApplicationResponsibilityTransferMutationOptions = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof applicationResponsibilityTransfer>>,
+    TError,
+    { id: string; data: ResponsibilityTransferBodyDto },
+    TContext
+  >
+  fetch?: RequestInit
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof applicationResponsibilityTransfer>>,
+  TError,
+  { id: string; data: ResponsibilityTransferBodyDto },
+  TContext
+> => {
+  const mutationKey = ['applicationResponsibilityTransfer']
+  const { mutation: mutationOptions, fetch: fetchOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, fetch: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof applicationResponsibilityTransfer>>,
+    { id: string; data: ResponsibilityTransferBodyDto }
+  > = (props) => {
+    const { id, data } = props ?? {}
+
+    return applicationResponsibilityTransfer(id, data, fetchOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ApplicationResponsibilityTransferMutationResult = NonNullable<
+  Awaited<ReturnType<typeof applicationResponsibilityTransfer>>
+>
+export type ApplicationResponsibilityTransferMutationBody = ResponsibilityTransferBodyDto
+export type ApplicationResponsibilityTransferMutationError = globalThis.Error & {
+  info?: ErrorEnvelopeDto
+  status?: number
+}
+
+/**
+ * @summary Hand an application to another IT Admin
+ */
+export const useApplicationResponsibilityTransfer = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof applicationResponsibilityTransfer>>,
+      TError,
+      { id: string; data: ResponsibilityTransferBodyDto },
+      TContext
+    >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof applicationResponsibilityTransfer>>,
+  TError,
+  { id: string; data: ResponsibilityTransferBodyDto },
+  TContext
+> => {
+  return useMutation(getApplicationResponsibilityTransferMutationOptions(options), queryClient)
 }

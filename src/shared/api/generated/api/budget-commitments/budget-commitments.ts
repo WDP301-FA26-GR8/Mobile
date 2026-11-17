@@ -24,14 +24,12 @@ import type {
 import type {
   BudgetCommitmentInvoiceList200,
   BudgetCommitmentInvoiceListParams,
-  BudgetCommitmentInvoiceRecord201,
   BudgetCommitmentList200,
   BudgetCommitmentListParams,
   BudgetCommitmentRelease200,
   BudgetCommitmentReleases200,
   BudgetCommitmentReleasesParams,
   ErrorEnvelopeDto,
-  InvoiceBodyDto,
   ReleaseBodyDto
 } from '../../contracts'
 
@@ -609,178 +607,6 @@ export const useBudgetCommitmentRelease = <
   TContext
 > => {
   return useMutation(getBudgetCommitmentReleaseMutationOptions(options), queryClient)
-}
-export type budgetCommitmentInvoiceRecordResponse201 = {
-  data: BudgetCommitmentInvoiceRecord201
-  status: 201
-}
-
-export type budgetCommitmentInvoiceRecordResponse400 = {
-  data: ErrorEnvelopeDto
-  status: 400
-}
-
-export type budgetCommitmentInvoiceRecordResponse401 = {
-  data: ErrorEnvelopeDto
-  status: 401
-}
-
-export type budgetCommitmentInvoiceRecordResponse403 = {
-  data: ErrorEnvelopeDto
-  status: 403
-}
-
-export type budgetCommitmentInvoiceRecordResponse404 = {
-  data: ErrorEnvelopeDto
-  status: 404
-}
-
-export type budgetCommitmentInvoiceRecordResponse409 = {
-  data: ErrorEnvelopeDto
-  status: 409
-}
-
-export type budgetCommitmentInvoiceRecordResponse413 = {
-  data: ErrorEnvelopeDto
-  status: 413
-}
-
-export type budgetCommitmentInvoiceRecordResponse415 = {
-  data: ErrorEnvelopeDto
-  status: 415
-}
-
-export type budgetCommitmentInvoiceRecordResponse422 = {
-  data: ErrorEnvelopeDto
-  status: 422
-}
-
-export type budgetCommitmentInvoiceRecordResponse429 = {
-  data: ErrorEnvelopeDto
-  status: 429
-}
-
-export type budgetCommitmentInvoiceRecordResponse503 = {
-  data: ErrorEnvelopeDto
-  status: 503
-}
-
-export type budgetCommitmentInvoiceRecordResponseSuccess = budgetCommitmentInvoiceRecordResponse201 & {
-  headers: Headers
-}
-export type budgetCommitmentInvoiceRecordResponseError = (
-  | budgetCommitmentInvoiceRecordResponse400
-  | budgetCommitmentInvoiceRecordResponse401
-  | budgetCommitmentInvoiceRecordResponse403
-  | budgetCommitmentInvoiceRecordResponse404
-  | budgetCommitmentInvoiceRecordResponse409
-  | budgetCommitmentInvoiceRecordResponse413
-  | budgetCommitmentInvoiceRecordResponse415
-  | budgetCommitmentInvoiceRecordResponse422
-  | budgetCommitmentInvoiceRecordResponse429
-  | budgetCommitmentInvoiceRecordResponse503
-) & {
-  headers: Headers
-}
-
-export const getBudgetCommitmentInvoiceRecordUrl = (id: string) => {
-  return `${env.API_BASE_URL}/api/v1/budget-commitments/${id}/invoices`
-}
-
-/**
- * @summary Record an invoice against a commitment
- */
-export const budgetCommitmentInvoiceRecord = async (
-  id: string,
-  invoiceBodyDto: InvoiceBodyDto,
-  options?: RequestInit
-): Promise<budgetCommitmentInvoiceRecordResponseSuccess> => {
-  const res = await fetch(getBudgetCommitmentInvoiceRecordUrl(id), {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(invoiceBodyDto)
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  if (!res.ok) {
-    const err: globalThis.Error & { info?: budgetCommitmentInvoiceRecordResponseError['data']; status?: number } =
-      new globalThis.Error()
-    const data: budgetCommitmentInvoiceRecordResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data
-    err.status = res.status
-    throw err
-  }
-  const data: budgetCommitmentInvoiceRecordResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as budgetCommitmentInvoiceRecordResponseSuccess
-}
-
-export const getBudgetCommitmentInvoiceRecordMutationOptions = <
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
-  TContext = unknown
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof budgetCommitmentInvoiceRecord>>,
-    TError,
-    { id: string; data: InvoiceBodyDto },
-    TContext
-  >
-  fetch?: RequestInit
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof budgetCommitmentInvoiceRecord>>,
-  TError,
-  { id: string; data: InvoiceBodyDto },
-  TContext
-> => {
-  const mutationKey = ['budgetCommitmentInvoiceRecord']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof budgetCommitmentInvoiceRecord>>,
-    { id: string; data: InvoiceBodyDto }
-  > = (props) => {
-    const { id, data } = props ?? {}
-
-    return budgetCommitmentInvoiceRecord(id, data, fetchOptions)
-  }
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type BudgetCommitmentInvoiceRecordMutationResult = NonNullable<
-  Awaited<ReturnType<typeof budgetCommitmentInvoiceRecord>>
->
-export type BudgetCommitmentInvoiceRecordMutationBody = InvoiceBodyDto
-export type BudgetCommitmentInvoiceRecordMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
-
-/**
- * @summary Record an invoice against a commitment
- */
-export const useBudgetCommitmentInvoiceRecord = <
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
-  TContext = unknown
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof budgetCommitmentInvoiceRecord>>,
-      TError,
-      { id: string; data: InvoiceBodyDto },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof budgetCommitmentInvoiceRecord>>,
-  TError,
-  { id: string; data: InvoiceBodyDto },
-  TContext
-> => {
-  return useMutation(getBudgetCommitmentInvoiceRecordMutationOptions(options), queryClient)
 }
 export type budgetCommitmentInvoiceListResponse200 = {
   data: BudgetCommitmentInvoiceList200

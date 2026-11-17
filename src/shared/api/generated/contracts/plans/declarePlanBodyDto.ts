@@ -24,4 +24,5 @@ export interface DeclarePlanBodyDto {
   revocationNote?: string | null
   dataLossOnRemoval?: boolean
   sharingPolicy?: DeclarePlanBodyDtoSharingPolicy
+  hasAdminConsole?: boolean
 }

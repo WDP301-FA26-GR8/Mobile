@@ -7,14 +7,19 @@
  */
 
 /**
- * The people of the group the head leaves out, and why.
+ * The people of the group the head leaves out and/or a shorter time of use in months, and why.
  */
 export interface SupplementBodyDto {
   /**
    * @minItems 1
    * @maxItems 100
    */
-  dropEmployeeIds: string[]
+  dropEmployeeIds?: string[]
+  /**
+   * @minimum -9007199254740991
+   * @maximum 9007199254740991
+   */
+  termMonths?: number
   /**
    * @minLength 1
    * @maxLength 1000

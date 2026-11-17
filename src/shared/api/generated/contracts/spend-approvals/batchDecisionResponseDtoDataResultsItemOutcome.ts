@@ -12,5 +12,6 @@ export type BatchDecisionResponseDtoDataResultsItemOutcome =
 export const BatchDecisionResponseDtoDataResultsItemOutcome = {
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED',
+  RETURNED: 'RETURNED',
   SKIPPED: 'SKIPPED'
 } as const

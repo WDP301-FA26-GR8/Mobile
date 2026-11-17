@@ -7,9 +7,25 @@
  */
 import { faker } from '@faker-js/faker'
 
-import type { ContractCreate201, ContractGet200 } from '../../contracts'
+import type {
+  ContractCreate201,
+  ContractGet200,
+  ContractList200,
+  ContractSubscriptionLink201,
+  ContractSubscriptionUnlink200,
+  ContractUpdate200
+} from '../../contracts'
 
-import { getContractResponseDtoResponseMock } from '../../contracts/index.faker'
+import {
+  getContractPageResponseDtoResponseMock,
+  getContractResponseDtoResponseMock,
+  getContractSubscriptionResponseDtoResponseMock
+} from '../../contracts/index.faker'
+
+export const getContractListResponseMock = (): ContractList200 => ({
+  ...{ ...getContractPageResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
 
 export const getContractCreateResponseMock = (): ContractCreate201 => ({
   ...{ ...getContractResponseDtoResponseMock() },
@@ -18,5 +34,20 @@ export const getContractCreateResponseMock = (): ContractCreate201 => ({
 
 export const getContractGetResponseMock = (): ContractGet200 => ({
   ...{ ...getContractResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
+export const getContractUpdateResponseMock = (): ContractUpdate200 => ({
+  ...{ ...getContractResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
+export const getContractSubscriptionLinkResponseMock = (): ContractSubscriptionLink201 => ({
+  ...{ ...getContractSubscriptionResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
+export const getContractSubscriptionUnlinkResponseMock = (): ContractSubscriptionUnlink200 => ({
+  ...{ ...getContractSubscriptionResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })

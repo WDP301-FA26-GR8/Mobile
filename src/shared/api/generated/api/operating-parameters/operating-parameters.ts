@@ -34,9 +34,7 @@ import type {
   OperatingParameterSet200,
   RenameNonWorkingDateBodyDto,
   ReportingCurrencyGet200,
-  ReportingCurrencySet200,
-  SetParameterBodyDto,
-  SetReportingCurrencyBodyDto
+  SetParameterBodyDto
 } from '../../contracts'
 
 import { env } from '@/shared/config/env'
@@ -241,11 +239,6 @@ export type operatingParameterSetResponse404 = {
   status: 404
 }
 
-export type operatingParameterSetResponse409 = {
-  data: ErrorEnvelopeDto
-  status: 409
-}
-
 export type operatingParameterSetResponse413 = {
   data: ErrorEnvelopeDto
   status: 413
@@ -279,7 +272,6 @@ export type operatingParameterSetResponseError = (
   | operatingParameterSetResponse401
   | operatingParameterSetResponse403
   | operatingParameterSetResponse404
-  | operatingParameterSetResponse409
   | operatingParameterSetResponse413
   | operatingParameterSetResponse415
   | operatingParameterSetResponse422
@@ -1361,168 +1353,4 @@ export function useReportingCurrencyGet<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
-}
-
-export type reportingCurrencySetResponse200 = {
-  data: ReportingCurrencySet200
-  status: 200
-}
-
-export type reportingCurrencySetResponse400 = {
-  data: ErrorEnvelopeDto
-  status: 400
-}
-
-export type reportingCurrencySetResponse401 = {
-  data: ErrorEnvelopeDto
-  status: 401
-}
-
-export type reportingCurrencySetResponse403 = {
-  data: ErrorEnvelopeDto
-  status: 403
-}
-
-export type reportingCurrencySetResponse409 = {
-  data: ErrorEnvelopeDto
-  status: 409
-}
-
-export type reportingCurrencySetResponse413 = {
-  data: ErrorEnvelopeDto
-  status: 413
-}
-
-export type reportingCurrencySetResponse415 = {
-  data: ErrorEnvelopeDto
-  status: 415
-}
-
-export type reportingCurrencySetResponse422 = {
-  data: ErrorEnvelopeDto
-  status: 422
-}
-
-export type reportingCurrencySetResponse429 = {
-  data: ErrorEnvelopeDto
-  status: 429
-}
-
-export type reportingCurrencySetResponse503 = {
-  data: ErrorEnvelopeDto
-  status: 503
-}
-
-export type reportingCurrencySetResponseSuccess = reportingCurrencySetResponse200 & {
-  headers: Headers
-}
-export type reportingCurrencySetResponseError = (
-  | reportingCurrencySetResponse400
-  | reportingCurrencySetResponse401
-  | reportingCurrencySetResponse403
-  | reportingCurrencySetResponse409
-  | reportingCurrencySetResponse413
-  | reportingCurrencySetResponse415
-  | reportingCurrencySetResponse422
-  | reportingCurrencySetResponse429
-  | reportingCurrencySetResponse503
-) & {
-  headers: Headers
-}
-
-export const getReportingCurrencySetUrl = () => {
-  return `${env.API_BASE_URL}/api/v1/reporting-currency`
-}
-
-/**
- * @summary Set the reporting currency
- */
-export const reportingCurrencySet = async (
-  setReportingCurrencyBodyDto: SetReportingCurrencyBodyDto,
-  options?: RequestInit
-): Promise<reportingCurrencySetResponseSuccess> => {
-  const res = await fetch(getReportingCurrencySetUrl(), {
-    ...options,
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(setReportingCurrencyBodyDto)
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  if (!res.ok) {
-    const err: globalThis.Error & { info?: reportingCurrencySetResponseError['data']; status?: number } =
-      new globalThis.Error()
-    const data: reportingCurrencySetResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data
-    err.status = res.status
-    throw err
-  }
-  const data: reportingCurrencySetResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as reportingCurrencySetResponseSuccess
-}
-
-export const getReportingCurrencySetMutationOptions = <
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
-  TContext = unknown
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof reportingCurrencySet>>,
-    TError,
-    { data: SetReportingCurrencyBodyDto },
-    TContext
-  >
-  fetch?: RequestInit
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof reportingCurrencySet>>,
-  TError,
-  { data: SetReportingCurrencyBodyDto },
-  TContext
-> => {
-  const mutationKey = ['reportingCurrencySet']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof reportingCurrencySet>>,
-    { data: SetReportingCurrencyBodyDto }
-  > = (props) => {
-    const { data } = props ?? {}
-
-    return reportingCurrencySet(data, fetchOptions)
-  }
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type ReportingCurrencySetMutationResult = NonNullable<Awaited<ReturnType<typeof reportingCurrencySet>>>
-export type ReportingCurrencySetMutationBody = SetReportingCurrencyBodyDto
-export type ReportingCurrencySetMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
-
-/**
- * @summary Set the reporting currency
- */
-export const useReportingCurrencySet = <
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
-  TContext = unknown
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof reportingCurrencySet>>,
-      TError,
-      { data: SetReportingCurrencyBodyDto },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof reportingCurrencySet>>,
-  TError,
-  { data: SetReportingCurrencyBodyDto },
-  TContext
-> => {
-  return useMutation(getReportingCurrencySetMutationOptions(options), queryClient)
 }

@@ -7,7 +7,10 @@
  */
 import type { DraftSubmitResponseDtoDataRequestPricingAmount } from './draftSubmitResponseDtoDataRequestPricingAmount'
 import type { DraftSubmitResponseDtoDataRequestPricingBillingCycle } from './draftSubmitResponseDtoDataRequestPricingBillingCycle'
+import type { DraftSubmitResponseDtoDataRequestPricingKind } from './draftSubmitResponseDtoDataRequestPricingKind'
 import type { DraftSubmitResponseDtoDataRequestPricingMissingReason } from './draftSubmitResponseDtoDataRequestPricingMissingReason'
+import type { DraftSubmitResponseDtoDataRequestPricingMonthlyPrice } from './draftSubmitResponseDtoDataRequestPricingMonthlyPrice'
+import type { DraftSubmitResponseDtoDataRequestPricingNextYearAmount } from './draftSubmitResponseDtoDataRequestPricingNextYearAmount'
 import type { DraftSubmitResponseDtoDataRequestPricingStatus } from './draftSubmitResponseDtoDataRequestPricingStatus'
 import type { DraftSubmitResponseDtoDataRequestPricingUnitPrice } from './draftSubmitResponseDtoDataRequestPricingUnitPrice'
 
@@ -21,20 +24,16 @@ export type DraftSubmitResponseDtoDataRequestPricing = {
   unitPrice: DraftSubmitResponseDtoDataRequestPricingUnitPrice
   /** @nullable */
   billingCycle: DraftSubmitResponseDtoDataRequestPricingBillingCycle
-  /**
-   * @maximum 9007199254740991
-   * @exclusiveMinimum 0
-   * @nullable
-   */
-  periodCount: number | null
+  /** @nullable */
+  kind: DraftSubmitResponseDtoDataRequestPricingKind
   /**
    * @minimum 0
-   * @maximum 9007199254740991
+   * @maximum 12
    * @nullable
    */
-  bindingPeriodCount: number | null
+  months: number | null
   /** @nullable */
-  firstDueOn: string | null
+  monthlyPrice: DraftSubmitResponseDtoDataRequestPricingMonthlyPrice
   /** @nullable */
-  lastDueOn: string | null
+  nextYearAmount: DraftSubmitResponseDtoDataRequestPricingNextYearAmount
 }

@@ -7,9 +7,11 @@
  */
 import type { InvoiceListResponseDtoDataItemsItemActualCost } from './invoiceListResponseDtoDataItemsItemActualCost'
 import type { InvoiceListResponseDtoDataItemsItemDeductibleTax } from './invoiceListResponseDtoDataItemsItemDeductibleTax'
+import type { InvoiceListResponseDtoDataItemsItemLabel } from './invoiceListResponseDtoDataItemsItemLabel'
 import type { InvoiceListResponseDtoDataItemsItemMatchResult } from './invoiceListResponseDtoDataItemsItemMatchResult'
 import type { InvoiceListResponseDtoDataItemsItemNetAmount } from './invoiceListResponseDtoDataItemsItemNetAmount'
 import type { InvoiceListResponseDtoDataItemsItemNonDeductibleTax } from './invoiceListResponseDtoDataItemsItemNonDeductibleTax'
+import type { InvoiceListResponseDtoDataItemsItemPaymentSource } from './invoiceListResponseDtoDataItemsItemPaymentSource'
 import type { InvoiceListResponseDtoDataItemsItemRecordedBy } from './invoiceListResponseDtoDataItemsItemRecordedBy'
 
 export type InvoiceListResponseDtoDataItemsItem = {
@@ -22,6 +24,21 @@ export type InvoiceListResponseDtoDataItemsItem = {
   nonDeductibleTax: InvoiceListResponseDtoDataItemsItemNonDeductibleTax
   actualCost: InvoiceListResponseDtoDataItemsItemActualCost
   matchResult: InvoiceListResponseDtoDataItemsItemMatchResult
+  /**
+   * The month the invoice pays for, as YYYY-MM; empty for an invoice booked before the month was kept.
+   * @nullable
+   */
+  servicePeriodMonth: string | null
+  /**
+   * What the purchase was: a new purchase, a later period of one, or a renewal; empty for an invoice that is not of a purchase invoice.
+   * @nullable
+   */
+  label: InvoiceListResponseDtoDataItemsItemLabel
+  /**
+   * How the purchase was paid; empty for an invoice that is not of a purchase invoice.
+   * @nullable
+   */
+  paymentSource: InvoiceListResponseDtoDataItemsItemPaymentSource
   /** @nullable */
   note: string | null
   /** @nullable */

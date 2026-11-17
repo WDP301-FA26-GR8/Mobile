@@ -7,7 +7,10 @@
  */
 import type { RenewalResponseDtoDataRequestPricingAmount } from './renewalResponseDtoDataRequestPricingAmount'
 import type { RenewalResponseDtoDataRequestPricingBillingCycle } from './renewalResponseDtoDataRequestPricingBillingCycle'
+import type { RenewalResponseDtoDataRequestPricingKind } from './renewalResponseDtoDataRequestPricingKind'
 import type { RenewalResponseDtoDataRequestPricingMissingReason } from './renewalResponseDtoDataRequestPricingMissingReason'
+import type { RenewalResponseDtoDataRequestPricingMonthlyPrice } from './renewalResponseDtoDataRequestPricingMonthlyPrice'
+import type { RenewalResponseDtoDataRequestPricingNextYearAmount } from './renewalResponseDtoDataRequestPricingNextYearAmount'
 import type { RenewalResponseDtoDataRequestPricingStatus } from './renewalResponseDtoDataRequestPricingStatus'
 import type { RenewalResponseDtoDataRequestPricingUnitPrice } from './renewalResponseDtoDataRequestPricingUnitPrice'
 
@@ -21,20 +24,16 @@ export type RenewalResponseDtoDataRequestPricing = {
   unitPrice: RenewalResponseDtoDataRequestPricingUnitPrice
   /** @nullable */
   billingCycle: RenewalResponseDtoDataRequestPricingBillingCycle
-  /**
-   * @maximum 9007199254740991
-   * @exclusiveMinimum 0
-   * @nullable
-   */
-  periodCount: number | null
+  /** @nullable */
+  kind: RenewalResponseDtoDataRequestPricingKind
   /**
    * @minimum 0
-   * @maximum 9007199254740991
+   * @maximum 12
    * @nullable
    */
-  bindingPeriodCount: number | null
+  months: number | null
   /** @nullable */
-  firstDueOn: string | null
+  monthlyPrice: RenewalResponseDtoDataRequestPricingMonthlyPrice
   /** @nullable */
-  lastDueOn: string | null
+  nextYearAmount: RenewalResponseDtoDataRequestPricingNextYearAmount
 }

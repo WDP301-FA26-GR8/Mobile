@@ -14,14 +14,17 @@ import type {
   SpendBatchItemList200,
   SpendBatchList200,
   SpendBatchSubmit201,
-  SpendQueueList200
+  SpendQueueList200,
+  SpendReserveConfirm200
 } from '../../contracts'
 
 import {
   getBatchItemListResponseDtoResponseMock,
   getBatchResponseDtoResponseMock,
   getQueueResponseDtoResponseMock,
+  getReserveConfirmationResponseDtoResponseMock,
   getSpendBatchListResponseDtoResponseMock,
+  getSubmitBatchResponseDtoResponseMock,
   getSupplementListResponseDtoResponseMock,
   getSupplementResponseDtoResponseMock
 } from '../../contracts/index.faker'
@@ -32,12 +35,17 @@ export const getSpendQueueListResponseMock = (): SpendQueueList200 => ({
 })
 
 export const getSpendBatchSubmitResponseMock = (): SpendBatchSubmit201 => ({
-  ...{ ...getBatchResponseDtoResponseMock() },
+  ...{ ...getSubmitBatchResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 
 export const getSpendBatchListResponseMock = (): SpendBatchList200 => ({
   ...{ ...getSpendBatchListResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
+export const getSpendReserveConfirmResponseMock = (): SpendReserveConfirm200 => ({
+  ...{ ...getReserveConfirmationResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 

@@ -5,14 +5,21 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
-import type { ResubmissionBodyDtoLinesItem } from './resubmissionBodyDtoLinesItem'
+import type { ResubmissionBodyDtoRequestedAmount } from './resubmissionBodyDtoRequestedAmount'
 
 export interface ResubmissionBodyDto {
+  /** The amount the head asks for the whole year, in the reporting currency. */
+  requestedAmount: ResubmissionBodyDtoRequestedAmount
   /**
-   * @minItems 1
-   * @maxItems 200
+   * What the head says beside the amount, if anything.
+   * @minLength 1
+   * @maxLength 1000
    */
-  lines: ResubmissionBodyDtoLinesItem[]
-  /** @maxItems 20 */
-  attachmentIds?: string[]
+  note?: string
+  /**
+   * The files of the proposal (the template of BM-10 filled in, and anything that explains it), uploaded first: one to ten.
+   * @minItems 1
+   * @maxItems 10
+   */
+  attachmentIds: string[]
 }

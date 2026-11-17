@@ -9,7 +9,7 @@ import type { ItAdminDashboardResponseDtoDataSectionsOffboardingHandoversReason 
 import type { ItAdminDashboardResponseDtoDataSectionsOffboardingHandoversState } from './itAdminDashboardResponseDtoDataSectionsOffboardingHandoversState'
 
 /**
- * The departures still handing over in the departments of the caller.
+ * The departures still handing over in the departments of the caller. Kept one release beside `departures`, which says where every departure stands; dropped after.
  */
 export type ItAdminDashboardResponseDtoDataSectionsOffboardingHandovers = {
   /** COUNTED: count is how many, in the scope of the caller. AT_SOURCE: the rows are listed by sourceOperationId in the same scope and are not counted here. NOT_AVAILABLE: the data has no source yet; reason says why. A section that is not counted is never shown as zero. */

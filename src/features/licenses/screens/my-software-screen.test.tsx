@@ -65,7 +65,11 @@ beforeEach(async () => {
           jobTitle: null
         },
         roles: ['EMPLOYEE'],
-        managerScope: null
+        managerScope: null,
+        upcomingUnits: [],
+        pendingPolicyAcknowledgements: [],
+        avatar: null,
+        workPhone: null
       }
     }
   })
@@ -81,7 +85,7 @@ beforeEach(async () => {
         items: [
           {
             assignmentId: 'assignment-id',
-            application: { id: 'application-id', name: 'Figma' },
+            application: { id: 'application-id', name: 'Figma', logoUrl: null },
             plan: { id: 'plan-id', name: 'Professional' },
             provisioningType: 'K4',
             status: 'ACTIVE',

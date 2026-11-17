@@ -5,7 +5,6 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
-import type { RecordTransferBodyDtoGrounds } from './recordTransferBodyDtoGrounds'
 import type { RecordTransferBodyDtoSuccessor } from './recordTransferBodyDtoSuccessor'
 
 export interface RecordTransferBodyDto {
@@ -13,6 +12,10 @@ export interface RecordTransferBodyDto {
   toDepartmentId: string
   /** A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused). */
   effectiveOn: string
-  grounds: RecordTransferBodyDtoGrounds
+  /**
+   * @minLength 1
+   * @maxLength 500
+   */
+  groundsNote: string
   successor?: RecordTransferBodyDtoSuccessor
 }

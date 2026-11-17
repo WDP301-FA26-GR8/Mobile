@@ -12,7 +12,7 @@ export function useLiveRequests(view: 'open' | 'ended', page: number) {
     queryFn: ({ signal }) =>
       session.read(async (token) => {
         const result = await meAccessRequestList(
-          { view, page, pageSize: 20 },
+          { view, involvement: 'ALL', page, pageSize: 20 },
           { signal, headers: { Authorization: `Bearer ${token}` } }
         )
         if (!result.data.data) throw new Error('Missing request list')

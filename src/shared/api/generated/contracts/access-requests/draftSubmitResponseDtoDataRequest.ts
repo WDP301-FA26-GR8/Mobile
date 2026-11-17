@@ -8,8 +8,10 @@
 import type { DraftSubmitResponseDtoDataRequestBeneficiary } from './draftSubmitResponseDtoDataRequestBeneficiary'
 import type { DraftSubmitResponseDtoDataRequestBranch } from './draftSubmitResponseDtoDataRequestBranch'
 import type { DraftSubmitResponseDtoDataRequestCancellation } from './draftSubmitResponseDtoDataRequestCancellation'
+import type { DraftSubmitResponseDtoDataRequestCost } from './draftSubmitResponseDtoDataRequestCost'
 import type { DraftSubmitResponseDtoDataRequestCostCenter } from './draftSubmitResponseDtoDataRequestCostCenter'
 import type { DraftSubmitResponseDtoDataRequestDepartment } from './draftSubmitResponseDtoDataRequestDepartment'
+import type { DraftSubmitResponseDtoDataRequestLimitExemption } from './draftSubmitResponseDtoDataRequestLimitExemption'
 import type { DraftSubmitResponseDtoDataRequestNeedDecision } from './draftSubmitResponseDtoDataRequestNeedDecision'
 import type { DraftSubmitResponseDtoDataRequestNeedStep } from './draftSubmitResponseDtoDataRequestNeedStep'
 import type { DraftSubmitResponseDtoDataRequestPlan } from './draftSubmitResponseDtoDataRequestPlan'
@@ -18,6 +20,7 @@ import type { DraftSubmitResponseDtoDataRequestPricing } from './draftSubmitResp
 import type { DraftSubmitResponseDtoDataRequestProposal } from './draftSubmitResponseDtoDataRequestProposal'
 import type { DraftSubmitResponseDtoDataRequestRenewal } from './draftSubmitResponseDtoDataRequestRenewal'
 import type { DraftSubmitResponseDtoDataRequestRequester } from './draftSubmitResponseDtoDataRequestRequester'
+import type { DraftSubmitResponseDtoDataRequestRouting } from './draftSubmitResponseDtoDataRequestRouting'
 import type { DraftSubmitResponseDtoDataRequestServiceAccount } from './draftSubmitResponseDtoDataRequestServiceAccount'
 import type { DraftSubmitResponseDtoDataRequestSpend } from './draftSubmitResponseDtoDataRequestSpend'
 import type { DraftSubmitResponseDtoDataRequestState } from './draftSubmitResponseDtoDataRequestState'
@@ -29,6 +32,7 @@ export type DraftSubmitResponseDtoDataRequest = {
   type: DraftSubmitResponseDtoDataRequestType
   branch: DraftSubmitResponseDtoDataRequestBranch
   state: DraftSubmitResponseDtoDataRequestState
+  routing: DraftSubmitResponseDtoDataRequestRouting
   /** @nullable */
   plan: DraftSubmitResponseDtoDataRequestPlan
   /** @nullable */
@@ -48,12 +52,15 @@ export type DraftSubmitResponseDtoDataRequest = {
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0
+   * @nullable
    */
-  termMonths: number
+  termMonths: number | null
   /** @nullable */
   expectedEndDate: string | null
   /** @nullable */
   serviceAccount: DraftSubmitResponseDtoDataRequestServiceAccount
+  /** @nullable */
+  limitExemption: DraftSubmitResponseDtoDataRequestLimitExemption
   /** @nullable */
   renewal: DraftSubmitResponseDtoDataRequestRenewal
   /** @nullable */
@@ -65,6 +72,8 @@ export type DraftSubmitResponseDtoDataRequest = {
    */
   budgetYear: number | null
   pricing: DraftSubmitResponseDtoDataRequestPricing
+  /** @nullable */
+  cost: DraftSubmitResponseDtoDataRequestCost
   policy: DraftSubmitResponseDtoDataRequestPolicy
   submittedAt: string
   needStep: DraftSubmitResponseDtoDataRequestNeedStep

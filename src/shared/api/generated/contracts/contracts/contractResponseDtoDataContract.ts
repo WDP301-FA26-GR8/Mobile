@@ -5,10 +5,56 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { ContractResponseDtoDataContractDocumentsItem } from './contractResponseDtoDataContractDocumentsItem'
+import type { ContractResponseDtoDataContractStatus } from './contractResponseDtoDataContractStatus'
+import type { ContractResponseDtoDataContractSubscriptionsItem } from './contractResponseDtoDataContractSubscriptionsItem'
+import type { ContractResponseDtoDataContractTruncated } from './contractResponseDtoDataContractTruncated'
+import type { ContractResponseDtoDataContractVendor } from './contractResponseDtoDataContractVendor'
 
 export type ContractResponseDtoDataContract = {
   id: string
   name: string
-  createdBy: string
+  /** @nullable */
+  number: string | null
+  /** @nullable */
+  vendor: ContractResponseDtoDataContractVendor
+  /**
+   * A calendar date as YYYY-MM-DD.
+   * @nullable
+   */
+  effectiveFrom: string | null
+  /**
+   * Null: the contract never ends.
+   * @nullable
+   */
+  effectiveTo: string | null
+  /** Read from the vendor and the days as of today: INCOMPLETE (no vendor or no beginning: an old contract that is only a name), NOT_YET_EFFECTIVE, ACTIVE (a contract with no end that has begun stays ACTIVE) and EXPIRED. */
+  status: ContractResponseDtoDataContractStatus
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  subscriptionCount: number
   createdAt: string
+  updatedAt: string
+  /** @nullable */
+  note: string | null
+  createdBy: string
+  /**
+   * The subscriptions linked to the contract, the last linked first. Only subscriptions of a shared stock (K2 or K4) are linked.
+   * @maxItems 100
+   */
+  subscriptions: ContractResponseDtoDataContractSubscriptionsItem[]
+  /**
+   * The files attached to the contract that are ready, the last attached first. Open one with its link.
+   * @maxItems 100
+   */
+  documents: ContractResponseDtoDataContractDocumentsItem[]
+  /**
+   * The applications of the linked subscriptions, each once. Read their usage sources from the usage sources of the application: a contract is not linked to a usage source.
+   * @maxItems 100
+   */
+  applicationIds: string[]
+  /** True for an array above that holds only the first of more than it lists. */
+  truncated: ContractResponseDtoDataContractTruncated
 }

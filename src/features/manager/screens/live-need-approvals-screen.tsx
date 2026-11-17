@@ -25,7 +25,8 @@ export function LiveNeedApprovalsScreen() {
   const session = useSession()
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<NeedQueueResponseDtoDataItemsItem>()
-  const [choice, setChoice] = useState<'APPROVE' | 'REJECT'>()
+  const [choice, setChoice] = useState<'APPROVE' | 'REJECT' | 'RETURN'>()
+  const [response, setResponse] = useState<{ version: string; answers: Record<string, 'YES' | 'NO'> }>()
   const [reason, setReason] = useState('')
   const [validation, setValidation] = useState(false)
   const [activeTab, setActiveTab] = useState<'queue' | 'team' | 'inbox'>('queue')
@@ -35,8 +36,16 @@ export function LiveNeedApprovalsScreen() {
   const profile = useAccountProfile()
   const isManager = !!profile.data?.roles.includes('MANAGER') && !profile.isError
   const hasScope = isManager && !!profile.data?.managerScope
-  const { queue, detail, decision } = useLiveNeedApprovals(page, selected?.requestId, hasScope)
+  const { queue, detail, policy, decision } = useLiveNeedApprovals(page, selected?.requestId, hasScope)
   const request = detail.data
+  const checklist = policy.data?.step.checklist
+  const answers = response && response.version === policy.data?.policyVersionId ? response.answers : {}
+  const complete =
+    !policy.isError &&
+    !policy.isFetching &&
+    !!checklist?.length &&
+    checklist.every((item) => item.check === 'SYSTEM' || !!answers[item.code])
+  const hasNo = checklist?.some((item) => item.check === 'PERSON' && answers[item.code] === 'NO') ?? false
   const canDecide =
     hasScope &&
     !!selected &&
@@ -53,15 +62,16 @@ export function LiveNeedApprovalsScreen() {
     if (decision.isPending) return
     setSelected(undefined)
     setChoice(undefined)
+    setResponse(undefined)
     setReason('')
     setValidation(false)
     sent.current = false
     decision.reset()
   }
   function confirm() {
-    if (!selected || !choice || !canDecide || locked || sent.current) return
-    if (choice === 'APPROVE' && request && request.termMonths > 12) return
-    if (choice === 'REJECT' && (reason.trim().length < 1 || reason.trim().length > 1000)) {
+    if (!selected || !choice || !canDecide || !policy.data || !checklist || !complete || locked || sent.current) return
+    if (choice === 'APPROVE' && hasNo) return
+    if (choice !== 'APPROVE' && !hasNo && (reason.trim().length < 1 || reason.trim().length > 1000)) {
       setValidation(true)
       return
     }
@@ -69,7 +79,17 @@ export function LiveNeedApprovalsScreen() {
     sent.current = true
     decision.mutate({
       id: selected.requestId,
-      body: choice === 'APPROVE' ? { decision: choice } : { decision: choice, reason: reason.trim() }
+      body: {
+        decision: choice,
+        ...(choice !== 'APPROVE' && reason.trim() ? { reason: reason.trim() } : {}),
+        checklist: {
+          policyVersionId: policy.data.policyVersionId,
+          answers: checklist.map((item) => ({
+            itemCode: item.code,
+            answer: item.check === 'SYSTEM' ? 'YES' : answers[item.code]
+          }))
+        }
+      }
     })
   }
   async function logout() {
@@ -422,9 +442,11 @@ export function LiveNeedApprovalsScreen() {
                   <Text style={styles.value}>{request.businessReason}</Text>
                   <Text style={styles.label}>{t('requests.live.term')}</Text>
                   <Text style={styles.value}>
-                    {t('requests.live.months', {
-                      months: new Intl.NumberFormat(i18n.language).format(request.termMonths)
-                    })}
+                    {request.termMonths === null
+                      ? t('manager.live.noTerm')
+                      : t('requests.live.months', {
+                          months: new Intl.NumberFormat(i18n.language).format(request.termMonths)
+                        })}
                   </Text>
                   <SimilarSeats requestId={request.id} />
                   <Text style={styles.label}>{t('manager.live.cost')}</Text>
@@ -435,9 +457,6 @@ export function LiveNeedApprovalsScreen() {
                         ? t('manager.live.costMissing')
                         : (formatCost(request.pricing.amount, i18n.language) ?? t('manager.live.costUnavailable'))}
                   </Text>
-                  {request.termMonths > 12 ? (
-                    <Text style={styles.error}>{t('manager.live.longTermBlocked')}</Text>
-                  ) : null}
                   {!canDecide && !locked && !detail.isError ? (
                     <Text accessibilityRole='alert' style={styles.error}>
                       {t('manager.live.stale')}
@@ -448,13 +467,10 @@ export function LiveNeedApprovalsScreen() {
                       <Pressable accessibilityRole='button' onPress={() => setChoice('REJECT')} style={styles.outline}>
                         <Text style={styles.link}>{t('manager.live.reject')}</Text>
                       </Pressable>
-                      <Pressable
-                        accessibilityRole='button'
-                        accessibilityState={{ disabled: request.termMonths > 12 }}
-                        disabled={request.termMonths > 12}
-                        onPress={() => setChoice('APPROVE')}
-                        style={[styles.primary, request.termMonths > 12 && styles.disabled]}
-                      >
+                      <Pressable accessibilityRole='button' onPress={() => setChoice('RETURN')} style={styles.outline}>
+                        <Text style={styles.link}>{t('manager.live.return')}</Text>
+                      </Pressable>
+                      <Pressable accessibilityRole='button' onPress={() => setChoice('APPROVE')} style={styles.primary}>
                         <Text style={styles.primaryText}>{t('manager.live.approve')}</Text>
                       </Pressable>
                     </View>
@@ -462,10 +478,67 @@ export function LiveNeedApprovalsScreen() {
                   {choice && !decision.isSuccess ? (
                     <View style={styles.confirm}>
                       <Text style={styles.name}>
-                        {t(choice === 'APPROVE' ? 'manager.live.confirmApprove' : 'manager.live.confirmReject')}
+                        {t(
+                          choice === 'APPROVE'
+                            ? 'manager.live.confirmApprove'
+                            : choice === 'REJECT'
+                              ? 'manager.live.confirmReject'
+                              : 'manager.live.confirmReturn'
+                        )}
                       </Text>
                       <Text style={styles.muted}>{t('manager.live.confirmNote')}</Text>
-                      {choice === 'REJECT' ? (
+                      {policy.isLoading ? (
+                        <Text accessibilityRole='progressbar' style={styles.muted}>
+                          {t('manager.live.checklistLoading')}
+                        </Text>
+                      ) : null}
+                      {policy.isError ? (
+                        <Pressable
+                          accessibilityRole='button'
+                          onPress={() => void policy.refetch()}
+                          style={styles.action}
+                        >
+                          <Text accessibilityRole='alert' style={styles.error}>
+                            {t('manager.live.checklistError')}
+                          </Text>
+                          <Text style={styles.link}>{t('licenses.live.retry')}</Text>
+                        </Pressable>
+                      ) : null}
+                      {checklist?.map((item) => (
+                        <View key={item.code}>
+                          <Text style={styles.label}>{item.text}</Text>
+                          {item.check === 'SYSTEM' ? (
+                            <Text style={styles.muted}>{t('manager.live.systemYes')}</Text>
+                          ) : (
+                            <View style={styles.actions}>
+                              {(['YES', 'NO'] as const).map((answer) => (
+                                <Pressable
+                                  key={answer}
+                                  accessibilityRole='radio'
+                                  accessibilityState={{ checked: answers[item.code] === answer, disabled: locked }}
+                                  disabled={locked}
+                                  onPress={() => {
+                                    if (!policy.data) return
+                                    setResponse({
+                                      version: policy.data.policyVersionId,
+                                      answers: { ...answers, [item.code]: answer }
+                                    })
+                                  }}
+                                  style={answers[item.code] === answer ? styles.primary : styles.outline}
+                                >
+                                  <Text style={answers[item.code] === answer ? styles.primaryText : styles.link}>
+                                    {t(answer === 'YES' ? 'manager.live.yes' : 'manager.live.no')}
+                                  </Text>
+                                </Pressable>
+                              ))}
+                            </View>
+                          )}
+                        </View>
+                      ))}
+                      {choice === 'APPROVE' && hasNo ? (
+                        <Text style={styles.error}>{t('manager.live.noBlocksApproval')}</Text>
+                      ) : null}
+                      {choice !== 'APPROVE' ? (
                         <>
                           <Text style={styles.label}>{t('manager.live.rejectReason')}</Text>
                           <TextInput
@@ -499,10 +572,16 @@ export function LiveNeedApprovalsScreen() {
                         </Pressable>
                         <Pressable
                           accessibilityRole='button'
-                          accessibilityState={{ disabled: locked || !canDecide, busy: decision.isPending }}
-                          disabled={locked || !canDecide}
+                          accessibilityState={{
+                            disabled: locked || !canDecide || !complete || (choice === 'APPROVE' && hasNo),
+                            busy: decision.isPending
+                          }}
+                          disabled={locked || !canDecide || !complete || (choice === 'APPROVE' && hasNo)}
                           onPress={confirm}
-                          style={[styles.primary, (locked || !canDecide) && styles.disabled]}
+                          style={[
+                            styles.primary,
+                            (locked || !canDecide || !complete || (choice === 'APPROVE' && hasNo)) && styles.disabled
+                          ]}
                         >
                           <Text style={styles.primaryText}>{t('manager.live.confirm')}</Text>
                         </Pressable>

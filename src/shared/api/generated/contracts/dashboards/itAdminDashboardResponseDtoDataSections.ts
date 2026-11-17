@@ -6,21 +6,33 @@
  * OpenAPI spec version: 1.0
  */
 import type { ItAdminDashboardResponseDtoDataSectionsCancellationDeadlines } from './itAdminDashboardResponseDtoDataSectionsCancellationDeadlines'
+import type { ItAdminDashboardResponseDtoDataSectionsDepartures } from './itAdminDashboardResponseDtoDataSectionsDepartures'
 import type { ItAdminDashboardResponseDtoDataSectionsDiscrepancies } from './itAdminDashboardResponseDtoDataSectionsDiscrepancies'
+import type { ItAdminDashboardResponseDtoDataSectionsGhostSeats } from './itAdminDashboardResponseDtoDataSectionsGhostSeats'
 import type { ItAdminDashboardResponseDtoDataSectionsGrantTasks } from './itAdminDashboardResponseDtoDataSectionsGrantTasks'
 import type { ItAdminDashboardResponseDtoDataSectionsLicenseKeys } from './itAdminDashboardResponseDtoDataSectionsLicenseKeys'
+import type { ItAdminDashboardResponseDtoDataSectionsMissingInvoicePeriods } from './itAdminDashboardResponseDtoDataSectionsMissingInvoicePeriods'
 import type { ItAdminDashboardResponseDtoDataSectionsOffboardingHandovers } from './itAdminDashboardResponseDtoDataSectionsOffboardingHandovers'
+import type { ItAdminDashboardResponseDtoDataSectionsOutOfProcessRevocationsDue } from './itAdminDashboardResponseDtoDataSectionsOutOfProcessRevocationsDue'
+import type { ItAdminDashboardResponseDtoDataSectionsPlansBelowVendorAdminMinimum } from './itAdminDashboardResponseDtoDataSectionsPlansBelowVendorAdminMinimum'
 import type { ItAdminDashboardResponseDtoDataSectionsRevocationTasks } from './itAdminDashboardResponseDtoDataSectionsRevocationTasks'
 import type { ItAdminDashboardResponseDtoDataSectionsSaasIssues } from './itAdminDashboardResponseDtoDataSectionsSaasIssues'
+import type { ItAdminDashboardResponseDtoDataSectionsSeatsReturned } from './itAdminDashboardResponseDtoDataSectionsSeatsReturned'
 import type { ItAdminDashboardResponseDtoDataSectionsTermsToReview } from './itAdminDashboardResponseDtoDataSectionsTermsToReview'
+import type { ItAdminDashboardResponseDtoDataSectionsTransfers } from './itAdminDashboardResponseDtoDataSectionsTransfers'
 import type { ItAdminDashboardResponseDtoDataSectionsUnconfirmedDevices } from './itAdminDashboardResponseDtoDataSectionsUnconfirmedDevices'
 
 export type ItAdminDashboardResponseDtoDataSections = {
+  departures: ItAdminDashboardResponseDtoDataSectionsDepartures
+  transfers: ItAdminDashboardResponseDtoDataSectionsTransfers
+  seatsReturned: ItAdminDashboardResponseDtoDataSectionsSeatsReturned
+  /** The plans in use that need admins at the vendor (`K2`, or `K4` with an admin console) with fewer than two of the recorded ones still working as IT Admins, or none recorded: the plans whose subscriptions raise `vendorAdminsBelowMinimum` in `subscriptionList`. Across the company. */
+  plansBelowVendorAdminMinimum: ItAdminDashboardResponseDtoDataSectionsPlansBelowVendorAdminMinimum
   /** The grant tasks not finished whose IT Admin in charge by default is the caller. */
   grantTasks: ItAdminDashboardResponseDtoDataSectionsGrantTasks
   /** The revocation tasks not finished whose IT Admin in charge by default is the caller. */
   revocationTasks: ItAdminDashboardResponseDtoDataSectionsRevocationTasks
-  /** The discrepancies between data sources; they need usage data, which is not delivered yet. */
+  /** The people active in a vendor with no seat to cover the day: the open findings of the vendor usage import. */
   discrepancies: ItAdminDashboardResponseDtoDataSectionsDiscrepancies
   /** Not counted here: the rows are all the subscriptions of `subscriptionList`, and the client keeps the ones whose `noticeDeadline` is near. The list has no filter by deadline yet. */
   cancellationDeadlines: ItAdminDashboardResponseDtoDataSectionsCancellationDeadlines
@@ -28,10 +40,16 @@ export type ItAdminDashboardResponseDtoDataSections = {
   licenseKeys: ItAdminDashboardResponseDtoDataSectionsLicenseKeys
   /** The plan terms that need a review. */
   termsToReview: ItAdminDashboardResponseDtoDataSectionsTermsToReview
-  /** The departures still handing over in the departments of the caller. */
+  /** The departures still handing over in the departments of the caller. Kept one release beside `departures`, which says where every departure stands; dropped after. */
   offboardingHandovers: ItAdminDashboardResponseDtoDataSectionsOffboardingHandovers
-  /** The company machines without a confirmation of the monitoring policy; the device registry is not delivered yet. */
+  /** The company machines whose holder has not yet acknowledged the monitoring notice: the same number the machine list (`deviceList`) answers for the awaiting-acknowledgement state. */
   unconfirmedDevices: ItAdminDashboardResponseDtoDataSectionsUnconfirmedDevices
   /** The SaaS error reports given to the caller that are not resolved, closed or marked duplicate. */
   saasIssues: ItAdminDashboardResponseDtoDataSectionsSaasIssues
+  /** The periods of a right paid by the month or the year whose invoice has not been submitted five working days after the payment day, in the departments of the caller: the total of the list of them (`purchaseInvoiceMissingPeriodList`). */
+  missingInvoicePeriods: ItAdminDashboardResponseDtoDataSectionsMissingInvoicePeriods
+  /** The open cases outside the process on a company asset whose revocation is due now: no Request of the person to wait for, or the ten working days of the wait have passed with the Request not yet at the step of the spending approver. The cases are listed by `outOfProcessCaseList`, each with its `revocation`; no list answers this number alone. */
+  outOfProcessRevocationsDue: ItAdminDashboardResponseDtoDataSectionsOutOfProcessRevocationsDue
+  /** The recommendations of wasted seats not closed: the seats of people who left (G2) and the free seats of subscriptions (G1 open). */
+  ghostSeats: ItAdminDashboardResponseDtoDataSectionsGhostSeats
 }

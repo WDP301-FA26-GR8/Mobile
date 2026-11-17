@@ -5,7 +5,6 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
-import type { RescheduleTransferBodyDtoGrounds } from './rescheduleTransferBodyDtoGrounds'
 import type { RescheduleTransferBodyDtoSuccessor } from './rescheduleTransferBodyDtoSuccessor'
 
 export interface RescheduleTransferBodyDto {
@@ -16,6 +15,10 @@ export interface RescheduleTransferBodyDto {
    * @maxLength 1000
    */
   reason: string
-  grounds: RescheduleTransferBodyDtoGrounds
+  /**
+   * @minLength 1
+   * @maxLength 500
+   */
+  groundsNote: string
   successor?: RescheduleTransferBodyDtoSuccessor
 }

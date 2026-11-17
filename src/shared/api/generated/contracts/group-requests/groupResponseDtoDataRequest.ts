@@ -8,8 +8,10 @@
 import type { GroupResponseDtoDataRequestBeneficiary } from './groupResponseDtoDataRequestBeneficiary'
 import type { GroupResponseDtoDataRequestBranch } from './groupResponseDtoDataRequestBranch'
 import type { GroupResponseDtoDataRequestCancellation } from './groupResponseDtoDataRequestCancellation'
+import type { GroupResponseDtoDataRequestCost } from './groupResponseDtoDataRequestCost'
 import type { GroupResponseDtoDataRequestCostCenter } from './groupResponseDtoDataRequestCostCenter'
 import type { GroupResponseDtoDataRequestDepartment } from './groupResponseDtoDataRequestDepartment'
+import type { GroupResponseDtoDataRequestLimitExemption } from './groupResponseDtoDataRequestLimitExemption'
 import type { GroupResponseDtoDataRequestNeedDecision } from './groupResponseDtoDataRequestNeedDecision'
 import type { GroupResponseDtoDataRequestNeedStep } from './groupResponseDtoDataRequestNeedStep'
 import type { GroupResponseDtoDataRequestPlan } from './groupResponseDtoDataRequestPlan'
@@ -18,6 +20,7 @@ import type { GroupResponseDtoDataRequestPricing } from './groupResponseDtoDataR
 import type { GroupResponseDtoDataRequestProposal } from './groupResponseDtoDataRequestProposal'
 import type { GroupResponseDtoDataRequestRenewal } from './groupResponseDtoDataRequestRenewal'
 import type { GroupResponseDtoDataRequestRequester } from './groupResponseDtoDataRequestRequester'
+import type { GroupResponseDtoDataRequestRouting } from './groupResponseDtoDataRequestRouting'
 import type { GroupResponseDtoDataRequestServiceAccount } from './groupResponseDtoDataRequestServiceAccount'
 import type { GroupResponseDtoDataRequestSpend } from './groupResponseDtoDataRequestSpend'
 import type { GroupResponseDtoDataRequestState } from './groupResponseDtoDataRequestState'
@@ -29,6 +32,7 @@ export type GroupResponseDtoDataRequest = {
   type: GroupResponseDtoDataRequestType
   branch: GroupResponseDtoDataRequestBranch
   state: GroupResponseDtoDataRequestState
+  routing: GroupResponseDtoDataRequestRouting
   /** @nullable */
   plan: GroupResponseDtoDataRequestPlan
   /** @nullable */
@@ -48,12 +52,15 @@ export type GroupResponseDtoDataRequest = {
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0
+   * @nullable
    */
-  termMonths: number
+  termMonths: number | null
   /** @nullable */
   expectedEndDate: string | null
   /** @nullable */
   serviceAccount: GroupResponseDtoDataRequestServiceAccount
+  /** @nullable */
+  limitExemption: GroupResponseDtoDataRequestLimitExemption
   /** @nullable */
   renewal: GroupResponseDtoDataRequestRenewal
   /** @nullable */
@@ -65,6 +72,8 @@ export type GroupResponseDtoDataRequest = {
    */
   budgetYear: number | null
   pricing: GroupResponseDtoDataRequestPricing
+  /** @nullable */
+  cost: GroupResponseDtoDataRequestCost
   policy: GroupResponseDtoDataRequestPolicy
   submittedAt: string
   needStep: GroupResponseDtoDataRequestNeedStep

@@ -5,19 +5,59 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
-import type { AssessmentRejectionBodyDtoKind } from './assessmentRejectionBodyDtoKind'
 
-export interface AssessmentRejectionBodyDto {
-  kind: AssessmentRejectionBodyDtoKind
-  /**
-   * @minLength 1
-   * @maxLength 1000
-   */
-  reason: string
-  alternativePlanId?: string
-  /**
-   * @minLength 1
-   * @maxLength 1000
-   */
-  alternativeNote?: string
-}
+/**
+ * REJECT ends the request as refused by IT and needs the kind of the refusal; RETURN sends the proposal back to the person who asked and takes no kind. Both carry the checklist of the policy in force at the step, and a reason typed or left to be filled in from the questions answered No.
+ */
+export type AssessmentRejectionBodyDto =
+  | {
+      decision: 'REJECT'
+      kind: 'UNCONTROLLABLE' | 'NOT_ELIGIBLE'
+      /**
+       * @minLength 1
+       * @maxLength 1000
+       */
+      reason?: string
+      alternativePlanId?: string
+      /**
+       * @minLength 1
+       * @maxLength 1000
+       */
+      alternativeNote?: string
+      /** The answers to the questions of the policy in force at this step. Every question the person answers needs an answer; a question the system answers is Yes by itself. */
+      checklist: {
+        /** The version of the policy whose questions were shown (from the step of the policy). */
+        policyVersionId: string
+        /** @maxItems 30 */
+        answers: {
+          /**
+           * @minLength 1
+           * @maxLength 30
+           */
+          itemCode: string
+          answer: 'YES' | 'NO'
+        }[]
+      }
+    }
+  | {
+      decision: 'RETURN'
+      /**
+       * @minLength 1
+       * @maxLength 1000
+       */
+      reason?: string
+      /** The answers to the questions of the policy in force at this step. Every question the person answers needs an answer; a question the system answers is Yes by itself. */
+      checklist: {
+        /** The version of the policy whose questions were shown (from the step of the policy). */
+        policyVersionId: string
+        /** @maxItems 30 */
+        answers: {
+          /**
+           * @minLength 1
+           * @maxLength 30
+           */
+          itemCode: string
+          answer: 'YES' | 'NO'
+        }[]
+      }
+    }

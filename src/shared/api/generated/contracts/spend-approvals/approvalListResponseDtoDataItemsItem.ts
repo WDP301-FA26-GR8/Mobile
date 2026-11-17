@@ -8,12 +8,16 @@
 import type { ApprovalListResponseDtoDataItemsItemAmount } from './approvalListResponseDtoDataItemsItemAmount'
 import type { ApprovalListResponseDtoDataItemsItemBeneficiary } from './approvalListResponseDtoDataItemsItemBeneficiary'
 import type { ApprovalListResponseDtoDataItemsItemCostCenter } from './approvalListResponseDtoDataItemsItemCostCenter'
+import type { ApprovalListResponseDtoDataItemsItemNextYearBudget } from './approvalListResponseDtoDataItemsItemNextYearBudget'
+import type { ApprovalListResponseDtoDataItemsItemOutcome } from './approvalListResponseDtoDataItemsItemOutcome'
 import type { ApprovalListResponseDtoDataItemsItemPlan } from './approvalListResponseDtoDataItemsItemPlan'
 import type { ApprovalListResponseDtoDataItemsItemPrimaryCode } from './approvalListResponseDtoDataItemsItemPrimaryCode'
 import type { ApprovalListResponseDtoDataItemsItemRequester } from './approvalListResponseDtoDataItemsItemRequester'
+import type { ApprovalListResponseDtoDataItemsItemRouting } from './approvalListResponseDtoDataItemsItemRouting'
 import type { ApprovalListResponseDtoDataItemsItemStepKind } from './approvalListResponseDtoDataItemsItemStepKind'
 
 export type ApprovalListResponseDtoDataItemsItem = {
+  routing: ApprovalListResponseDtoDataItemsItemRouting
   requestId: string
   stepId: string
   stepKind: ApprovalListResponseDtoDataItemsItemStepKind
@@ -42,8 +46,10 @@ export type ApprovalListResponseDtoDataItemsItem = {
   amount: ApprovalListResponseDtoDataItemsItemAmount
   /** @nullable */
   primaryCode: ApprovalListResponseDtoDataItemsItemPrimaryCode
-  samePersonAsSpend: boolean
-  noIndependentReview: boolean
+  /** @nullable */
+  outcome: ApprovalListResponseDtoDataItemsItemOutcome
+  /** @nullable */
+  nextYearBudget: ApprovalListResponseDtoDataItemsItemNextYearBudget
   /** @nullable */
   batchId: string | null
 }

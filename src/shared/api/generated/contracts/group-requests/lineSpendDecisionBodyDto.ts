@@ -5,10 +5,11 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { LineSpendDecisionBodyDtoChecklist } from './lineSpendDecisionBodyDtoChecklist'
 import type { LineSpendDecisionBodyDtoLinesItem } from './lineSpendDecisionBodyDtoLinesItem'
 
 /**
- * Each person is decided once.
+ * Each person is decided once, with one checklist for the group. A group is sent back to its head (RETURN) as a whole: every person or none.
  */
 export interface LineSpendDecisionBodyDto {
   /**
@@ -16,4 +17,6 @@ export interface LineSpendDecisionBodyDto {
    * @maxItems 100
    */
   lines: LineSpendDecisionBodyDtoLinesItem[]
+  /** The answers to the questions of the policy in force at this step. Every question the person answers needs an answer; a question the system answers is Yes by itself. */
+  checklist: LineSpendDecisionBodyDtoChecklist
 }

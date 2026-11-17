@@ -6,8 +6,11 @@
  * OpenAPI spec version: 1.0
  */
 
+/**
+ * @nullable
+ */
 export type UpdateApplicationBodyDtoDataSensitivity =
-  (typeof UpdateApplicationBodyDtoDataSensitivity)[keyof typeof UpdateApplicationBodyDtoDataSensitivity]
+  (typeof UpdateApplicationBodyDtoDataSensitivity)[keyof typeof UpdateApplicationBodyDtoDataSensitivity] | null
 
 export const UpdateApplicationBodyDtoDataSensitivity = {
   LOW: 'LOW',

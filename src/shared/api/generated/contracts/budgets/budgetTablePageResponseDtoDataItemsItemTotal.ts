@@ -6,7 +6,11 @@
  * OpenAPI spec version: 1.0
  */
 
+/**
+ * The base and the reserve of the approved version, before the adjustments.
+ * @nullable
+ */
 export type BudgetTablePageResponseDtoDataItemsItemTotal = {
   amount: string
   currency: string
-}
+} | null

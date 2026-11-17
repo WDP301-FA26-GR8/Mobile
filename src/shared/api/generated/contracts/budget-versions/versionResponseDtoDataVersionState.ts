@@ -15,6 +15,5 @@ export const VersionResponseDtoDataVersionState = {
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED',
   CHANGES_REQUESTED: 'CHANGES_REQUESTED',
-  SUPERSEDED: 'SUPERSEDED',
   EXPIRED: 'EXPIRED'
 } as const

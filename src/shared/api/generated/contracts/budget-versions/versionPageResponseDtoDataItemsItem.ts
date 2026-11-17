@@ -6,7 +6,6 @@
  * OpenAPI spec version: 1.0
  */
 import type { VersionPageResponseDtoDataItemsItemCostCenter } from './versionPageResponseDtoDataItemsItemCostCenter'
-import type { VersionPageResponseDtoDataItemsItemKind } from './versionPageResponseDtoDataItemsItemKind'
 import type { VersionPageResponseDtoDataItemsItemState } from './versionPageResponseDtoDataItemsItemState'
 import type { VersionPageResponseDtoDataItemsItemTotal } from './versionPageResponseDtoDataItemsItemTotal'
 
@@ -23,7 +22,6 @@ export type VersionPageResponseDtoDataItemsItem = {
    * @exclusiveMinimum 0
    */
   number: number
-  kind: VersionPageResponseDtoDataItemsItemKind
   state: VersionPageResponseDtoDataItemsItemState
   total: VersionPageResponseDtoDataItemsItemTotal
   createdAt: string

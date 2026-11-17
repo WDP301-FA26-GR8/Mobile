@@ -10,6 +10,7 @@ import {
 import { meGet } from '@/shared/api/generated/api/me/me'
 import { needDecisionList } from '@/shared/api/generated/api/need-decisions/need-decisions'
 import { notificationList, notificationUnreadCount } from '@/shared/api/generated/api/notifications/notifications'
+import { policyStepGet } from '@/shared/api/generated/api/policies/policies'
 import { setAppLanguage } from '@/shared/i18n/i18n'
 
 const mockRouter = { replace: jest.fn(), push: jest.fn() }
@@ -30,6 +31,7 @@ jest.mock('expo-router', () => ({
 jest.mock('@/shared/api/session-context', () => ({ useSession: () => mockSession }))
 jest.mock('@/shared/api/generated/api/need-decisions/need-decisions', () => ({ needDecisionList: jest.fn() }))
 jest.mock('@/shared/api/generated/api/me/me', () => ({ meGet: jest.fn() }))
+jest.mock('@/shared/api/generated/api/policies/policies', () => ({ policyStepGet: jest.fn() }))
 jest.mock('@/shared/api/generated/api/notifications/notifications', () => ({
   notificationList: jest.fn(),
   notificationUnreadCount: jest.fn(),
@@ -56,6 +58,20 @@ function renderScreen() {
 beforeEach(async () => {
   jest.clearAllMocks()
   await setAppLanguage('vi', false)
+  jest.mocked(policyStepGet).mockResolvedValue({
+    status: 200,
+    headers: new Headers(),
+    data: {
+      success: true,
+      message: 'POLICY.STEP',
+      data: {
+        policyCode: 'POL-MF1',
+        policyVersionId: id,
+        versionNumber: 1,
+        step: { code: '1.2', title: 'Duyệt nhu cầu', checklist: [{ code: 'Q1', text: 'Kiểm tra', check: 'SYSTEM' }] }
+      }
+    }
+  })
   jest.mocked(notificationList).mockResolvedValue({
     status: 200,
     headers: new Headers(),
@@ -84,7 +100,11 @@ beforeEach(async () => {
         loginEmail: 'manager@example.test',
         roles: ['MANAGER'],
         employee: { id, employeeCode: 'E1', fullName: 'Manager An', department: null, unplaced: false, jobTitle: null },
-        managerScope: { departmentId: id, departmentCode: 'IT', departmentName: 'Phòng IT' }
+        managerScope: { departmentId: id, departmentCode: 'IT', departmentName: 'Phòng IT' },
+        upcomingUnits: [],
+        pendingPolicyAcknowledgements: [],
+        avatar: null,
+        workPhone: null
       }
     }
   })
@@ -126,8 +146,8 @@ beforeEach(async () => {
             department: { id, code: 'IT', name: 'IT' },
             businessReasonExcerpt: 'Thiết kế',
             termMonths: 12,
-            pricing: { status: 'NOT_APPLICABLE', amount: null },
-            samePersonAsSpend: false
+            expectedEndDate: null,
+            pricing: { status: 'NOT_APPLICABLE', amount: null }
           }
         ],
         pagination: { page: 1, pageSize: 20, totalItems: 1, totalPages: 1 }
@@ -146,6 +166,7 @@ beforeEach(async () => {
           type: 'GRANT',
           branch: 'PAID_IN_CATALOG',
           state: 'PENDING',
+          routing: { mode: 'VIA_HEAD', oneStepReason: null },
           plan: { planId: id, planName: 'Pro', applicationId: id, applicationName: 'Figma' },
           proposal: null,
           department: { id, code: 'IT', name: 'IT' },
@@ -157,6 +178,7 @@ beforeEach(async () => {
           termMonths: 12,
           expectedEndDate: null,
           serviceAccount: null,
+          limitExemption: null,
           renewal: null,
           spend: null,
           budgetYear: null,
@@ -166,11 +188,12 @@ beforeEach(async () => {
             amount: null,
             unitPrice: null,
             billingCycle: null,
-            periodCount: null,
-            bindingPeriodCount: null,
-            firstDueOn: null,
-            lastDueOn: null
+            kind: null,
+            months: null,
+            monthlyPrice: null,
+            nextYearAmount: null
           },
+          cost: null,
           policy: { version: 1, hasSpendStep: true, slaWorkingDays: 2 },
           submittedAt: '2026-11-09T00:00:00Z',
           needStep: {
@@ -179,7 +202,6 @@ beforeEach(async () => {
             assignee: null,
             routingRow: 1,
             waitingReason: null,
-            samePersonAsSpend: false,
             slaWorkingDays: 2,
             createdAt: '2026-11-09T00:00:00Z',
             assignedAt: null,
@@ -380,6 +402,7 @@ test('rejects with a required reason and refreshes the assigned queue', async ()
   await screen.findByText('Thiết kế')
   await screen.findByText('Không có quyền hiện có cùng nhóm chức năng.')
   await fireEvent.press(screen.getByRole('button', { name: 'Từ chối' }))
+  await screen.findByText('Có (hệ thống kiểm tra)')
   await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận quyết định' }))
   screen.getByText('Nhập lý do từ chối từ 1 đến 1000 ký tự.')
   expect(accessRequestNeedDecide).not.toHaveBeenCalled()
@@ -388,7 +411,11 @@ test('rejects with a required reason and refreshes the assigned queue', async ()
   await screen.findByText('Đã ghi nhận quyết định nhu cầu. Quay lại danh sách để xem các việc được giao mới nhất.')
   expect(accessRequestNeedDecide).toHaveBeenCalledWith(
     id,
-    { decision: 'REJECT', reason: 'Chưa cần' },
+    {
+      decision: 'REJECT',
+      reason: 'Chưa cần',
+      checklist: { policyVersionId: id, answers: [{ itemCode: 'Q1', answer: 'YES' }] }
+    },
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
   await waitFor(() => expect(needDecisionList).toHaveBeenCalledTimes(2))
@@ -402,6 +429,7 @@ test('does not retry or report success for an uncertain approval', async () => {
   await screen.findByText('Thiết kế')
   await screen.findByText('Không có quyền hiện có cùng nhóm chức năng.')
   await fireEvent.press(screen.getByRole('button', { name: 'Duyệt nhu cầu' }))
+  await screen.findByText('Có (hệ thống kiểm tra)')
   await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận quyết định' }))
   await screen.findByText('Chưa thể xác nhận quyết định. Hãy quay lại danh sách và kiểm tra trước khi thử lại.')
   expect(accessRequestNeedDecide).toHaveBeenCalledTimes(1)
@@ -438,12 +466,13 @@ test('confirms approval only after confirmation', async () => {
   await screen.findByText('Thiết kế')
   await screen.findByText('Không có quyền hiện có cùng nhóm chức năng.')
   await fireEvent.press(screen.getByRole('button', { name: 'Duyệt nhu cầu' }))
+  await screen.findByText('Có (hệ thống kiểm tra)')
   expect(accessRequestNeedDecide).not.toHaveBeenCalled()
   await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận quyết định' }))
   await screen.findByText('Đã ghi nhận quyết định nhu cầu. Quay lại danh sách để xem các việc được giao mới nhất.')
   expect(accessRequestNeedDecide).toHaveBeenCalledWith(
     id,
-    { decision: 'APPROVE' },
+    { decision: 'APPROVE', checklist: { policyVersionId: id, answers: [{ itemCode: 'Q1', answer: 'YES' }] } },
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
   expect(accessRequestNeedDecide).toHaveBeenCalledTimes(1)
@@ -463,12 +492,13 @@ test('rejects inconsistent server responses', async () => {
   await screen.findByText('Thiết kế')
   await screen.findByText('Không có quyền hiện có cùng nhóm chức năng.')
   await fireEvent.press(screen.getByRole('button', { name: 'Duyệt nhu cầu' }))
+  await screen.findByText('Có (hệ thống kiểm tra)')
   expect(accessRequestNeedDecide).not.toHaveBeenCalled()
   await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận quyết định' }))
   await screen.findByText('Chưa thể xác nhận quyết định. Hãy quay lại danh sách và kiểm tra trước khi thử lại.')
   expect(accessRequestNeedDecide).toHaveBeenCalledWith(
     id,
-    { decision: 'APPROVE' },
+    { decision: 'APPROVE', checklist: { policyVersionId: id, answers: [{ itemCode: 'Q1', answer: 'YES' }] } },
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
   expect(accessRequestNeedDecide).toHaveBeenCalledTimes(1)
@@ -518,21 +548,30 @@ test('moves to the next page of assigned work', async () => {
   )
 })
 
-test('prevents approval for a term over 12 months', async () => {
-  const response = await jest.mocked(accessRequestGet)(id)
-  if (!response.data.data || !('request' in response.data.data)) throw new Error('Expected request')
-  jest.mocked(accessRequestGet).mockResolvedValueOnce({
+test('requires a checklist answer and blocks approval for a No', async () => {
+  const response = await jest.mocked(policyStepGet)('POL-MF1', '1.2')
+  if (!response.data.data) throw new Error('Expected checklist')
+  jest.mocked(policyStepGet).mockResolvedValue({
     ...response,
-    data: { ...response.data, data: { request: { ...response.data.data.request, termMonths: 18 } } }
+    data: {
+      ...response.data,
+      data: {
+        ...response.data.data,
+        step: { ...response.data.data.step, checklist: [{ code: 'Q2', text: 'Có cần không?', check: 'PERSON' }] }
+      }
+    }
   })
   const screen = await renderScreen()
   await screen.findByText('Figma')
   await fireEvent.press(screen.getByRole('button', { name: 'Xem Figma do An yêu cầu' }))
-  await screen.findByText(
-    'Duyệt thời hạn trên 12 tháng cần xác nhận chưa có trong API hiện tại. Hãy dùng web hoặc liên hệ hỗ trợ.'
-  )
-  await screen.findByText('Không có quyền hiện có cùng nhóm chức năng.')
-  expect(screen.getByRole('button', { name: 'Duyệt nhu cầu' }).props.accessibilityState.disabled).toBe(true)
+  await screen.findByText('Thiết kế')
+  await fireEvent.press(screen.getByRole('button', { name: 'Duyệt nhu cầu' }))
+  await screen.findByText('Có cần không?')
+  expect(screen.getByRole('button', { name: 'Xác nhận quyết định' }).props.accessibilityState.disabled).toBe(true)
+  await fireEvent.press(screen.getByRole('radio', { name: 'Không' }))
+  screen.getByText('Không thể duyệt khi có câu trả lời Không.')
+  expect(screen.getByRole('button', { name: 'Xác nhận quyết định' }).props.accessibilityState.disabled).toBe(true)
+  expect(accessRequestNeedDecide).not.toHaveBeenCalled()
 })
 
 test('rejects stale step and allows retry on failed queue', async () => {

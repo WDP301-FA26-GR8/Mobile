@@ -5,10 +5,11 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { DecisionBodyDtoChecklist } from './decisionBodyDtoChecklist'
 import type { DecisionBodyDtoDecision } from './decisionBodyDtoDecision'
 
 /**
- * A refusal (REJECT) or a request to look again (REQUEST_CHANGES) gives its reason; an approval (APPROVE) gives none.
+ * The checklist of the policy in force at this step, and the decision: APPROVE (no reason; locked while an answer is No) or RETURN to Finance (the reason, or the one the answers No give); REJECT and REQUEST_CHANGES are no longer decisions.
  */
 export interface DecisionBodyDto {
   decision: DecisionBodyDtoDecision
@@ -17,4 +18,6 @@ export interface DecisionBodyDto {
    * @maxLength 1000
    */
   reason?: string
+  /** The answers to the questions of the policy in force at this step. Every question the person answers needs an answer; a question the system answers is Yes by itself. */
+  checklist: DecisionBodyDtoChecklist
 }

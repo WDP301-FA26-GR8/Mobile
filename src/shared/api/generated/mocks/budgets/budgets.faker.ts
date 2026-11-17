@@ -13,7 +13,6 @@ import type {
   BudgetAttachmentLink200,
   BudgetAttachmentMineList200,
   BudgetMine200,
-  BudgetMineLineList200,
   BudgetMineVersionList200,
   BudgetProposalAttachmentDeclare201,
   BudgetProposalAttachmentList200,
@@ -32,18 +31,12 @@ import {
   getBudgetAttachmentResponseDtoResponseMock,
   getBudgetSummaryResponseDtoResponseMock,
   getBudgetTablePageResponseDtoResponseMock,
-  getMineLinePageResponseDtoResponseMock,
   getMineResponseDtoResponseMock,
   getMineVersionPageResponseDtoResponseMock
 } from '../../contracts/index.faker'
 
 export const getBudgetMineResponseMock = (): BudgetMine200 => ({
   ...{ ...getMineResponseDtoResponseMock() },
-  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
-})
-
-export const getBudgetMineLineListResponseMock = (): BudgetMineLineList200 => ({
-  ...{ ...getMineLinePageResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 

@@ -31,5 +31,9 @@ export type PlanDetailResponseDtoDataWorkspaceProfile = {
   ownerTransferProcedure: string | null
   /** @nullable */
   emergencyAccount: PlanDetailResponseDtoDataWorkspaceProfileEmergencyAccount
+  /** @nullable */
+  ownerAccountEmail: string | null
+  /** @nullable */
+  adminNote: string | null
   updatedAt: string
 } | null

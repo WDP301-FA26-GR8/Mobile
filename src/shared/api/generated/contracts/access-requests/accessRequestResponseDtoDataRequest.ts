@@ -8,8 +8,10 @@
 import type { AccessRequestResponseDtoDataRequestBeneficiary } from './accessRequestResponseDtoDataRequestBeneficiary'
 import type { AccessRequestResponseDtoDataRequestBranch } from './accessRequestResponseDtoDataRequestBranch'
 import type { AccessRequestResponseDtoDataRequestCancellation } from './accessRequestResponseDtoDataRequestCancellation'
+import type { AccessRequestResponseDtoDataRequestCost } from './accessRequestResponseDtoDataRequestCost'
 import type { AccessRequestResponseDtoDataRequestCostCenter } from './accessRequestResponseDtoDataRequestCostCenter'
 import type { AccessRequestResponseDtoDataRequestDepartment } from './accessRequestResponseDtoDataRequestDepartment'
+import type { AccessRequestResponseDtoDataRequestLimitExemption } from './accessRequestResponseDtoDataRequestLimitExemption'
 import type { AccessRequestResponseDtoDataRequestNeedDecision } from './accessRequestResponseDtoDataRequestNeedDecision'
 import type { AccessRequestResponseDtoDataRequestNeedStep } from './accessRequestResponseDtoDataRequestNeedStep'
 import type { AccessRequestResponseDtoDataRequestPlan } from './accessRequestResponseDtoDataRequestPlan'
@@ -18,6 +20,7 @@ import type { AccessRequestResponseDtoDataRequestPricing } from './accessRequest
 import type { AccessRequestResponseDtoDataRequestProposal } from './accessRequestResponseDtoDataRequestProposal'
 import type { AccessRequestResponseDtoDataRequestRenewal } from './accessRequestResponseDtoDataRequestRenewal'
 import type { AccessRequestResponseDtoDataRequestRequester } from './accessRequestResponseDtoDataRequestRequester'
+import type { AccessRequestResponseDtoDataRequestRouting } from './accessRequestResponseDtoDataRequestRouting'
 import type { AccessRequestResponseDtoDataRequestServiceAccount } from './accessRequestResponseDtoDataRequestServiceAccount'
 import type { AccessRequestResponseDtoDataRequestSpend } from './accessRequestResponseDtoDataRequestSpend'
 import type { AccessRequestResponseDtoDataRequestState } from './accessRequestResponseDtoDataRequestState'
@@ -29,6 +32,7 @@ export type AccessRequestResponseDtoDataRequest = {
   type: AccessRequestResponseDtoDataRequestType
   branch: AccessRequestResponseDtoDataRequestBranch
   state: AccessRequestResponseDtoDataRequestState
+  routing: AccessRequestResponseDtoDataRequestRouting
   /** @nullable */
   plan: AccessRequestResponseDtoDataRequestPlan
   /** @nullable */
@@ -48,12 +52,15 @@ export type AccessRequestResponseDtoDataRequest = {
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0
+   * @nullable
    */
-  termMonths: number
+  termMonths: number | null
   /** @nullable */
   expectedEndDate: string | null
   /** @nullable */
   serviceAccount: AccessRequestResponseDtoDataRequestServiceAccount
+  /** @nullable */
+  limitExemption: AccessRequestResponseDtoDataRequestLimitExemption
   /** @nullable */
   renewal: AccessRequestResponseDtoDataRequestRenewal
   /** @nullable */
@@ -65,6 +72,8 @@ export type AccessRequestResponseDtoDataRequest = {
    */
   budgetYear: number | null
   pricing: AccessRequestResponseDtoDataRequestPricing
+  /** @nullable */
+  cost: AccessRequestResponseDtoDataRequestCost
   policy: AccessRequestResponseDtoDataRequestPolicy
   submittedAt: string
   needStep: AccessRequestResponseDtoDataRequestNeedStep

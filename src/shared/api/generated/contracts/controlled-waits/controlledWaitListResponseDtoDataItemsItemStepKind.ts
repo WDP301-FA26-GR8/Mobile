@@ -11,7 +11,6 @@ export type ControlledWaitListResponseDtoDataItemsItemStepKind =
 
 export const ControlledWaitListResponseDtoDataItemsItemStepKind = {
   NEED: 'NEED',
-  FINANCE_REVIEW: 'FINANCE_REVIEW',
   SPEND_APPROVAL: 'SPEND_APPROVAL',
   IT_ASSESSMENT: 'IT_ASSESSMENT'
 } as const

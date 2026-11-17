@@ -5,8 +5,11 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { CompleteBodyDtoK1Checklist } from './completeBodyDtoK1Checklist'
 
 export interface CompleteBodyDto {
   /** @maxLength 2000 */
   evidence?: string
+  licenseKeyId?: string
+  k1Checklist?: CompleteBodyDtoK1Checklist
 }

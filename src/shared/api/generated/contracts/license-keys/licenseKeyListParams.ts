@@ -6,10 +6,12 @@
  * OpenAPI spec version: 1.0
  */
 import type { LicenseKeyListStatus } from './licenseKeyListStatus'
+import type { LicenseKeyListWithdrawn } from './licenseKeyListWithdrawn'
 
 export type LicenseKeyListParams = {
   subscriptionId: string
   status?: LicenseKeyListStatus
+  withdrawn?: LicenseKeyListWithdrawn
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0

@@ -5,6 +5,8 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { SubmitBatchBodyDtoChecklist } from './submitBatchBodyDtoChecklist'
+import type { SubmitBatchBodyDtoReserveConfirmationsItem } from './submitBatchBodyDtoReserveConfirmationsItem'
 
 export interface SubmitBatchBodyDto {
   /**
@@ -12,4 +14,8 @@ export interface SubmitBatchBodyDto {
    * @maxItems 50
    */
   requestIds: string[]
+  /** @maxItems 50 */
+  reserveConfirmations?: SubmitBatchBodyDtoReserveConfirmationsItem[]
+  /** The answers to the questions of the policy in force at this step. Every question the person answers needs an answer; a question the system answers is Yes by itself. */
+  checklist?: SubmitBatchBodyDtoChecklist
 }

@@ -11,5 +11,6 @@ export type SpendDecisionBodyDtoDecision =
 
 export const SpendDecisionBodyDtoDecision = {
   APPROVE: 'APPROVE',
-  REJECT: 'REJECT'
+  REJECT: 'REJECT',
+  RETURN: 'RETURN'
 } as const

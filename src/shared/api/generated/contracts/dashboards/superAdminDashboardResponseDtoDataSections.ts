@@ -11,10 +11,19 @@ import type { SuperAdminDashboardResponseDtoDataSectionsBackgroundJobs } from '.
 import type { SuperAdminDashboardResponseDtoDataSectionsCongestion } from './superAdminDashboardResponseDtoDataSectionsCongestion'
 import type { SuperAdminDashboardResponseDtoDataSectionsDepartmentsWithoutHead } from './superAdminDashboardResponseDtoDataSectionsDepartmentsWithoutHead'
 import type { SuperAdminDashboardResponseDtoDataSectionsDepartmentsWithoutItAdmin } from './superAdminDashboardResponseDtoDataSectionsDepartmentsWithoutItAdmin'
+import type { SuperAdminDashboardResponseDtoDataSectionsDepartures } from './superAdminDashboardResponseDtoDataSectionsDepartures'
 import type { SuperAdminDashboardResponseDtoDataSectionsPersonnelNotices } from './superAdminDashboardResponseDtoDataSectionsPersonnelNotices'
+import type { SuperAdminDashboardResponseDtoDataSectionsPlansBelowVendorAdminMinimum } from './superAdminDashboardResponseDtoDataSectionsPlansBelowVendorAdminMinimum'
+import type { SuperAdminDashboardResponseDtoDataSectionsSeatsReturned } from './superAdminDashboardResponseDtoDataSectionsSeatsReturned'
 import type { SuperAdminDashboardResponseDtoDataSectionsSuperAdminRole } from './superAdminDashboardResponseDtoDataSectionsSuperAdminRole'
+import type { SuperAdminDashboardResponseDtoDataSectionsTransfers } from './superAdminDashboardResponseDtoDataSectionsTransfers'
 
 export type SuperAdminDashboardResponseDtoDataSections = {
+  departures: SuperAdminDashboardResponseDtoDataSectionsDepartures
+  transfers: SuperAdminDashboardResponseDtoDataSectionsTransfers
+  seatsReturned: SuperAdminDashboardResponseDtoDataSectionsSeatsReturned
+  /** The plans in use that need admins at the vendor (`K2`, or `K4` with an admin console) with fewer than two of the recorded ones still working as IT Admins, or none recorded: the plans whose subscriptions raise `vendorAdminsBelowMinimum` in `subscriptionList`. Across the company. */
+  plansBelowVendorAdminMinimum: SuperAdminDashboardResponseDtoDataSectionsPlansBelowVendorAdminMinimum
   /** The board of the approval steps that are late or congested. */
   congestion: SuperAdminDashboardResponseDtoDataSectionsCongestion
   /** The background tasks of the system; nothing records them yet. */

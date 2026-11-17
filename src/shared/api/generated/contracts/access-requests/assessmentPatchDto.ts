@@ -53,8 +53,6 @@ export interface AssessmentPatchDto {
   opinion?: AssessmentPatchDtoOpinion
   /** @nullable */
   equivalentPlanId?: string | null
-  /** @nullable */
-  proposedBusinessOwnerEmployeeId?: string | null
   controlLevel?: AssessmentPatchDtoControlLevel
   /**
    * @minLength 1

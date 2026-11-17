@@ -5,9 +5,12 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { MeResponseDtoDataAvatar } from './meResponseDtoDataAvatar'
 import type { MeResponseDtoDataEmployee } from './meResponseDtoDataEmployee'
 import type { MeResponseDtoDataManagerScope } from './meResponseDtoDataManagerScope'
+import type { MeResponseDtoDataPendingPolicyAcknowledgementsItem } from './meResponseDtoDataPendingPolicyAcknowledgementsItem'
 import type { MeResponseDtoDataRolesItem } from './meResponseDtoDataRolesItem'
+import type { MeResponseDtoDataUpcomingUnitsItem } from './meResponseDtoDataUpcomingUnitsItem'
 
 /**
  * @nullable
@@ -19,4 +22,12 @@ export type MeResponseDtoData = {
   roles: MeResponseDtoDataRolesItem[]
   /** @nullable */
   managerScope: MeResponseDtoDataManagerScope
+  /** @maxItems 5 */
+  upcomingUnits: MeResponseDtoDataUpcomingUnitsItem[]
+  /** @maxItems 20 */
+  pendingPolicyAcknowledgements: MeResponseDtoDataPendingPolicyAcknowledgementsItem[]
+  /** @nullable */
+  avatar: MeResponseDtoDataAvatar
+  /** @nullable */
+  workPhone: string | null
 } | null

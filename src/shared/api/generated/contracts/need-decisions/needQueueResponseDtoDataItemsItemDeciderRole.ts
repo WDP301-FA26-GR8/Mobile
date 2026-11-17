@@ -11,6 +11,5 @@ export type NeedQueueResponseDtoDataItemsItemDeciderRole =
 
 export const NeedQueueResponseDtoDataItemsItemDeciderRole = {
   MANAGER: 'MANAGER',
-  SPENDING_APPROVER: 'SPENDING_APPROVER',
-  FALLBACK_APPROVER: 'FALLBACK_APPROVER'
+  SPENDING_APPROVER: 'SPENDING_APPROVER'
 } as const

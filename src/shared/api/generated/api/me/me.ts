@@ -27,6 +27,7 @@ import type {
   MeAccessRequestList200,
   MeAccessRequestListParams,
   MeChangePassword200,
+  MeDepartmentTransferGet200,
   MeDepartureNoticeGet200,
   MeGet200,
   MeSoftwareRightList200,
@@ -194,6 +195,160 @@ export function useMeDepartureNoticeGet<
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getMeDepartureNoticeGetQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+export type meDepartmentTransferGetResponse200 = {
+  data: MeDepartmentTransferGet200
+  status: 200
+}
+
+export type meDepartmentTransferGetResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type meDepartmentTransferGetResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type meDepartmentTransferGetResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type meDepartmentTransferGetResponseSuccess = meDepartmentTransferGetResponse200 & {
+  headers: Headers
+}
+export type meDepartmentTransferGetResponseError = (
+  meDepartmentTransferGetResponse401 | meDepartmentTransferGetResponse429 | meDepartmentTransferGetResponse503
+) & {
+  headers: Headers
+}
+
+export const getMeDepartmentTransferGetUrl = () => {
+  return `${env.API_BASE_URL}/api/v1/me/department-transfer`
+}
+
+/**
+ * @summary Read my own transfer while the grace lasts
+ */
+export const meDepartmentTransferGet = async (
+  options?: RequestInit
+): Promise<meDepartmentTransferGetResponseSuccess> => {
+  const res = await fetch(getMeDepartmentTransferGetUrl(), {
+    ...options,
+    method: 'GET'
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: meDepartmentTransferGetResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: meDepartmentTransferGetResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: meDepartmentTransferGetResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as meDepartmentTransferGetResponseSuccess
+}
+
+export const getMeDepartmentTransferGetQueryKey = () => {
+  return [`${env.API_BASE_URL}/api/v1/me/department-transfer`] as const
+}
+
+export const getMeDepartmentTransferGetQueryOptions = <
+  TData = Awaited<ReturnType<typeof meDepartmentTransferGet>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meDepartmentTransferGet>>, TError, TData>>
+  fetch?: RequestInit
+}) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getMeDepartmentTransferGetQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof meDepartmentTransferGet>>> = ({ signal }) =>
+    meDepartmentTransferGet({ signal, ...fetchOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof meDepartmentTransferGet>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type MeDepartmentTransferGetQueryResult = NonNullable<Awaited<ReturnType<typeof meDepartmentTransferGet>>>
+export type MeDepartmentTransferGetQueryError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+export function useMeDepartmentTransferGet<
+  TData = Awaited<ReturnType<typeof meDepartmentTransferGet>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof meDepartmentTransferGet>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof meDepartmentTransferGet>>,
+          TError,
+          Awaited<ReturnType<typeof meDepartmentTransferGet>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMeDepartmentTransferGet<
+  TData = Awaited<ReturnType<typeof meDepartmentTransferGet>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meDepartmentTransferGet>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof meDepartmentTransferGet>>,
+          TError,
+          Awaited<ReturnType<typeof meDepartmentTransferGet>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useMeDepartmentTransferGet<
+  TData = Awaited<ReturnType<typeof meDepartmentTransferGet>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meDepartmentTransferGet>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Read my own transfer while the grace lasts
+ */
+
+export function useMeDepartmentTransferGet<
+  TData = Awaited<ReturnType<typeof meDepartmentTransferGet>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof meDepartmentTransferGet>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getMeDepartmentTransferGetQueryOptions(options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -438,7 +593,7 @@ export const getMeAccessRequestListUrl = (params?: MeAccessRequestListParams) =>
 }
 
 /**
- * @summary List the requests I sent
+ * @summary List the requests I sent or that were sent for me
  */
 export const meAccessRequestList = async (
   params?: MeAccessRequestListParams,
@@ -543,7 +698,7 @@ export function useMeAccessRequestList<
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary List the requests I sent
+ * @summary List the requests I sent or that were sent for me
  */
 
 export function useMeAccessRequestList<

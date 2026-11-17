@@ -18,9 +18,8 @@ export type AccessRequestOrDraftResponseDtoData =
           | 'AWAITING_EXECUTION'
           | 'AWAITING_IT_ASSESSMENT'
           | 'AWAITING_SPEND_SUBMISSION'
-          | 'AWAITING_FINANCE_REVIEW'
-          | 'AWAITING_BUDGET'
           | 'AWAITING_SPEND_DECISION'
+          | 'AWAITING_REQUESTER_REVISION'
           | 'REJECTED'
           | 'IT_REJECTED'
           | 'EXECUTING'
@@ -29,6 +28,11 @@ export type AccessRequestOrDraftResponseDtoData =
           | 'AWAITING_IT_CLOSE'
           | 'WITHDRAWN'
           | 'CANCELLED'
+        routing: {
+          mode: 'VIA_HEAD' | 'ONE_STEP'
+          /** @nullable */
+          oneStepReason: 'REQUESTER_IS_HEAD' | 'NO_DEPARTMENT_HEAD' | 'HEAD_LEFT' | null
+        }
         /** @nullable */
         plan: {
           planId: string
@@ -47,6 +51,8 @@ export type AccessRequestOrDraftResponseDtoData =
            * @exclusiveMinimum 0
            */
           expectedUsers: number
+          /** @nullable */
+          existingApplicationId: string | null
         } | null
         department: {
           id: string
@@ -78,8 +84,9 @@ export type AccessRequestOrDraftResponseDtoData =
         /**
          * @maximum 9007199254740991
          * @exclusiveMinimum 0
+         * @nullable
          */
-        termMonths: number
+        termMonths: number | null
         /** @nullable */
         expectedEndDate: string | null
         /** @nullable */
@@ -107,10 +114,13 @@ export type AccessRequestOrDraftResponseDtoData =
           }
         } | null
         /** @nullable */
+        limitExemption: 'TRANSFER_GRACE' | 'ROLE_ENDED' | null
+        /** @nullable */
         renewal: {
           assignmentId: string
           previousExpectedEndDate: string
-          newExpectedEndDate: string
+          /** @nullable */
+          newExpectedEndDate: string | null
           /**
            * @maximum 9007199254740991
            * @exclusiveMinimum 0
@@ -126,16 +136,18 @@ export type AccessRequestOrDraftResponseDtoData =
         spend: {
           stage:
             | 'NOT_SUBMITTED'
+            | 'RETURNED_TO_REQUESTER'
+            | 'RESERVE_CONFIRMATION'
             | 'BLOCKED'
-            | 'RETURNED_BY_FINANCE'
-            | 'WAITING_FINANCE_REVIEW'
-            | 'WAITING_BUDGET'
             | 'WAITING_SPEND_DECISION'
             | 'REFUSED'
+          /** @maxItems 3 */
+          blockedReasons: ('PRICE_EXPIRED' | 'NO_APPROVED_BUDGET' | 'OVER_RESERVE' | 'PRICE_MISSING')[]
           /** @nullable */
-          blockedReason: 'STALE_COST_EVIDENCE' | 'CLOSED_OR_EXPIRED_BUDGET_PERIOD' | null
-          /** @nullable */
-          financeReturnReason: string | null
+          overBy: {
+            amount: string
+            currency: string
+          } | null
           /** @nullable */
           refusalReason: string | null
         } | null
@@ -161,23 +173,73 @@ export type AccessRequestOrDraftResponseDtoData =
           } | null
           /** @nullable */
           billingCycle: 'MONTHLY' | 'QUARTERLY' | 'ANNUAL' | 'OTHER' | null
-          /**
-           * @maximum 9007199254740991
-           * @exclusiveMinimum 0
-           * @nullable
-           */
-          periodCount: number | null
+          /** @nullable */
+          kind: 'RECURRING' | 'ONE_TIME' | null
           /**
            * @minimum 0
+           * @maximum 12
+           * @nullable
+           */
+          months: number | null
+          /** @nullable */
+          monthlyPrice: {
+            amount: string
+            currency: string
+          } | null
+          /** @nullable */
+          nextYearAmount: {
+            amount: string
+            currency: string
+          } | null
+        }
+        /** @nullable */
+        cost: {
+          currentYear: {
+            /**
+             * @minimum -9007199254740991
+             * @maximum 9007199254740991
+             */
+            year: number
+            /**
+             * @minimum -9007199254740991
+             * @maximum 9007199254740991
+             * @nullable
+             */
+            months: number | null
+            amount: {
+              amount: string
+              currency: string
+            }
+          }
+          /** @nullable */
+          nextYear: {
+            /** The first day of the year after, YYYY-MM-DD. */
+            from: string
+            /**
+             * @minimum -9007199254740991
+             * @maximum 9007199254740991
+             * @nullable
+             */
+            months: number | null
+            amount: {
+              amount: string
+              currency: string
+            }
+            estimate: true
+          } | null
+          /**
+           * The last day of the contract of a person with a term, when it cut the time of use short.
+           * @nullable
+           */
+          termCutAt: string | null
+          /**
+           * The months that have begun by the end of the term, each counted whole; null for a right with no end.
+           * @minimum -9007199254740991
            * @maximum 9007199254740991
            * @nullable
            */
-          bindingPeriodCount: number | null
-          /** @nullable */
-          firstDueOn: string | null
-          /** @nullable */
-          lastDueOn: string | null
-        }
+          months: number | null
+        } | null
         policy: {
           /**
            * @maximum 9007199254740991
@@ -194,7 +256,7 @@ export type AccessRequestOrDraftResponseDtoData =
         submittedAt: string
         needStep: {
           id: string
-          state: 'PENDING' | 'WAITING' | 'APPROVED' | 'REJECTED' | 'CLOSED'
+          state: 'PENDING' | 'WAITING' | 'APPROVED' | 'REJECTED' | 'CLOSED' | 'NOT_REQUIRED'
           /** @nullable */
           assignee: {
             employeeId: string
@@ -208,12 +270,12 @@ export type AccessRequestOrDraftResponseDtoData =
           routingRow: number
           /** @nullable */
           waitingReason: 'NO_SPENDING_APPROVER' | 'NO_DEPARTMENT_HEAD' | null
-          samePersonAsSpend: boolean
           /**
            * @maximum 9007199254740991
            * @exclusiveMinimum 0
+           * @nullable
            */
-          slaWorkingDays: number
+          slaWorkingDays: number | null
           createdAt: string
           /** @nullable */
           assignedAt: string | null
@@ -222,13 +284,13 @@ export type AccessRequestOrDraftResponseDtoData =
         }
         /** @nullable */
         needDecision: {
-          decision: 'APPROVED' | 'REJECTED'
+          decision: 'APPROVED' | 'REJECTED' | 'RETURNED'
           decidedBy: {
             employeeId: string
             employeeCode: string
             fullName: string
           }
-          deciderRole: 'MANAGER' | 'SPENDING_APPROVER' | 'FALLBACK_APPROVER'
+          deciderRole: 'MANAGER' | 'SPENDING_APPROVER'
           /** @nullable */
           reason: string | null
           decidedAt: string
@@ -255,7 +317,13 @@ export type AccessRequestOrDraftResponseDtoData =
             fullName: string
           } | null
           cancelledAt: string
-          cause: 'BENEFICIARY_LEFT' | 'BENEFICIARY_TRANSFERRED' | 'SPENDING_APPROVER_PARTY'
+          cause:
+            | 'BENEFICIARY_LEFT'
+            | 'BENEFICIARY_TRANSFERRED'
+            | 'SYSTEM_BENEFICIARY_LEFT'
+            | 'SYSTEM_BENEFICIARY_TRANSFERRED'
+            | 'SYSTEM_SCOPE_REMOVED'
+            | 'SPENDING_APPROVER_PARTY'
           /** @nullable */
           note: string | null
         } | null
@@ -264,7 +332,7 @@ export type AccessRequestOrDraftResponseDtoData =
   | {
       draft: {
         id: string
-        kind: 'INDIVIDUAL' | 'GROUP' | 'SERVICE_ACCOUNT'
+        kind: 'INDIVIDUAL' | 'GROUP'
         departmentId: string
         planId: string
         /**

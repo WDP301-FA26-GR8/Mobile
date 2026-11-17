@@ -60,7 +60,11 @@ beforeEach(async () => {
           jobTitle: null
         },
         roles: ['EMPLOYEE'],
-        managerScope: null
+        managerScope: null,
+        upcomingUnits: [],
+        pendingPolicyAcknowledgements: [],
+        avatar: null,
+        workPhone: null
       }
     }
   })

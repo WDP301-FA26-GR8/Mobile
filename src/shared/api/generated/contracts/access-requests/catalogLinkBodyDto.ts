@@ -8,4 +8,6 @@
 
 export interface CatalogLinkBodyDto {
   planId: string
+  /** True puts the application and the plan in the list of software of the department of the request, a guide for the next people who ask: the IT Admin must be in charge of that department. False or left out lists nothing. */
+  addToDepartmentList?: boolean
 }

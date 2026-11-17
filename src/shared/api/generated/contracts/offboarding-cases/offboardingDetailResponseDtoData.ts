@@ -13,10 +13,13 @@ import type { OffboardingDetailResponseDtoDataChecklist } from './offboardingDet
 import type { OffboardingDetailResponseDtoDataClosure } from './offboardingDetailResponseDtoDataClosure'
 import type { OffboardingDetailResponseDtoDataDepartment } from './offboardingDetailResponseDtoDataDepartment'
 import type { OffboardingDetailResponseDtoDataEmployee } from './offboardingDetailResponseDtoDataEmployee'
-import type { OffboardingDetailResponseDtoDataGrounds } from './offboardingDetailResponseDtoDataGrounds'
 import type { OffboardingDetailResponseDtoDataHeadSuccessor } from './offboardingDetailResponseDtoDataHeadSuccessor'
+import type { OffboardingDetailResponseDtoDataItHandover } from './offboardingDetailResponseDtoDataItHandover'
 import type { OffboardingDetailResponseDtoDataLeft } from './offboardingDetailResponseDtoDataLeft'
+import type { OffboardingDetailResponseDtoDataMailboxLock } from './offboardingDetailResponseDtoDataMailboxLock'
 import type { OffboardingDetailResponseDtoDataPriorWorkState } from './offboardingDetailResponseDtoDataPriorWorkState'
+import type { OffboardingDetailResponseDtoDataRevocation } from './offboardingDetailResponseDtoDataRevocation'
+import type { OffboardingDetailResponseDtoDataRevocationsWithdrawn } from './offboardingDetailResponseDtoDataRevocationsWithdrawn'
 import type { OffboardingDetailResponseDtoDataRoleFlags } from './offboardingDetailResponseDtoDataRoleFlags'
 import type { OffboardingDetailResponseDtoDataState } from './offboardingDetailResponseDtoDataState'
 import type { OffboardingDetailResponseDtoDataWarnings } from './offboardingDetailResponseDtoDataWarnings'
@@ -29,7 +32,6 @@ export type OffboardingDetailResponseDtoData = {
   employee: OffboardingDetailResponseDtoDataEmployee
   state: OffboardingDetailResponseDtoDataState
   accessBlockMode: OffboardingDetailResponseDtoDataAccessBlockMode
-  abrupt: boolean
   lastWorkingDay: string
   /** @nullable */
   handoverDueOn: string | null
@@ -42,16 +44,18 @@ export type OffboardingDetailResponseDtoData = {
    * @maximum 9007199254740991
    */
   heldRights: number
+  revocation: OffboardingDetailResponseDtoDataRevocation
   accountLockMissing: boolean
   closed: boolean
   roleFlags: OffboardingDetailResponseDtoDataRoleFlags
   /** @nullable */
   department: OffboardingDetailResponseDtoDataDepartment
   firstPlacementRestored?: boolean
+  revocationsWithdrawn?: OffboardingDetailResponseDtoDataRevocationsWithdrawn
   priorWorkState: OffboardingDetailResponseDtoDataPriorWorkState
   departureEffectiveOn: string
   /** @nullable */
-  grounds: OffboardingDetailResponseDtoDataGrounds
+  groundsNote: string | null
   /** @nullable */
   headSuccessor: OffboardingDetailResponseDtoDataHeadSuccessor
   /** @nullable */
@@ -64,6 +68,10 @@ export type OffboardingDetailResponseDtoData = {
   cancellation: OffboardingDetailResponseDtoDataCancellation
   /** @nullable */
   accountLock: OffboardingDetailResponseDtoDataAccountLock
+  /** @nullable */
+  mailboxLock: OffboardingDetailResponseDtoDataMailboxLock
+  /** @nullable */
+  itHandover: OffboardingDetailResponseDtoDataItHandover
   /** @nullable */
   closure: OffboardingDetailResponseDtoDataClosure
   /** @nullable */

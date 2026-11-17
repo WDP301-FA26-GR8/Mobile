@@ -15,6 +15,11 @@ export type PlanPageResponseDtoDataItemsItem = {
   id: string
   applicationId: string
   applicationName: string
+  /**
+   * The https link to the logo image of the application, or null. It may be broken: show the first letter of the application name when the image does not load.
+   * @nullable
+   */
+  applicationLogoUrl: string | null
   name: string
   provisioningType: PlanPageResponseDtoDataItemsItemProvisioningType
   /** @nullable */
@@ -24,6 +29,7 @@ export type PlanPageResponseDtoDataItemsItem = {
   dataLossOnRemoval: boolean
   /** @nullable */
   sharingPolicy: PlanPageResponseDtoDataItemsItemSharingPolicy
+  hasAdminConsole: boolean
   seatTracking: PlanPageResponseDtoDataItemsItemSeatTracking
   createdAt: string
   updatedAt: string

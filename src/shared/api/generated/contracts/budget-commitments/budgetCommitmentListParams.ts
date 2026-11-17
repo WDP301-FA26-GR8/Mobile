@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { BudgetCommitmentListAttached } from './budgetCommitmentListAttached'
+import type { BudgetCommitmentListLongTerm } from './budgetCommitmentListLongTerm'
 import type { BudgetCommitmentListState } from './budgetCommitmentListState'
 
 export type BudgetCommitmentListParams = {
@@ -16,6 +17,10 @@ export type BudgetCommitmentListParams = {
    */
   year?: number
   costCenterId?: string
+  /**
+   * true lists the long-term commitments of the quarterly review: every commitment of the year that is still held, whenever it was made; year is required with it. The term of the request is never shortened by it.
+   */
+  longTerm?: BudgetCommitmentListLongTerm
   requestId?: string
   state?: BudgetCommitmentListState
   /**

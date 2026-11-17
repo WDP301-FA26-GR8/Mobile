@@ -16,4 +16,9 @@ export type TaskResponseDtoDataTaskPlan = {
   applicationId: string
   applicationName: string
   provisioningType: TaskResponseDtoDataTaskPlanProvisioningType
+  /**
+   * The note the plan carries now about what to do before the seat is taken away, read when the card is read, not a copy kept when the task was opened. Read only: nobody confirms it. Null on a grant and when the plan has no note.
+   * @nullable
+   */
+  preRevocationNote: string | null
 } | null

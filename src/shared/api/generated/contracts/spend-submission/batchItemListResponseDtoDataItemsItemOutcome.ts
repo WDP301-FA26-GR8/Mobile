@@ -11,6 +11,7 @@ export type BatchItemListResponseDtoDataItemsItemOutcome =
 
 export const BatchItemListResponseDtoDataItemsItemOutcome = {
   SENT_TO_APPROVER: 'SENT_TO_APPROVER',
-  SENT_TO_FINANCE: 'SENT_TO_FINANCE',
-  STOPPED: 'STOPPED'
+  AWAITING_RESERVE_CONFIRMATION: 'AWAITING_RESERVE_CONFIRMATION',
+  STOPPED: 'STOPPED',
+  SENT_TO_FINANCE: 'SENT_TO_FINANCE'
 } as const

@@ -9,7 +9,6 @@ import { faker } from '@faker-js/faker'
 
 import type {
   BudgetCommitmentInvoiceList200,
-  BudgetCommitmentInvoiceRecord201,
   BudgetCommitmentList200,
   BudgetCommitmentRelease200,
   BudgetCommitmentReleases200
@@ -19,7 +18,6 @@ import {
   getCommitmentListResponseDtoResponseMock,
   getCommitmentResponseDtoResponseMock,
   getInvoiceListResponseDtoResponseMock,
-  getInvoiceRecordedResponseDtoResponseMock,
   getReleaseListResponseDtoResponseMock
 } from '../../contracts/index.faker'
 
@@ -35,11 +33,6 @@ export const getBudgetCommitmentReleasesResponseMock = (): BudgetCommitmentRelea
 
 export const getBudgetCommitmentReleaseResponseMock = (): BudgetCommitmentRelease200 => ({
   ...{ ...getCommitmentResponseDtoResponseMock() },
-  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
-})
-
-export const getBudgetCommitmentInvoiceRecordResponseMock = (): BudgetCommitmentInvoiceRecord201 => ({
-  ...{ ...getInvoiceRecordedResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 

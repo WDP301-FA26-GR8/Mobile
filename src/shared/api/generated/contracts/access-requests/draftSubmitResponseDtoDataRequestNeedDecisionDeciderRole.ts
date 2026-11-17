@@ -11,6 +11,5 @@ export type DraftSubmitResponseDtoDataRequestNeedDecisionDeciderRole =
 
 export const DraftSubmitResponseDtoDataRequestNeedDecisionDeciderRole = {
   MANAGER: 'MANAGER',
-  SPENDING_APPROVER: 'SPENDING_APPROVER',
-  FALLBACK_APPROVER: 'FALLBACK_APPROVER'
+  SPENDING_APPROVER: 'SPENDING_APPROVER'
 } as const

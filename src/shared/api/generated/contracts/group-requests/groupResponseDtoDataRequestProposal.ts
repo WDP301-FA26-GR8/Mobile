@@ -19,4 +19,6 @@ export type GroupResponseDtoDataRequestProposal = {
    * @exclusiveMinimum 0
    */
   expectedUsers: number
+  /** @nullable */
+  existingApplicationId: string | null
 } | null

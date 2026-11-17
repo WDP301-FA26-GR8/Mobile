@@ -7,9 +7,12 @@
  */
 import type { MyRequestsPageResponseDtoDataItemsItemBeneficiary } from './myRequestsPageResponseDtoDataItemsItemBeneficiary'
 import type { MyRequestsPageResponseDtoDataItemsItemBranch } from './myRequestsPageResponseDtoDataItemsItemBranch'
+import type { MyRequestsPageResponseDtoDataItemsItemInvolvement } from './myRequestsPageResponseDtoDataItemsItemInvolvement'
+import type { MyRequestsPageResponseDtoDataItemsItemMyLine } from './myRequestsPageResponseDtoDataItemsItemMyLine'
 import type { MyRequestsPageResponseDtoDataItemsItemNeedStep } from './myRequestsPageResponseDtoDataItemsItemNeedStep'
 import type { MyRequestsPageResponseDtoDataItemsItemOutcome } from './myRequestsPageResponseDtoDataItemsItemOutcome'
 import type { MyRequestsPageResponseDtoDataItemsItemPlan } from './myRequestsPageResponseDtoDataItemsItemPlan'
+import type { MyRequestsPageResponseDtoDataItemsItemRouting } from './myRequestsPageResponseDtoDataItemsItemRouting'
 import type { MyRequestsPageResponseDtoDataItemsItemSpend } from './myRequestsPageResponseDtoDataItemsItemSpend'
 import type { MyRequestsPageResponseDtoDataItemsItemState } from './myRequestsPageResponseDtoDataItemsItemState'
 import type { MyRequestsPageResponseDtoDataItemsItemType } from './myRequestsPageResponseDtoDataItemsItemType'
@@ -20,6 +23,7 @@ export type MyRequestsPageResponseDtoDataItemsItem = {
   type: MyRequestsPageResponseDtoDataItemsItemType
   branch: MyRequestsPageResponseDtoDataItemsItemBranch
   state: MyRequestsPageResponseDtoDataItemsItemState
+  routing: MyRequestsPageResponseDtoDataItemsItemRouting
   /** @nullable */
   plan: MyRequestsPageResponseDtoDataItemsItemPlan
   /** @nullable */
@@ -34,8 +38,11 @@ export type MyRequestsPageResponseDtoDataItemsItem = {
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0
+   * @nullable
    */
-  termMonths: number
+  termMonths: number | null
+  /** @nullable */
+  expectedEndDate: string | null
   submittedAt: string
   updatedAt: string
   needStep: MyRequestsPageResponseDtoDataItemsItemNeedStep
@@ -46,4 +53,7 @@ export type MyRequestsPageResponseDtoDataItemsItem = {
   /** @nullable */
   withdrawal: MyRequestsPageResponseDtoDataItemsItemWithdrawal
   canWithdraw: boolean
+  involvement: MyRequestsPageResponseDtoDataItemsItemInvolvement
+  /** @nullable */
+  myLine: MyRequestsPageResponseDtoDataItemsItemMyLine
 }

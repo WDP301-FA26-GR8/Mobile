@@ -6,8 +6,12 @@
  * OpenAPI spec version: 1.0
  */
 
+/**
+ * @nullable
+ */
 export type ApplicationPageResponseDtoDataItemsItemDataSensitivity =
-  (typeof ApplicationPageResponseDtoDataItemsItemDataSensitivity)[keyof typeof ApplicationPageResponseDtoDataItemsItemDataSensitivity]
+  | (typeof ApplicationPageResponseDtoDataItemsItemDataSensitivity)[keyof typeof ApplicationPageResponseDtoDataItemsItemDataSensitivity]
+  | null
 
 export const ApplicationPageResponseDtoDataItemsItemDataSensitivity = {
   LOW: 'LOW',

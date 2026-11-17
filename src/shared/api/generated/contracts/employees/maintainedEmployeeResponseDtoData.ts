@@ -21,6 +21,8 @@ export type MaintainedEmployeeResponseDtoData = {
   employmentType: MaintainedEmployeeResponseDtoDataEmploymentType
   hireDate: string
   /** @nullable */
+  contractEndDate: string | null
+  /** @nullable */
   jobTitle: string | null
   status: MaintainedEmployeeResponseDtoDataStatus
   workState: MaintainedEmployeeResponseDtoDataWorkState

@@ -5,7 +5,6 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
-import type { PlanTermsResponseDtoDataOpinionsItem } from './planTermsResponseDtoDataOpinionsItem'
 import type { PlanTermsResponseDtoDataSharingPolicy } from './planTermsResponseDtoDataSharingPolicy'
 import type { PlanTermsResponseDtoDataTerms } from './planTermsResponseDtoDataTerms'
 import type { PlanTermsResponseDtoDataWarningsItem } from './planTermsResponseDtoDataWarningsItem'
@@ -20,13 +19,6 @@ export type PlanTermsResponseDtoData = {
   sharingPolicy: PlanTermsResponseDtoDataSharingPolicy
   /** @nullable */
   terms: PlanTermsResponseDtoDataTerms
-  /** @maxItems 50 */
-  opinions: PlanTermsResponseDtoDataOpinionsItem[]
-  /**
-   * @minimum 0
-   * @maximum 9007199254740991
-   */
-  opinionTotal: number
   /** @maxItems 50 */
   warnings: PlanTermsResponseDtoDataWarningsItem[]
   /**

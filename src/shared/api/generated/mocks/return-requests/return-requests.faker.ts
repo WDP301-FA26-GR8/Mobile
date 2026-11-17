@@ -7,12 +7,7 @@
  */
 import { faker } from '@faker-js/faker'
 
-import type {
-  ReturnRequestGet200,
-  ReturnRequestHandoverConfirm200,
-  ReturnRequestList200,
-  ReturnRequestSubmit201
-} from '../../contracts'
+import type { ReturnRequestGet200, ReturnRequestList200, ReturnRequestSubmit201 } from '../../contracts'
 
 import { getReturnListResponseDtoResponseMock, getReturnResponseDtoResponseMock } from '../../contracts/index.faker'
 
@@ -27,11 +22,6 @@ export const getReturnRequestListResponseMock = (): ReturnRequestList200 => ({
 })
 
 export const getReturnRequestGetResponseMock = (): ReturnRequestGet200 => ({
-  ...{ ...getReturnResponseDtoResponseMock() },
-  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
-})
-
-export const getReturnRequestHandoverConfirmResponseMock = (): ReturnRequestHandoverConfirm200 => ({
   ...{ ...getReturnResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })

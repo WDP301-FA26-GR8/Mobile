@@ -17,9 +17,13 @@ export type RequestableApplicationResponseDtoData = {
   id: string
   name: string
   kind: RequestableApplicationResponseDtoDataKind
+  /**
+   * The https link to the logo image, or null. It may be broken: show the first letter of the name when the image does not load.
+   * @nullable
+   */
+  logoUrl: string | null
   /** @nullable */
   vendorName: string | null
-  /** @nullable */
   functionalGroup: RequestableApplicationResponseDtoDataFunctionalGroup
   /**
    * @maximum 9007199254740991
@@ -35,5 +39,6 @@ export type RequestableApplicationResponseDtoData = {
    * @nullable
    */
   submitBlockedReason: RequestableApplicationResponseDtoDataSubmitBlockedReason
+  /** @nullable */
   dataSensitivity: RequestableApplicationResponseDtoDataDataSensitivity
 } | null

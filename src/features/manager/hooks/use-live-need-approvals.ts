@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { accessRequestGet, accessRequestNeedDecide } from '@/shared/api/generated/api/access-requests/access-requests'
 import { needDecisionList } from '@/shared/api/generated/api/need-decisions/need-decisions'
+import { policyStepGet } from '@/shared/api/generated/api/policies/policies'
 import type { NeedDecisionBodyDto } from '@/shared/api/generated/contracts/access-requests'
 import { useSession } from '@/shared/api/session-context'
 
@@ -35,13 +36,26 @@ export function useLiveNeedApprovals(page: number, requestId?: string, permitted
         return result.data.data.request
       })
   })
+  const policy = useQuery({
+    queryKey: ['session', 'policy-step', 'POL-MF1', '1.2'],
+    enabled: enabled && !!requestId,
+    queryFn: ({ signal }) =>
+      session.read(async (token) => {
+        const result = await policyStepGet('POL-MF1', '1.2', {
+          signal,
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (!result.data.data) throw new Error('Missing policy checklist')
+        return result.data.data
+      })
+  })
   const decision = useMutation({
     retry: false,
     mutationFn: ({ id, body }: { id: string; body: NeedDecisionBodyDto }) =>
       session.write(async (token) => {
         const result = await accessRequestNeedDecide(id, body, { headers: { Authorization: `Bearer ${token}` } })
         const request = result.data.data?.request
-        const expected = body.decision === 'APPROVE' ? 'APPROVED' : 'REJECTED'
+        const expected = body.decision === 'APPROVE' ? 'APPROVED' : body.decision === 'REJECT' ? 'REJECTED' : 'RETURNED'
         if (!request || request.id !== id || request.needDecision?.decision !== expected) {
           throw new Error('Missing or inconsistent decision response')
         }
@@ -56,5 +70,5 @@ export function useLiveNeedApprovals(page: number, requestId?: string, permitted
       ])
     }
   })
-  return { queue, detail, decision }
+  return { queue, detail, policy, decision }
 }

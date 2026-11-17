@@ -7,7 +7,10 @@
  */
 import type { AssessmentResponseDtoDataAssessmentPricingAmount } from './assessmentResponseDtoDataAssessmentPricingAmount'
 import type { AssessmentResponseDtoDataAssessmentPricingBillingCycle } from './assessmentResponseDtoDataAssessmentPricingBillingCycle'
+import type { AssessmentResponseDtoDataAssessmentPricingKind } from './assessmentResponseDtoDataAssessmentPricingKind'
 import type { AssessmentResponseDtoDataAssessmentPricingMissingReason } from './assessmentResponseDtoDataAssessmentPricingMissingReason'
+import type { AssessmentResponseDtoDataAssessmentPricingMonthlyPrice } from './assessmentResponseDtoDataAssessmentPricingMonthlyPrice'
+import type { AssessmentResponseDtoDataAssessmentPricingNextYearAmount } from './assessmentResponseDtoDataAssessmentPricingNextYearAmount'
 import type { AssessmentResponseDtoDataAssessmentPricingStatus } from './assessmentResponseDtoDataAssessmentPricingStatus'
 import type { AssessmentResponseDtoDataAssessmentPricingUnitPrice } from './assessmentResponseDtoDataAssessmentPricingUnitPrice'
 
@@ -21,20 +24,16 @@ export type AssessmentResponseDtoDataAssessmentPricing = {
   unitPrice: AssessmentResponseDtoDataAssessmentPricingUnitPrice
   /** @nullable */
   billingCycle: AssessmentResponseDtoDataAssessmentPricingBillingCycle
-  /**
-   * @maximum 9007199254740991
-   * @exclusiveMinimum 0
-   * @nullable
-   */
-  periodCount: number | null
+  /** @nullable */
+  kind: AssessmentResponseDtoDataAssessmentPricingKind
   /**
    * @minimum 0
-   * @maximum 9007199254740991
+   * @maximum 12
    * @nullable
    */
-  bindingPeriodCount: number | null
+  months: number | null
   /** @nullable */
-  firstDueOn: string | null
+  monthlyPrice: AssessmentResponseDtoDataAssessmentPricingMonthlyPrice
   /** @nullable */
-  lastDueOn: string | null
+  nextYearAmount: AssessmentResponseDtoDataAssessmentPricingNextYearAmount
 }

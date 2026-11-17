@@ -12,7 +12,7 @@ export interface WorkspaceProfileBodyDto {
   primaryOwnerEmployeeId: string
   /**
    * @minItems 1
-   * @maxItems 100
+   * @maxItems 20
    */
   members: WorkspaceProfileBodyDtoMembersItem[]
   /**
@@ -34,4 +34,15 @@ export interface WorkspaceProfileBodyDto {
   ownerTransferProcedure?: string | null
   /** @nullable */
   emergencyAccount?: WorkspaceProfileBodyDtoEmergencyAccount
+  /**
+   * @minLength 1
+   * @maxLength 320
+   * @nullable
+   */
+  ownerAccountEmail?: string | null
+  /**
+   * @maxLength 2000
+   * @nullable
+   */
+  adminNote?: string | null
 }

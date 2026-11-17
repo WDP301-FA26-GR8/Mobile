@@ -26,4 +26,5 @@ export interface UpdatePlanBodyDto {
   dataLossOnRemoval?: boolean
   /** @nullable */
   sharingPolicy?: UpdatePlanBodyDtoSharingPolicy
+  hasAdminConsole?: boolean
 }

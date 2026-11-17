@@ -6,21 +6,12 @@
  * OpenAPI spec version: 1.0
  */
 import type { RetirementResponseDtoDataRetirementBlockers } from './retirementResponseDtoDataRetirementBlockers'
-import type { RetirementResponseDtoDataRetirementConfirmationsItem } from './retirementResponseDtoDataRetirementConfirmationsItem'
 import type { RetirementResponseDtoDataRetirementStatus } from './retirementResponseDtoDataRetirementStatus'
 
 export type RetirementResponseDtoDataRetirement = {
   status: RetirementResponseDtoDataRetirementStatus
   /** @nullable */
   retiredAt: string | null
-  /** @maxItems 50 */
-  confirmations: RetirementResponseDtoDataRetirementConfirmationsItem[]
-  /**
-   * @minimum 0
-   * @maximum 9007199254740991
-   */
-  confirmationTotal: number
-  confirmed: boolean
   blockers: RetirementResponseDtoDataRetirementBlockers
   canRetire: boolean
 }

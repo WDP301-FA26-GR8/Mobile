@@ -7,13 +7,17 @@
  */
 import type { TransferRecordedResponseDtoDataCancellation } from './transferRecordedResponseDtoDataCancellation'
 import type { TransferRecordedResponseDtoDataClosure } from './transferRecordedResponseDtoDataClosure'
+import type { TransferRecordedResponseDtoDataCommitmentsReleasedItem } from './transferRecordedResponseDtoDataCommitmentsReleasedItem'
 import type { TransferRecordedResponseDtoDataEmployee } from './transferRecordedResponseDtoDataEmployee'
 import type { TransferRecordedResponseDtoDataFrom } from './transferRecordedResponseDtoDataFrom'
-import type { TransferRecordedResponseDtoDataGrounds } from './transferRecordedResponseDtoDataGrounds'
+import type { TransferRecordedResponseDtoDataGrace } from './transferRecordedResponseDtoDataGrace'
 import type { TransferRecordedResponseDtoDataHeadSuccessor } from './transferRecordedResponseDtoDataHeadSuccessor'
+import type { TransferRecordedResponseDtoDataItHandover } from './transferRecordedResponseDtoDataItHandover'
+import type { TransferRecordedResponseDtoDataOldRightsItem } from './transferRecordedResponseDtoDataOldRightsItem'
+import type { TransferRecordedResponseDtoDataPhase } from './transferRecordedResponseDtoDataPhase'
+import type { TransferRecordedResponseDtoDataSnapshot } from './transferRecordedResponseDtoDataSnapshot'
 import type { TransferRecordedResponseDtoDataStatus } from './transferRecordedResponseDtoDataStatus'
 import type { TransferRecordedResponseDtoDataTo } from './transferRecordedResponseDtoDataTo'
-import type { TransferRecordedResponseDtoDataWarningsItem } from './transferRecordedResponseDtoDataWarningsItem'
 
 /**
  * @nullable
@@ -25,8 +29,11 @@ export type TransferRecordedResponseDtoData = {
   to: TransferRecordedResponseDtoDataTo
   effectiveOn: string
   status: TransferRecordedResponseDtoDataStatus
+  phase: TransferRecordedResponseDtoDataPhase
   /** @nullable */
-  grounds: TransferRecordedResponseDtoDataGrounds
+  grace: TransferRecordedResponseDtoDataGrace
+  /** @nullable */
+  groundsNote: string | null
   /** @nullable */
   headSuccessor: TransferRecordedResponseDtoDataHeadSuccessor
   /** @nullable */
@@ -39,6 +46,12 @@ export type TransferRecordedResponseDtoData = {
   cancellation: TransferRecordedResponseDtoDataCancellation
   /** @nullable */
   closure: TransferRecordedResponseDtoDataClosure
-  /** @maxItems 1 */
-  warnings: TransferRecordedResponseDtoDataWarningsItem[]
+  /** @maxItems 200 */
+  oldRights: TransferRecordedResponseDtoDataOldRightsItem[]
+  /** @maxItems 200 */
+  commitmentsReleased: TransferRecordedResponseDtoDataCommitmentsReleasedItem[]
+  /** @nullable */
+  snapshot: TransferRecordedResponseDtoDataSnapshot
+  /** @nullable */
+  itHandover: TransferRecordedResponseDtoDataItHandover
 } | null

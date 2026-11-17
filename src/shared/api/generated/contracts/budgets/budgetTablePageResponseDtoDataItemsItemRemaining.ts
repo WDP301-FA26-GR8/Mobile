@@ -6,7 +6,10 @@
  * OpenAPI spec version: 1.0
  */
 
+/**
+ * @nullable
+ */
 export type BudgetTablePageResponseDtoDataItemsItemRemaining = {
   amount: string
   currency: string
-}
+} | null

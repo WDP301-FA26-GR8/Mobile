@@ -10,6 +10,7 @@ import type { AssignmentPageResponseDtoDataItemsItemEffectiveFromBasis } from '.
 import type { AssignmentPageResponseDtoDataItemsItemEmployee } from './assignmentPageResponseDtoDataItemsItemEmployee'
 import type { AssignmentPageResponseDtoDataItemsItemKind } from './assignmentPageResponseDtoDataItemsItemKind'
 import type { AssignmentPageResponseDtoDataItemsItemPlan } from './assignmentPageResponseDtoDataItemsItemPlan'
+import type { AssignmentPageResponseDtoDataItemsItemRevocation } from './assignmentPageResponseDtoDataItemsItemRevocation'
 import type { AssignmentPageResponseDtoDataItemsItemSource } from './assignmentPageResponseDtoDataItemsItemSource'
 
 export type AssignmentPageResponseDtoDataItemsItem = {
@@ -39,6 +40,9 @@ export type AssignmentPageResponseDtoDataItemsItem = {
   expectedEndDate: string | null
   /** @nullable */
   predecessorId: string | null
+  isMachineAccount: boolean
+  /** @nullable */
+  machineAccountNote: string | null
   /** @nullable */
   failedAt: string | null
   /** @nullable */
@@ -48,4 +52,9 @@ export type AssignmentPageResponseDtoDataItemsItem = {
   plan: AssignmentPageResponseDtoDataItemsItemPlan
   /** @nullable */
   costCenter: AssignmentPageResponseDtoDataItemsItemCostCenter
+  /**
+   * The revocation task that is open for this seat (the task of the provisioning routes), or null when nobody is taking it back: only then is there something to press "Revoke" on. Read status as well as claimableNow before offering it: QUEUED and IN_PROGRESS can be taken and completed, FAILED waits for a decision of the IT Admin (try again, hand off or close as failed) and can be neither taken nor completed (409), RETRY_SCHEDULED is tried again by the connector by itself. A key (K4) is revoked through its holder: the row of the person who holds it.
+   * @nullable
+   */
+  revocation: AssignmentPageResponseDtoDataItemsItemRevocation
 }

@@ -13,7 +13,8 @@ import type { DraftSubmitResponseDtoDataRequestRenewalApplied } from './draftSub
 export type DraftSubmitResponseDtoDataRequestRenewal = {
   assignmentId: string
   previousExpectedEndDate: string
-  newExpectedEndDate: string
+  /** @nullable */
+  newExpectedEndDate: string | null
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0

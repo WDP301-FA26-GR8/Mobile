@@ -19,6 +19,14 @@ export type DepartmentTransferListParams = {
    */
   effectiveTo?: string
   /**
+   * A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused).
+   */
+  graceEndsBefore?: string
+  /**
+   * A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused).
+   */
+  graceEndsFrom?: string
+  /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0
    */

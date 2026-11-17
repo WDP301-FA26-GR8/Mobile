@@ -18,6 +18,11 @@ export type PlanResponseDtoData = {
   id: string
   applicationId: string
   applicationName: string
+  /**
+   * The https link to the logo image of the application, or null. It may be broken: show the first letter of the application name when the image does not load.
+   * @nullable
+   */
+  applicationLogoUrl: string | null
   name: string
   provisioningType: PlanResponseDtoDataProvisioningType
   /** @nullable */
@@ -27,6 +32,7 @@ export type PlanResponseDtoData = {
   dataLossOnRemoval: boolean
   /** @nullable */
   sharingPolicy: PlanResponseDtoDataSharingPolicy
+  hasAdminConsole: boolean
   seatTracking: PlanResponseDtoDataSeatTracking
   createdAt: string
   updatedAt: string

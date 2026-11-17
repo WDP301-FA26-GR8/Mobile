@@ -11,5 +11,6 @@ export type BatchDecisionBodyDtoDecision =
 
 export const BatchDecisionBodyDtoDecision = {
   APPROVE: 'APPROVE',
-  REJECT: 'REJECT'
+  REJECT: 'REJECT',
+  RETURN: 'RETURN'
 } as const

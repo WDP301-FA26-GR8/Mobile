@@ -11,6 +11,6 @@ export type QueueResponseDtoDataItemsItemStage =
 
 export const QueueResponseDtoDataItemsItemStage = {
   NOT_SUBMITTED: 'NOT_SUBMITTED',
-  BLOCKED: 'BLOCKED',
-  RETURNED_BY_FINANCE: 'RETURNED_BY_FINANCE'
+  RESERVE_CONFIRMATION: 'RESERVE_CONFIRMATION',
+  BLOCKED: 'BLOCKED'
 } as const

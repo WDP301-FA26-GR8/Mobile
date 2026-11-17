@@ -11,5 +11,6 @@ export type RenewalResponseDtoDataRequestNeedDecisionDecision =
 
 export const RenewalResponseDtoDataRequestNeedDecisionDecision = {
   APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED'
+  REJECTED: 'REJECTED',
+  RETURNED: 'RETURNED'
 } as const

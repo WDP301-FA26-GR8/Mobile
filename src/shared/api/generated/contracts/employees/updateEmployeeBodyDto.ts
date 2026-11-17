@@ -23,6 +23,11 @@ export interface UpdateEmployeeBodyDto {
   /** A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused). */
   hireDate?: string
   /**
+   * A date that must exist, as YYYY-MM-DD: the last day of the contract of a contractor, a freelancer or an intern; null clears it. Refused for staff, before the hire date, and when a change of kind to staff leaves one (EMPLOYEE.ROW_INVALID: CONTRACT_END_NOT_APPLICABLE, CONTRACT_END_BEFORE_HIRE).
+   * @nullable
+   */
+  contractEndDate?: string | null
+  /**
    * @maxLength 1000
    * @nullable
    */

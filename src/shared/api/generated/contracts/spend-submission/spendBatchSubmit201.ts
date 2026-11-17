@@ -5,8 +5,8 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
-import type { BatchResponseDto } from './batchResponseDto'
+import type { SubmitBatchResponseDto } from './submitBatchResponseDto'
 
-export type SpendBatchSubmit201 = BatchResponseDto & {
+export type SpendBatchSubmit201 = SubmitBatchResponseDto & {
   message?: string
 }

@@ -175,6 +175,7 @@ export function LiveRequestsScreen() {
                     <LiveRequestType type={item.type} />
                     <LiveRequestStatus state={item.state} />
                   </View>
+                  {item.involvement === 'FOR_ME' ? <Text style={styles.muted}>{t('requests.live.forMe')}</Text> : null}
                   <Text style={styles.muted}>
                     {t('requests.live.submitted', {
                       date: Number.isNaN(date.getTime())

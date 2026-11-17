@@ -21,12 +21,12 @@ export type AccessRequestResponseDtoDataRequestNeedStep = {
   routingRow: number
   /** @nullable */
   waitingReason: AccessRequestResponseDtoDataRequestNeedStepWaitingReason
-  samePersonAsSpend: boolean
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0
+   * @nullable
    */
-  slaWorkingDays: number
+  slaWorkingDays: number | null
   createdAt: string
   /** @nullable */
   assignedAt: string | null

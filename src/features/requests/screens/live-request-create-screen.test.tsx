@@ -63,7 +63,7 @@ beforeEach(async () => {
           {
             id,
             name: 'Pro',
-            application: { id, name: 'Figma', kind: 'SAAS' },
+            application: { id, name: 'Figma', kind: 'SAAS', logoUrl: null },
             provisioningType: 'K4',
             price: { status: 'PRICED', missingReason: null },
             costsMoney: true,
@@ -85,20 +85,17 @@ beforeEach(async () => {
         preview: {
           plan: { planId: id, planName: 'Pro', applicationId: id, applicationName: 'Figma' },
           branch: 'PAID_IN_CATALOG',
-          expectedEndDate: null,
+          termMonths: null,
+          termRefusal: null,
           department: { id, code: 'IT', name: 'IT' },
           costCenter: null,
-          maxEndDate: '2027-12-31',
-          termRequired: false,
           annualVendorAmount: null,
           existingAccess: null,
           blockedBy: null,
           limits: {
             openNewCount: 0,
             openNewMax: 3,
-            paidSoftwareCount: 0,
-            paidSoftwareThreshold: 3,
-            reasonRequired: false,
+            resetsOn: '2026-11-16',
             refusal: null,
             openRequestId: null
           },
@@ -116,6 +113,7 @@ beforeEach(async () => {
             monthlyPrice: null,
             nextYearAmount: null
           },
+          cost: null,
           costEstimate: null,
           spendSubmission: 'NOT_NEEDED',
           chain: [],
@@ -132,23 +130,19 @@ test('requires a valid reason, previews the actual plan, and locks after an unce
   await screen.findByText('Figma')
   await fireEvent.press(screen.getByRole('button', { name: 'Chọn Figma, Pro' }))
   await fireEvent.press(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }))
-  screen.getByText('Nhập ngày hợp lệ theo định dạng YYYY-MM-DD nếu có và lý do từ 1 đến 1000 ký tự.')
+  screen.getByText('Nhập thời gian hợp lệ cho gói và lý do từ 1 đến 1000 ký tự.')
   expect(accessRequestPreview).not.toHaveBeenCalled()
   await fireEvent.changeText(screen.getByLabelText('Lý do nghiệp vụ (bắt buộc)'), '  Thiết kế  ')
-  await fireEvent.changeText(screen.getByLabelText('Ngày kết thúc dự kiến (không bắt buộc)'), '2027-02-30')
-  await fireEvent.press(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }))
-  expect(accessRequestPreview).not.toHaveBeenCalled()
-  await fireEvent.changeText(screen.getByLabelText('Ngày kết thúc dự kiến (không bắt buộc)'), '2027-02-28')
   await fireEvent.press(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }))
   await screen.findByText('Có thể gửi yêu cầu. Máy chủ sẽ kiểm tra lại khi gửi.')
   expect(accessRequestPreview).toHaveBeenCalledWith(
-    { planId: id, expectedEndDate: '2027-02-28' },
+    { planId: id },
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
   await fireEvent.press(screen.getByRole('button', { name: 'Gửi yêu cầu' }))
   await screen.findByText('Chưa thể xác nhận kết quả. Hãy kiểm tra danh sách yêu cầu trước khi gửi lại để tránh trùng.')
   expect(accessRequestSubmit).toHaveBeenCalledWith(
-    { planId: id, expectedEndDate: '2027-02-28', businessReason: 'Thiết kế' },
+    { planId: id, businessReason: 'Thiết kế' },
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
   expect(screen.getByRole('button', { name: 'Gửi yêu cầu' }).props.accessibilityState.disabled).toBe(true)
@@ -162,7 +156,7 @@ test('removes preview on form changes and blocks submission if server rejects pr
   await fireEvent.changeText(screen.getByLabelText('Lý do nghiệp vụ (bắt buộc)'), 'Thiết kế')
   await fireEvent.press(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }))
   await screen.findByText('Có thể gửi yêu cầu. Máy chủ sẽ kiểm tra lại khi gửi.')
-  await fireEvent.changeText(screen.getByLabelText('Ngày kết thúc dự kiến (không bắt buộc)'), '2027-06-01')
+  await fireEvent.changeText(screen.getByLabelText('Lý do nghiệp vụ (bắt buộc)'), 'Thiết kế mới')
   expect(screen.queryByRole('button', { name: 'Gửi yêu cầu' })).toBeNull()
   const response = await jest.mocked(accessRequestPreview)({ planId: id })
   if (!response.data.data) throw new Error('Expected preview')
@@ -176,42 +170,57 @@ test('removes preview on form changes and blocks submission if server rejects pr
   expect(accessRequestSubmit).not.toHaveBeenCalled()
 })
 
-test('requires a server-requested end date and additional reason before submission', async () => {
-  const response = await jest.mocked(accessRequestPreview)({ planId: id })
-  if (!response.data.data) throw new Error('Expected preview')
-  const preview = response.data.data.preview
-  jest.mocked(accessRequestPreview).mockResolvedValue({
-    ...response,
-    data: {
-      ...response.data,
-      data: { preview: { ...preview, termRequired: true, limits: { ...preview.limits, reasonRequired: true } } }
-    }
-  })
+test('requires a duration for K1 and submits the reviewed number of months', async () => {
+  const catalog = await jest.mocked(requestablePlanList)()
+  if (!catalog.data.data) throw new Error('Expected catalog')
+  catalog.data.data.items[0].provisioningType = 'K1'
   jest.mocked(accessRequestSubmit).mockRejectedValueOnce(new Error('offline'))
   const screen = await renderScreen()
   await screen.findByText('Figma')
   await fireEvent.press(screen.getByRole('button', { name: 'Chọn Figma, Pro' }))
   await fireEvent.changeText(screen.getByLabelText('Lý do nghiệp vụ (bắt buộc)'), 'Thiết kế')
   await fireEvent.press(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }))
-  await screen.findByText('Gói này yêu cầu ngày kết thúc. Hãy nhập ngày và kiểm tra lại.')
-  expect(accessRequestPreview).toHaveBeenLastCalledWith(
-    { planId: id },
-    expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
-  )
-  expect(screen.getByRole('button', { name: 'Gửi yêu cầu' }).props.accessibilityState.disabled).toBe(true)
-  await fireEvent.changeText(screen.getByLabelText('Ngày kết thúc dự kiến (không bắt buộc)'), '2027-06-01')
+  screen.getByText('Nhập thời gian hợp lệ cho gói và lý do từ 1 đến 1000 ký tự.')
+  expect(accessRequestPreview).not.toHaveBeenCalled()
+  await fireEvent.changeText(screen.getByLabelText('Thời gian dùng theo tháng (bắt buộc, 1–9)'), '10')
   await fireEvent.press(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }))
-  await screen.findByLabelText('Lý do cần thêm phần mềm trả phí (bắt buộc)')
-  expect(screen.getByRole('button', { name: 'Gửi yêu cầu' }).props.accessibilityState.disabled).toBe(true)
-  await fireEvent.changeText(screen.getByLabelText('Lý do cần thêm phần mềm trả phí (bắt buộc)'), '  Công việc  ')
+  expect(accessRequestPreview).not.toHaveBeenCalled()
+  await fireEvent.changeText(screen.getByLabelText('Thời gian dùng theo tháng (bắt buộc, 1–9)'), '3')
+  await fireEvent.press(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }))
+  await screen.findByText('Có thể gửi yêu cầu. Máy chủ sẽ kiểm tra lại khi gửi.')
+  expect(accessRequestPreview).toHaveBeenCalledWith({ planId: id, termMonths: 3 }, expect.anything())
   await fireEvent.press(screen.getByRole('button', { name: 'Gửi yêu cầu' }))
   await waitFor(() =>
     expect(accessRequestSubmit).toHaveBeenCalledWith(
-      { planId: id, businessReason: 'Thiết kế', expectedEndDate: '2027-06-01', manyPaidSoftwareReason: 'Công việc' },
+      { planId: id, businessReason: 'Thiết kế', termMonths: 3 },
       expect.anything()
     )
   )
   await screen.findByText('Chưa thể xác nhận kết quả. Hãy kiểm tra danh sách yêu cầu trước khi gửi lại để tránh trùng.')
+})
+
+test('allows a long-term K2 preview but respects a server refusal', async () => {
+  const catalog = await jest.mocked(requestablePlanList)()
+  if (!catalog.data.data) throw new Error('Expected catalog')
+  catalog.data.data.items[0].provisioningType = 'K2'
+  const result = await jest.mocked(accessRequestPreview)({ planId: id })
+  if (!result.data.data) throw new Error('Expected preview')
+  jest.mocked(accessRequestPreview).mockClear()
+  jest.mocked(accessRequestPreview).mockResolvedValue({
+    ...result,
+    data: {
+      ...result.data,
+      data: { preview: { ...result.data.data.preview, canSubmit: false, termRefusal: 'TERM_LONG_TERM_NOT_ALLOWED' } }
+    }
+  })
+  const screen = await renderScreen()
+  await screen.findByText('Figma')
+  await fireEvent.press(screen.getByRole('button', { name: 'Chọn Figma, Pro' }))
+  await fireEvent.changeText(screen.getByLabelText('Lý do nghiệp vụ (bắt buộc)'), 'Thiết kế')
+  await fireEvent.press(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }))
+  await screen.findByText('Tài khoản của bạn cần chọn thời gian dùng có thời hạn.')
+  expect(accessRequestPreview).toHaveBeenCalledWith({ planId: id }, expect.anything())
+  expect(screen.getByRole('button', { name: 'Gửi yêu cầu' }).props.accessibilityState.disabled).toBe(true)
 })
 
 test('explains a cost center setup error returned by the server', async () => {
@@ -411,6 +420,7 @@ test('navigates to the created request after successful submission', async () =>
           type: 'GRANT',
           branch: 'PAID_IN_CATALOG',
           state: 'PENDING',
+          routing: { mode: 'VIA_HEAD', oneStepReason: null },
           plan: { planId: id, planName: 'Pro', applicationId: id, applicationName: 'Figma' },
           proposal: null,
           department: { id, code: 'IT', name: 'IT' },
@@ -422,6 +432,7 @@ test('navigates to the created request after successful submission', async () =>
           termMonths: 12,
           expectedEndDate: null,
           serviceAccount: null,
+          limitExemption: null,
           renewal: null,
           spend: null,
           budgetYear: null,
@@ -431,11 +442,12 @@ test('navigates to the created request after successful submission', async () =>
             amount: null,
             unitPrice: null,
             billingCycle: null,
-            periodCount: null,
-            bindingPeriodCount: null,
-            firstDueOn: null,
-            lastDueOn: null
+            kind: null,
+            months: null,
+            monthlyPrice: null,
+            nextYearAmount: null
           },
+          cost: null,
           policy: { version: 1, hasSpendStep: true, slaWorkingDays: 2 },
           submittedAt: '2026-11-09T00:00:00Z',
           needStep: {
@@ -444,7 +456,6 @@ test('navigates to the created request after successful submission', async () =>
             assignee: null,
             routingRow: 1,
             waitingReason: null,
-            samePersonAsSpend: false,
             slaWorkingDays: 2,
             createdAt: '2026-11-09T00:00:00Z',
             assignedAt: null,

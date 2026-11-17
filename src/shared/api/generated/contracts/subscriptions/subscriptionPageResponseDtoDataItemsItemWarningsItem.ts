@@ -10,5 +10,8 @@ export type SubscriptionPageResponseDtoDataItemsItemWarningsItem =
   (typeof SubscriptionPageResponseDtoDataItemsItemWarningsItem)[keyof typeof SubscriptionPageResponseDtoDataItemsItemWarningsItem]
 
 export const SubscriptionPageResponseDtoDataItemsItemWarningsItem = {
-  NO_ALERT_ANCHOR: 'NO_ALERT_ANCHOR'
+  NO_ALERT_ANCHOR: 'NO_ALERT_ANCHOR',
+  RESPONSIBLE_MISSING: 'RESPONSIBLE_MISSING',
+  BILLING_CYCLE_LEGACY: 'BILLING_CYCLE_LEGACY',
+  SHOULD_MERGE: 'SHOULD_MERGE'
 } as const

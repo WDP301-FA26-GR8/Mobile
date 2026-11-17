@@ -7,11 +7,17 @@
  */
 import { faker } from '@faker-js/faker'
 
-import type { LicenseKeyImport201, LicenseKeyList200, LicenseKeyReveal200 } from '../../contracts'
+import type {
+  LicenseKeyImport201,
+  LicenseKeyList200,
+  LicenseKeyReveal200,
+  LicenseKeyWithdraw200
+} from '../../contracts'
 
 import {
   getImportResponseDtoResponseMock,
   getKeyPageResponseDtoResponseMock,
+  getKeyResponseDtoResponseMock,
   getRevealResponseDtoResponseMock
 } from '../../contracts/index.faker'
 
@@ -27,5 +33,10 @@ export const getLicenseKeyListResponseMock = (): LicenseKeyList200 => ({
 
 export const getLicenseKeyRevealResponseMock = (): LicenseKeyReveal200 => ({
   ...{ ...getRevealResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
+export const getLicenseKeyWithdrawResponseMock = (): LicenseKeyWithdraw200 => ({
+  ...{ ...getKeyResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })

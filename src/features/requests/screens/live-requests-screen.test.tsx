@@ -52,18 +52,22 @@ beforeEach(async () => {
             type: 'GRANT',
             branch: 'PAID_IN_CATALOG',
             state: 'PENDING',
+            routing: { mode: 'VIA_HEAD', oneStepReason: null },
             plan: { planId: id, planName: 'Pro', applicationId: id, applicationName: 'Figma' },
             softwareName: null,
             beneficiary: null,
             lineCount: 1,
             termMonths: 12,
+            expectedEndDate: null,
             submittedAt: '2026-11-09T00:00:00Z',
             updatedAt: '2026-11-09T00:00:00Z',
             needStep: { state: 'PENDING', assignee: null, waitingReason: null },
             spend: null,
             outcome: null,
             withdrawal: null,
-            canWithdraw: true
+            canWithdraw: true,
+            involvement: 'SENT',
+            myLine: null
           }
         ],
         pagination: { page: 1, pageSize: 20, totalItems: 1, totalPages: 1 }
@@ -82,6 +86,7 @@ beforeEach(async () => {
           type: 'GRANT',
           branch: 'PAID_IN_CATALOG',
           state: 'PENDING',
+          routing: { mode: 'VIA_HEAD', oneStepReason: null },
           plan: { planId: id, planName: 'Pro', applicationId: id, applicationName: 'Figma' },
           proposal: null,
           department: { id, code: 'IT', name: 'IT' },
@@ -93,6 +98,7 @@ beforeEach(async () => {
           termMonths: 12,
           expectedEndDate: null,
           serviceAccount: null,
+          limitExemption: null,
           renewal: null,
           spend: null,
           budgetYear: null,
@@ -102,11 +108,12 @@ beforeEach(async () => {
             amount: null,
             unitPrice: null,
             billingCycle: null,
-            periodCount: null,
-            bindingPeriodCount: null,
-            firstDueOn: null,
-            lastDueOn: null
+            kind: null,
+            months: null,
+            monthlyPrice: null,
+            nextYearAmount: null
           },
+          cost: null,
           policy: { version: 1, hasSpendStep: true, slaWorkingDays: 2 },
           submittedAt: '2026-11-09T00:00:00Z',
           needStep: {
@@ -115,7 +122,6 @@ beforeEach(async () => {
             assignee: null,
             routingRow: 1,
             waitingReason: null,
-            samePersonAsSpend: false,
             slaWorkingDays: 2,
             createdAt: '2026-11-09T00:00:00Z',
             assignedAt: null,
@@ -135,13 +141,45 @@ test('lists server requests and opens their details', async () => {
   await screen.findByText('Figma')
   screen.getByText('Chờ xử lý')
   expect(meAccessRequestList).toHaveBeenCalledWith(
-    { view: 'open', page: 1, pageSize: 20 },
+    { view: 'open', involvement: 'ALL', page: 1, pageSize: 20 },
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
   await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Tạo yêu cầu' }))
   expect(mockRouter.push).toHaveBeenCalledWith('/live-request-create')
   await fireEvent.press(screen.getByRole('button', { name: 'Xem yêu cầu cho Figma' }))
   expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/live-requests/[requestId]', params: { requestId: id } })
+})
+
+test('identifies requests created for the signed-in user', async () => {
+  const response = await jest.mocked(meAccessRequestList)()
+  if (!response.data.data) throw new Error('Expected request list')
+  const item = response.data.data.items[0]
+  jest.mocked(meAccessRequestList).mockResolvedValue({
+    ...response,
+    data: {
+      ...response.data,
+      data: { ...response.data.data, items: [{ ...item, involvement: 'FOR_ME', canWithdraw: false }] }
+    }
+  })
+
+  const screen = await renderScreen(<LiveRequestsScreen />)
+  await screen.findByText('Yêu cầu được tạo cho bạn')
+  expect(screen.queryByRole('button', { name: 'Rút yêu cầu cho Figma' })).toBeNull()
+})
+
+test('shows the returned-for-revision state from the server', async () => {
+  const response = await jest.mocked(meAccessRequestList)()
+  if (!response.data.data) throw new Error('Expected request list')
+  const item = response.data.data.items[0]
+  jest.mocked(meAccessRequestList).mockResolvedValue({
+    ...response,
+    data: {
+      ...response.data,
+      data: { ...response.data.data, items: [{ ...item, state: 'AWAITING_REQUESTER_REVISION' }] }
+    }
+  })
+  const screen = await renderScreen(<LiveRequestsScreen />)
+  await screen.findByText('Đã trả về để bổ sung')
 })
 
 test('confirms withdrawal, sends once and reloads the list', async () => {
@@ -216,7 +254,10 @@ test('switches server view, resets page and handles empty results', async () => 
   await screen.findByText('Không có yêu cầu trên trang này.')
   await fireEvent.press(screen.getByRole('button', { name: 'Đã kết thúc' }))
   await screen.findByText('Không có yêu cầu trên trang này.')
-  expect(meAccessRequestList).toHaveBeenLastCalledWith({ view: 'ended', page: 1, pageSize: 20 }, expect.anything())
+  expect(meAccessRequestList).toHaveBeenLastCalledWith(
+    { view: 'ended', involvement: 'ALL', page: 1, pageSize: 20 },
+    expect.anything()
+  )
 })
 
 test('reports list failures and retries without showing demo requests', async () => {

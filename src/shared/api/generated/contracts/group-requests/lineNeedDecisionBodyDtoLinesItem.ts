@@ -8,7 +8,7 @@
 import type { LineNeedDecisionBodyDtoLinesItemDecision } from './lineNeedDecisionBodyDtoLinesItemDecision'
 
 /**
- * A refusal (REJECT) gives its reason; an approval (APPROVE) gives none.
+ * A refusal (REJECT) and a return (RETURN) give a reason or leave it to the checklist; an approval (APPROVE) gives none.
  */
 export type LineNeedDecisionBodyDtoLinesItem = {
   employeeId: string

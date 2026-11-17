@@ -11,5 +11,6 @@ export type GroupResponseDtoDataRequestNeedDecisionDecision =
 
 export const GroupResponseDtoDataRequestNeedDecisionDecision = {
   APPROVED: 'APPROVED',
-  REJECTED: 'REJECTED'
+  REJECTED: 'REJECTED',
+  RETURNED: 'RETURNED'
 } as const

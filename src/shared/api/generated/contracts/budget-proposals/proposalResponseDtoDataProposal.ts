@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { ProposalResponseDtoDataProposalCostCenter } from './proposalResponseDtoDataProposalCostCenter'
+import type { ProposalResponseDtoDataProposalRequestedAmount } from './proposalResponseDtoDataProposalRequestedAmount'
 import type { ProposalResponseDtoDataProposalReturned } from './proposalResponseDtoDataProposalReturned'
 import type { ProposalResponseDtoDataProposalState } from './proposalResponseDtoDataProposalState'
 import type { ProposalResponseDtoDataProposalSubmittedBy } from './proposalResponseDtoDataProposalSubmittedBy'
@@ -26,7 +27,15 @@ export type ProposalResponseDtoDataProposal = {
   successorOfProposalId: string | null
   /** @nullable */
   successorProposalId: string | null
+  /** The amount asked for: the same as requestedAmount. */
   total: ProposalResponseDtoDataProposalTotal
+  /** The amount the head asked for the whole year (BM-10). */
+  requestedAmount: ProposalResponseDtoDataProposalRequestedAmount
+  /**
+   * What the head wrote beside the amount; null when nothing.
+   * @nullable
+   */
+  note: string | null
   /** @nullable */
   submittedBy: ProposalResponseDtoDataProposalSubmittedBy
   submittedAt: string

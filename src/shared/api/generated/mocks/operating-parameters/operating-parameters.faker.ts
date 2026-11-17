@@ -15,8 +15,7 @@ import type {
   OperatingParameterHistory200,
   OperatingParameterList200,
   OperatingParameterSet200,
-  ReportingCurrencyGet200,
-  ReportingCurrencySet200
+  ReportingCurrencyGet200
 } from '../../contracts'
 
 import {
@@ -25,8 +24,7 @@ import {
   getParameterHistoryResponseDtoResponseMock,
   getParameterListResponseDtoResponseMock,
   getParameterResponseDtoResponseMock,
-  getReportingCurrencyResponseDtoResponseMock,
-  getReportingCurrencySetResponseDtoResponseMock
+  getReportingCurrencyResponseDtoResponseMock
 } from '../../contracts/index.faker'
 
 export const getOperatingParameterListResponseMock = (): OperatingParameterList200 => ({
@@ -66,10 +64,5 @@ export const getNonWorkingDateRemoveResponseMock = (): NonWorkingDateRemove200 =
 
 export const getReportingCurrencyGetResponseMock = (): ReportingCurrencyGet200 => ({
   ...{ ...getReportingCurrencyResponseDtoResponseMock() },
-  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
-})
-
-export const getReportingCurrencySetResponseMock = (): ReportingCurrencySet200 => ({
-  ...{ ...getReportingCurrencySetResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
