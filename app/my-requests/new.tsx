@@ -1,3 +1,5 @@
-import { NewRequestScreen } from '@/features/requests'
+import { Redirect } from 'expo-router'
 
-export default NewRequestScreen
+export default function NewRequestRoute() {
+  return <Redirect href='/live-request-create' />
+}

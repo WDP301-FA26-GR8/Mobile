@@ -1,8 +1,9 @@
 import { Feather } from '@expo/vector-icons'
-import { Redirect, useRouter } from 'expo-router'
-import { useEffect, useRef, useState } from 'react'
+import { usePreventRemove } from '@react-navigation/native'
+import { Redirect, useFocusEffect, useRouter } from 'expo-router'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { BackHandler, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { LiveInboxScreen } from '@/features/inbox'
@@ -117,11 +118,23 @@ export function LiveNeedApprovalsScreen({
     request.needStep.id === selected.stepId &&
     request.needStep.state === 'PENDING' &&
     !request.needDecision
-  const locked = decision.isPending || decision.isError || decision.isSuccess
+  const inFlight = decision.isPending || (sent.current && !decision.isError && !decision.isSuccess)
+  usePreventRemove(inFlight, () => undefined)
+  useFocusEffect(
+    useCallback(() => {
+      if (Platform.OS !== 'android') return
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        () => inFlight || (sent.current && !decision.isError && !decision.isSuccess)
+      )
+      return () => subscription.remove()
+    }, [decision.isError, decision.isSuccess, inFlight])
+  )
+  const locked = inFlight || decision.isError || decision.isSuccess
   const refusal = decision.isError ? decisionRefusal(decision.error) : undefined
 
   function closeDetails() {
-    if (decision.isPending) return
+    if (inFlight || (sent.current && !decision.isError && !decision.isSuccess)) return
     setSelected(undefined)
     setChoice(undefined)
     setResponse(undefined)
@@ -184,7 +197,7 @@ export function LiveNeedApprovalsScreen({
     })
   }
   async function logout() {
-    if (loggingOut || decision.isPending) return
+    if (loggingOut || inFlight || (sent.current && !decision.isError && !decision.isSuccess)) return
     setLoggingOut(true)
     setLogoutError(false)
     try {
@@ -196,13 +209,13 @@ export function LiveNeedApprovalsScreen({
     }
   }
   function selectTab(tab: 'queue' | 'team' | 'inbox') {
-    if (decision.isPending) return
+    if (inFlight || (sent.current && !decision.isError && !decision.isSuccess)) return
     if (selected) closeDetails()
     setActiveTab(tab)
   }
   if (session.state === 'anonymous') return <Redirect href='/' />
   if (profile.data && !profile.isError && !isManager) return <Redirect href='/my-software' />
-  const tabs = <ManagerLiveTabs active={activeTab} disabled={decision.isPending} onSelect={selectTab} />
+  const tabs = <ManagerLiveTabs active={activeTab} disabled={inFlight} onSelect={selectTab} />
   if (isManager && activeTab === 'inbox') return <LiveInboxScreen navigation={tabs} />
   return (
     <SafeAreaView style={styles.safe}>
@@ -321,8 +334,8 @@ export function LiveNeedApprovalsScreen({
           {selected ? (
             <Pressable
               accessibilityRole='button'
-              accessibilityState={{ disabled: decision.isPending }}
-              disabled={decision.isPending}
+              accessibilityState={{ disabled: inFlight }}
+              disabled={inFlight}
               onPress={closeDetails}
               style={styles.action}
             >

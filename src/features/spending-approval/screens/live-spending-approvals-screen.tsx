@@ -1,8 +1,9 @@
 import { Feather } from '@expo/vector-icons'
-import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
-import { Redirect, useRouter } from 'expo-router'
+import { usePreventRemove } from '@react-navigation/native'
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Redirect, useFocusEffect, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { BackHandler, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import type {
@@ -55,8 +56,12 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
   const [answers, setAnswers] = useState<ChecklistAnswers>({})
   const [reason, setReason] = useState('')
   const [lineDecisions, setLineDecisions] = useState<Record<string, 'APPROVE' | 'REJECT'>>({})
+  const [recoveryBusy, setRecoveryBusy] = useState(false)
+  const [recoveryError, setRecoveryError] = useState(false)
   const handledNotification = useRef<string | undefined>(undefined)
   const submissionStarted = useRef(false)
+  const recoveryStarted = useRef(false)
+  const recoveryEpoch = useRef(0)
   const live = useLiveSpendingApprovals(page, requestId, !!isApprover, selectedRequestId)
   const { queue, notificationItem, detail, lines, policy, decide, decideLines } = live
   const { reset: resetIndividualDecision } = decide
@@ -77,6 +82,10 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
     handledNotification.current = requestId
     setNotificationLookupError(false)
     if (notificationItem.data) {
+      recoveryEpoch.current += 1
+      recoveryStarted.current = false
+      setRecoveryBusy(false)
+      setRecoveryError(false)
       resetIndividualDecision()
       resetGroupDecision()
       submissionStarted.current = false
@@ -116,11 +125,23 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
     groupedLines.length > 0 && groupedLines.every((line) => lineDecisions[line.employee.employeeId])
   const effectiveDecision = decision
   const request = approval?.request
-  const isGroup = (request?.lineCount ?? 0) > 1
+  const isGroup = !!request && request.beneficiary === null
   const mutationError = isGroup ? decideLines.error : decide.error
   const mutationPending = isGroup ? decideLines.isPending : decide.isPending
   const result = isGroup ? decideLines.data : decide.data
+  const inFlight = mutationPending || (submissionStarted.current && !mutationError && !result)
   const submissionLocked = !!mutationError || !!result
+  usePreventRemove(inFlight, () => undefined)
+  useFocusEffect(
+    useCallback(() => {
+      if (Platform.OS !== 'android') return
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        () => inFlight || (submissionStarted.current && !mutationError && !result)
+      )
+      return () => subscription.remove()
+    }, [inFlight, mutationError, result])
+  )
   const hasRejectedLine = groupedLines.some((line) => lineDecisions[line.employee.employeeId] === 'REJECT')
   const hasApprovedLine = groupedLines.some((line) => lineDecisions[line.employee.employeeId] === 'APPROVE')
   const requiresReason = isGroup
@@ -130,6 +151,10 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
   const approvalBlocked = hasNoAnswer && (isGroup ? hasApprovedLine : effectiveDecision === 'APPROVE')
   const canConfirm =
     !!effectiveDecision &&
+    !!approval &&
+    !detail.isFetching &&
+    !detail.isError &&
+    approval.step.state === 'PENDING' &&
     checklistReady &&
     checklistComplete &&
     !approvalBlocked &&
@@ -146,6 +171,10 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
   }
 
   function openRequest(id: string) {
+    recoveryEpoch.current += 1
+    recoveryStarted.current = false
+    setRecoveryBusy(false)
+    setRecoveryError(false)
     resetDecision()
     decide.reset()
     decideLines.reset()
@@ -155,6 +184,11 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
   }
 
   function closeRequest() {
+    if (inFlight) return
+    recoveryEpoch.current += 1
+    recoveryStarted.current = false
+    setRecoveryBusy(false)
+    setRecoveryError(false)
     resetDecision()
     decide.reset()
     decideLines.reset()
@@ -179,8 +213,53 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
     }
   }
 
+  async function reloadChangedPolicy() {
+    if (
+      recoveryStarted.current ||
+      typeof mutationError !== 'object' ||
+      mutationError === null ||
+      !('status' in mutationError) ||
+      mutationError.status !== 409 ||
+      (spendDecisionErrorCode(mutationError) !== 'POLICY.VERSION_CHANGED' &&
+        spendDecisionErrorCode(mutationError) !== 'POLICY.NOT_IN_FORCE')
+    )
+      return
+    const previous = isGroup ? decideLines.variables : decide.variables
+    if (!previous) return
+    const epoch = recoveryEpoch.current
+    recoveryStarted.current = true
+    setRecoveryBusy(true)
+    setRecoveryError(false)
+    resetDecision()
+    const [updatedPolicy, updatedDetail, updatedLines] = await Promise.all([
+      policy.refetch(),
+      detail.refetch(),
+      isGroup ? lines.refetch() : Promise.resolve(undefined)
+    ])
+    if (epoch !== recoveryEpoch.current) return
+    recoveryStarted.current = false
+    setRecoveryBusy(false)
+    if (
+      updatedPolicy.isError ||
+      !updatedPolicy.data ||
+      updatedPolicy.data.policyVersionId === previous.body.checklist.policyVersionId ||
+      updatedDetail.isError ||
+      !updatedDetail.data ||
+      updatedDetail.data.step.id !== previous.stepId ||
+      updatedDetail.data.step.state !== 'PENDING' ||
+      (updatedDetail.data.request.beneficiary === null) !== isGroup ||
+      (isGroup && (!updatedLines || updatedLines.isError || !updatedLines.data))
+    ) {
+      setRecoveryError(true)
+      return
+    }
+    if (isGroup) decideLines.reset()
+    else decide.reset()
+    submissionStarted.current = false
+  }
+
   function submitDecision() {
-    if (!selectedRequestId || !canConfirm || !effectiveDecision || submissionStarted.current) return
+    if (!selectedRequestId || !approval || !canConfirm || !effectiveDecision || submissionStarted.current) return
     if (isGroup) {
       if (!groupedLinesReady || !request || (effectiveDecision !== 'RETURN' && !allLinesChosen)) return
       const body: LineSpendDecisionBodyDto = {
@@ -196,7 +275,7 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
         checklist: checklistBody()
       }
       submissionStarted.current = true
-      decideLines.mutate({ id: selectedRequestId, body })
+      decideLines.mutate({ id: selectedRequestId, stepId: approval.step.id, body })
       return
     }
     if (!effectiveDecision) return
@@ -206,7 +285,7 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
       ...(effectiveDecision !== 'APPROVE' && reason.trim() ? { reason: reason.trim() } : {})
     }
     submissionStarted.current = true
-    decide.mutate({ id: selectedRequestId, body })
+    decide.mutate({ id: selectedRequestId, stepId: approval.step.id, body })
   }
 
   if (session.state === 'anonymous') return <Redirect href='/' />
@@ -221,7 +300,10 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
           icon: 'check-square',
           id: 'spending-queue',
           label: t('spending.live.tabs.queue'),
-          onPress: () => setActiveTab('queue'),
+          disabled: inFlight,
+          onPress: () => {
+            if (!submissionStarted.current || result || mutationError) setActiveTab('queue')
+          },
           selected: activeTab === 'queue'
         },
         {
@@ -229,7 +311,10 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
           icon: 'bell',
           id: 'spending-inbox',
           label: t('navigation.inbox'),
-          onPress: () => setActiveTab('inbox'),
+          disabled: inFlight,
+          onPress: () => {
+            if (!submissionStarted.current || result || mutationError) setActiveTab('inbox')
+          },
           selected: activeTab === 'inbox'
         }
       ]}
@@ -242,7 +327,7 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
     approval?.request.plan?.applicationName ?? approval?.request.softwareName ?? t('spending.live.unnamed')
   const planName = approval?.request.plan?.planName
   const errorCode = spendDecisionErrorCode(mutationError)
-  const mutationErrorKey = getMutationErrorKey(errorCode)
+  const mutationErrorKey = getMutationErrorKey(mutationError)
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -255,7 +340,7 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
                   initials={account.employee.fullName.trim().slice(0, 1).toLocaleUpperCase()}
                   meta={account.employee.department?.name ?? t('licenses.live.noDepartment')}
                   name={account.employee.fullName}
-                  onOpenProfile={() => router.push('/profile')}
+                  onOpenProfile={inFlight ? undefined : () => router.push('/profile')}
                 />
               ) : null}
             </View>
@@ -277,7 +362,7 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
 
           {profile.isError || !account || !isApprover ? null : selectedRequestId ? (
             <View style={styles.section}>
-              <ActionButton label={t('spending.live.backToQueue')} onPress={closeRequest} />
+              <ActionButton label={t('spending.live.backToQueue')} onPress={closeRequest} disabled={inFlight} />
               {result ? (
                 <View accessibilityRole='alert' style={styles.successCard}>
                   <Text style={styles.successText}>{t('spending.live.decisionSucceeded')}</Text>
@@ -288,19 +373,23 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
                   <Text accessibilityRole='alert' style={styles.errorText}>
                     {t(mutationErrorKey)}
                   </Text>
-                  {errorCode === 'POLICY.VERSION_CHANGED' || errorCode === 'POLICY.NOT_IN_FORCE' ? (
-                    <ActionButton
-                      label={t('spending.live.reloadPolicy')}
-                      onPress={() => {
-                        resetDecision()
-                        if (isGroup) decideLines.reset()
-                        else decide.reset()
-                        submissionStarted.current = false
-                        void policy.refetch()
-                        void detail.refetch()
-                        void lines.refetch()
-                      }}
-                    />
+                  {typeof mutationError === 'object' &&
+                  mutationError !== null &&
+                  'status' in mutationError &&
+                  mutationError.status === 409 &&
+                  (errorCode === 'POLICY.VERSION_CHANGED' || errorCode === 'POLICY.NOT_IN_FORCE') ? (
+                    <>
+                      <ActionButton
+                        label={t('spending.live.reloadPolicy')}
+                        disabled={recoveryBusy}
+                        onPress={() => void reloadChangedPolicy()}
+                      />
+                      {recoveryError ? (
+                        <Text accessibilityRole='alert' style={styles.errorText}>
+                          {t('spending.live.policyReloadFailed')}
+                        </Text>
+                      ) : null}
+                    </>
                   ) : (
                     <ActionButton label={t('spending.live.backToQueue')} onPress={closeRequest} />
                   )}
@@ -431,6 +520,7 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
                     hasRejectedLine={hasRejectedLine}
                     hasNoAnswer={hasNoAnswer}
                     isGroup={isGroup}
+                    oneStep={approval.routing.mode === 'ONE_STEP'}
                     loading={mutationPending}
                     onAnswer={setAnswer}
                     onChooseDecision={setDecision}
@@ -647,7 +737,7 @@ function ApprovalSummary({
       />
       {endDate ? <InfoRow label={t('spending.live.expectedEndDate')} value={endDate} /> : null}
       {dueOn ? <InfoRow label={t('spending.live.dueDateLabel')} value={dueOn} /> : null}
-      {request.lineCount > 1 ? (
+      {request.beneficiary === null ? (
         <InfoRow
           label={t('spending.live.groupCount', {
             formattedCount: new Intl.NumberFormat(locale).format(request.lineCount)
@@ -752,6 +842,7 @@ function DecisionForm({
   hasRejectedLine,
   onChooseDecision,
   isGroup,
+  oneStep,
   hasNoAnswer,
   checklistComplete,
   checklistLoading,
@@ -771,6 +862,7 @@ function DecisionForm({
   hasRejectedLine: boolean
   onChooseDecision: (decision: SpendDecision | undefined) => void
   isGroup: boolean
+  oneStep: boolean
   hasNoAnswer: boolean
   checklistComplete: boolean
   checklistLoading: boolean
@@ -847,7 +939,7 @@ function DecisionForm({
           />
         ) : null}
         <ChoiceButton
-          label={t('spending.live.returnToHead')}
+          label={t(oneStep ? 'spending.live.returnToRequester' : 'spending.live.returnToHead')}
           selected={decision === 'RETURN'}
           onPress={() => onChooseDecision(decision === 'RETURN' ? undefined : 'RETURN')}
         />
@@ -948,37 +1040,41 @@ function ChoiceButton({
   )
 }
 
-function getMutationErrorKey(code?: string) {
+function getMutationErrorKey(error: unknown) {
+  const status = typeof error === 'object' && error !== null && 'status' in error ? error.status : undefined
+  const code = spendDecisionErrorCode(error)
+  const uncertain = 'spending.live.errors.uncertain'
   switch (code) {
     case 'POLICY.VERSION_CHANGED':
     case 'POLICY.NOT_IN_FORCE':
-      return 'spending.live.errors.policyChanged'
+      return status === 409 ? 'spending.live.errors.policyChanged' : uncertain
     case 'POLICY.CHECKLIST_HAS_NO':
-      return 'spending.live.errors.checklistNo'
+      return status === 422 ? 'spending.live.errors.checklistNo' : uncertain
     case 'POLICY.CHECKLIST_INCOMPLETE':
-      return 'spending.live.errors.checklistIncomplete'
+      return status === 422 ? 'spending.live.errors.checklistIncomplete' : uncertain
     case 'SPEND.NOT_CHECKABLE':
-      return 'spending.live.errors.notCheckable'
+      return status === 409 ? 'spending.live.errors.notCheckable' : uncertain
     case 'SPEND.NOT_THE_ASSIGNEE':
     case 'SPEND.OWN_REQUEST':
-      return 'spending.live.errors.notAssigned'
+      return status === 403 ? 'spending.live.errors.notAssigned' : uncertain
     case 'SPEND.RECHECKED_RETURNED_TO_HEAD':
     case 'SPEND.RECHECKED_RETURNED_TO_REQUESTER':
-      return 'spending.live.errors.returned'
+      return status === 409 ? 'spending.live.errors.returned' : uncertain
+    case 'GROUP_REQUEST.LINES_MISMATCH':
+      return status === 422 ? 'spending.live.errors.stale' : uncertain
     case 'SPEND.NO_SPEND_STEP':
     case 'SPEND.STEP_NOT_PENDING':
     case 'SPEND.STALE_STATE':
-    case 'GROUP_REQUEST.LINES_MISMATCH':
     case 'GROUP_REQUEST.LINE_NOT_PENDING':
     case 'ACCESS_REQUEST.GROUP_USES_LINES':
-      return 'spending.live.errors.stale'
+      return status === 409 ? 'spending.live.errors.stale' : uncertain
     case 'SPEND.BUDGET_BLOCKED':
-      return 'spending.live.errors.budgetBlocked'
+      return status === 409 ? 'spending.live.errors.budgetBlocked' : uncertain
     case 'BUDGET.COMMITMENT_NOT_HOLDABLE':
     case 'BUDGET.COMMITMENT_EXISTS':
-      return 'spending.live.errors.commitment'
+      return status === 409 ? 'spending.live.errors.commitment' : uncertain
     default:
-      return 'spending.live.errors.uncertain'
+      return uncertain
   }
 }
 

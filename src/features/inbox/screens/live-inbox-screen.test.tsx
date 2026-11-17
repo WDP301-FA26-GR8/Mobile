@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, waitFor } from '@testing-library/react-native'
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native'
 import type { ReactNode } from 'react'
 import { Text } from 'react-native'
 
@@ -76,6 +76,9 @@ beforeEach(async () => {
             code: 'REQUEST_GRANTED',
             subject: null,
             params: { requestId: '01234567-89ab-cdef-0123-456789abcdef' },
+            title: '',
+            message: '',
+            target: null,
             createdAt: '2026-11-09T00:00:00Z',
             readAt: null
           }
@@ -107,7 +110,7 @@ test('shows real notifications and updates one using authenticated API', async (
   screen.getByText('1 thông báo chưa đọc')
   expect(notificationList).toHaveBeenCalledWith(
     { page: 1, pageSize: 20 },
-    expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
+    expect.objectContaining({ headers: { Authorization: 'Bearer test-token', 'Accept-Language': 'vi' } })
   )
   await fireEvent.press(screen.getByRole('button', { name: 'Mở thông báo: Đã cấp quyền sử dụng' }))
   await waitFor(() =>
@@ -177,6 +180,19 @@ test('shows unknown codes rather than inventing a notification meaning', async (
   await fireEvent.press(screen.getByRole('button', { name: 'Mở thông báo: Thông báo mới' }))
   await screen.findByText('Nội dung này chưa có trên ứng dụng. Vui lòng xem chi tiết trên web.')
   expect(mockRouter.push).not.toHaveBeenCalled()
+})
+
+test('supports an older server without rendered notification fields', async () => {
+  const response = await jest.mocked(notificationList)()
+  if (!response.data.data) throw new Error('Expected notification data')
+  const item = response.data.data.items[0]
+  Reflect.deleteProperty(item, 'title')
+  Reflect.deleteProperty(item, 'message')
+  Reflect.deleteProperty(item, 'target')
+  const screen = await renderScreen()
+  await screen.findByRole('button', { name: 'Mở thông báo: Đã cấp quyền sử dụng' })
+  await fireEvent.press(screen.getByRole('button', { name: 'Mở thông báo: Đã cấp quyền sử dụng' }))
+  await waitFor(() => expect(mockRouter.push).toHaveBeenCalled())
 })
 
 test('opens the request and shows a persistent warning when marking the notification fails', async () => {
@@ -260,7 +276,7 @@ test('opens the holder’s software access from an expiry notification', async (
   const response = await jest.mocked(notificationList)()
   if (!response.data.data) throw new Error('Expected notification data')
   response.data.data.items[0].code = 'LICENSE_EXPIRY_REMINDER'
-  response.data.data.items[0].subject = { type: 'LicenseAssignment', id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }
+  response.data.data.items[0].subject = { type: 'LICENSE_ASSIGNMENT', id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }
   response.data.data.items[0].params = { audience: 'EMPLOYEE' }
   const screen = await renderScreen()
   await screen.findByText('Quyền phần mềm sắp hết hạn')
@@ -312,7 +328,42 @@ test('supports English and marks all notifications as read', async () => {
   await setAppLanguage('en', false)
   const screen = await renderScreen()
   await screen.findByText('Access granted')
+  expect(notificationList).toHaveBeenCalledWith(
+    { page: 1, pageSize: 20 },
+    expect.objectContaining({ headers: { Authorization: 'Bearer test-token', 'Accept-Language': 'en' } })
+  )
   await fireEvent.press(screen.getByRole('button', { name: 'Mark all as read' }))
   await waitFor(() => expect(notificationMarkAllRead).toHaveBeenCalledTimes(1))
   await waitFor(() => expect(notificationUnreadCount).toHaveBeenCalledTimes(2))
+})
+
+test('shows localized server notification text and reloads it when the language changes', async () => {
+  const response = await jest.mocked(notificationList)()
+  if (!response.data.data) throw new Error('Expected notification data')
+  const data = response.data.data
+  jest.mocked(notificationList).mockImplementation(async (_params, options) => {
+    const english = new Headers(options?.headers).get('Accept-Language') === 'en'
+    return {
+      ...response,
+      data: {
+        ...response.data,
+        data: {
+          ...data,
+          items: [
+            {
+              ...data.items[0],
+              title: english ? 'Server title' : 'Tiêu đề từ máy chủ',
+              message: english ? 'Server message' : 'Nội dung từ máy chủ'
+            }
+          ]
+        }
+      }
+    }
+  })
+  const screen = await renderScreen()
+  await screen.findByRole('button', { name: 'Mở thông báo: Tiêu đề từ máy chủ' })
+  screen.getByText('Nội dung từ máy chủ')
+  await act(() => setAppLanguage('en', false))
+  await screen.findByRole('button', { name: 'Open notification: Server title' })
+  screen.getByText('Server message')
 })

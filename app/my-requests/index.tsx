@@ -1,3 +1,5 @@
-import { MyRequestsScreen } from '@/features/requests'
+import { Redirect } from 'expo-router'
 
-export default MyRequestsScreen
+export default function MyRequestsRoute() {
+  return <Redirect href='/live-requests' />
+}

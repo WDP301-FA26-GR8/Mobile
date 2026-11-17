@@ -114,7 +114,16 @@ export function useLiveSpendingApprovals(
           headers: { Authorization: `Bearer ${token}` }
         })
         const spendApproval = result.data.data?.spendApproval
-        if (!spendApproval || spendApproval.requestId !== selectedRequestId) {
+        if (
+          !spendApproval ||
+          spendApproval.requestId !== selectedRequestId ||
+          !spendApproval.request ||
+          !Number.isSafeInteger(spendApproval.request.lineCount) ||
+          spendApproval.request.lineCount < 1 ||
+          (spendApproval.request.beneficiary !== null &&
+            (typeof spendApproval.request.beneficiary !== 'object' ||
+              typeof spendApproval.request.beneficiary?.employeeId !== 'string'))
+        ) {
           throw new Error('Missing or inconsistent spend approval details')
         }
         return spendApproval
@@ -123,7 +132,7 @@ export function useLiveSpendingApprovals(
 
   const lines = useQuery({
     queryKey: ['session', 'spend-approval-lines', selectedRequestId],
-    enabled: enabled && !!selectedRequestId && (detail.data?.request.lineCount ?? 0) > 1,
+    enabled: enabled && !!selectedRequestId && detail.data?.request.beneficiary === null,
     queryFn: ({ signal }) =>
       session.read(async (token) => {
         if (!selectedRequestId) throw new Error('Missing grouped spend approval request ID')
@@ -168,13 +177,30 @@ export function useLiveSpendingApprovals(
 
   const decide = useMutation({
     retry: false,
-    mutationFn: ({ id, body }: { id: string; body: SpendDecisionBodyDto }) =>
+    mutationFn: ({ id, stepId, body }: { id: string; stepId: string; body: SpendDecisionBodyDto }) =>
       session.write(async (token) => {
         const result = await spendApprovalDecide(id, body, {
           headers: { Authorization: `Bearer ${token}` }
         })
         const spendApproval = result.data.data?.spendApproval
-        if (!spendApproval || spendApproval.requestId !== id || !spendApproval.decision) {
+        const expectedStep =
+          body.decision === 'RETURN' ? 'CLOSED' : body.decision === 'APPROVE' ? 'APPROVED' : 'REJECTED'
+        const expectedState =
+          body.decision === 'RETURN'
+            ? spendApproval?.routing.mode === 'ONE_STEP'
+              ? 'AWAITING_REQUESTER_REVISION'
+              : 'AWAITING_SPEND_SUBMISSION'
+            : body.decision === 'APPROVE'
+              ? 'AWAITING_EXECUTION'
+              : 'REJECTED'
+        if (
+          !spendApproval ||
+          spendApproval.requestId !== id ||
+          spendApproval.step.id !== stepId ||
+          spendApproval.step.state !== expectedStep ||
+          spendApproval.request.state !== expectedState ||
+          (body.decision !== 'RETURN' && spendApproval.decision?.decision !== expectedStep)
+        ) {
           throw new Error('Missing or inconsistent spend approval decision response')
         }
         return spendApproval
@@ -192,13 +218,34 @@ export function useLiveSpendingApprovals(
 
   const decideLines = useMutation({
     retry: false,
-    mutationFn: ({ id, body }: { id: string; body: LineSpendDecisionBodyDto }) =>
+    mutationFn: ({ id, stepId, body }: { id: string; stepId: string; body: LineSpendDecisionBodyDto }) =>
       session.write(async (token) => {
         const result = await spendApprovalLineDecide(id, body, {
           headers: { Authorization: `Bearer ${token}` }
         })
         const spendApproval = result.data.data?.spendApproval
-        if (!spendApproval || spendApproval.requestId !== id) {
+        const isReturn = body.lines.every((line) => line.decision === 'RETURN')
+        const expectedStep = isReturn
+          ? 'CLOSED'
+          : body.lines.some((line) => line.decision === 'APPROVE')
+            ? 'APPROVED'
+            : 'REJECTED'
+        if (
+          !spendApproval ||
+          spendApproval.requestId !== id ||
+          spendApproval.request.beneficiary !== null ||
+          spendApproval.step.id !== stepId ||
+          spendApproval.step.state !== expectedStep ||
+          spendApproval.request.state !==
+            (isReturn
+              ? spendApproval.routing.mode === 'ONE_STEP'
+                ? 'AWAITING_REQUESTER_REVISION'
+                : 'AWAITING_SPEND_SUBMISSION'
+              : expectedStep === 'APPROVED'
+                ? 'AWAITING_EXECUTION'
+                : 'REJECTED') ||
+          (!isReturn && spendApproval.decision?.decision !== expectedStep)
+        ) {
           throw new Error('Missing or inconsistent grouped spend decision response')
         }
         return spendApproval

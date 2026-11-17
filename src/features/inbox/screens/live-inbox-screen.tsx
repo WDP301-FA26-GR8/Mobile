@@ -192,12 +192,18 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
             ] as const
             const code = codes.find((value) => value === item.code)
             const date = new Date(item.createdAt)
+            const title =
+              typeof item.title === 'string' && item.title.trim()
+                ? item.title
+                : code
+                  ? t(`inbox.live.codes.${code}`)
+                  : t('inbox.live.newNotification')
             return (
               <Pressable
                 key={item.id}
                 accessibilityRole='button'
                 accessibilityLabel={t('inbox.live.openNamed', {
-                  name: code ? t(`inbox.live.codes.${code}`) : t('inbox.live.newNotification')
+                  name: title
                 })}
                 accessibilityState={{ disabled: markRead.isPending, busy: markRead.isPending }}
                 disabled={markRead.isPending}
@@ -215,9 +221,10 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
                     />
                   </View>
                   <View style={styles.itemCopy}>
-                    <Text style={styles.itemTitle}>
-                      {code ? t(`inbox.live.codes.${code}`) : t('inbox.live.newNotification')}
-                    </Text>
+                    <Text style={styles.itemTitle}>{title}</Text>
+                    {typeof item.message === 'string' && item.message.length > 0 ? (
+                      <Text style={styles.muted}>{item.message}</Text>
+                    ) : null}
                     <View style={styles.readStatus}>
                       {!item.readAt ? (
                         <View accessibilityElementsHidden importantForAccessibility='no' style={styles.unreadDot} />

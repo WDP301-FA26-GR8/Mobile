@@ -1,3 +1,5 @@
-import { InboxScreen } from '@/features/inbox'
+import { Redirect } from 'expo-router'
 
-export default InboxScreen
+export default function InboxRoute() {
+  return <Redirect href='/live-inbox' />
+}

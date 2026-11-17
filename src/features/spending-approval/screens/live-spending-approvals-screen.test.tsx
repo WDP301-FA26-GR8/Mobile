@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, waitFor } from '@testing-library/react-native'
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native'
+import { BackHandler, Platform } from 'react-native'
 
 import { LiveSpendingApprovalsScreen } from '@/features/spending-approval'
 import {
@@ -21,7 +22,8 @@ import type {
 import type { SpendApprovalDecide200, SpendApprovalGet200 } from '@/shared/api/generated/contracts/spend-approvals'
 import { setAppLanguage } from '@/shared/i18n/i18n'
 
-const mockRouter = { push: jest.fn() }
+const mockRouter = { push: jest.fn(), canGoBack: jest.fn(() => false) }
+const mockPreventRemove = jest.fn()
 const mockRedirect = jest.fn()
 const mockSession = {
   state: 'authenticated' as 'authenticated' | 'anonymous' | 'loading',
@@ -42,7 +44,13 @@ jest.mock('expo-router', () => ({
     mockRedirect(props.href)
     return null
   },
-  useRouter: () => mockRouter
+  useRouter: () => mockRouter,
+  useFocusEffect: (callback: () => void | (() => void)) =>
+    jest.requireActual<typeof import('react')>('react').useEffect(callback, [callback])
+}))
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  usePreventRemove: (prevent: boolean) => mockPreventRemove(prevent)
 }))
 jest.mock('@/shared/api/session-context', () => ({ useSession: () => mockSession }))
 jest.mock('@/shared/api/use-account-profile', () => ({ useAccountProfile: () => mockProfile }))
@@ -57,7 +65,7 @@ jest.mock('@/shared/api/generated/api/group-requests/group-requests', () => ({
 }))
 jest.mock('@/shared/api/generated/api/policies/policies', () => ({ policyStepGet: jest.fn() }))
 
-function makeApprovalDetail(lineCount = 1): SpendApprovalGet200 {
+function makeApprovalDetail(lineCount = 1, group = lineCount > 1): SpendApprovalGet200 {
   return {
     success: true,
     message: 'SPEND_APPROVAL.FETCHED',
@@ -83,7 +91,13 @@ function makeApprovalDetail(lineCount = 1): SpendApprovalGet200 {
             employeeCode: 'E-1',
             fullName: 'Requester'
           },
-          beneficiary: null,
+          beneficiary: group
+            ? null
+            : {
+                employeeId: '51234567-89ab-cdef-0123-456789abcdef',
+                employeeCode: 'E-2',
+                fullName: 'Beneficiary'
+              },
           lineCount,
           costCenter: { id: '31234567-89ab-cdef-0123-456789abcdef', code: 'CC-1' },
           businessReason: 'Test request reason',
@@ -99,6 +113,22 @@ function makeApprovalDetail(lineCount = 1): SpendApprovalGet200 {
         budgetSnapshot: null,
         nextYearBudget: null,
         annualVendorAmount: null
+      }
+    }
+  }
+}
+
+function returnedApproval(detail: SpendApprovalGet200): SpendApprovalGet200 {
+  if (!detail.data) throw new Error('Missing test approval')
+  const approval = detail.data.spendApproval
+  return {
+    ...detail,
+    data: {
+      spendApproval: {
+        ...approval,
+        step: { ...approval.step, state: 'CLOSED' },
+        request: { ...approval.request, state: 'AWAITING_SPEND_SUBMISSION' },
+        decision: null
       }
     }
   }
@@ -161,7 +191,11 @@ beforeEach(async () => {
               employeeCode: 'E-1',
               fullName: 'Requester'
             },
-            beneficiary: null,
+            beneficiary: {
+              employeeId: '51234567-89ab-cdef-0123-456789abcdef',
+              employeeCode: 'E-2',
+              fullName: 'Beneficiary'
+            },
             lineCount: 1,
             costCenter: { id: '31234567-89ab-cdef-0123-456789abcdef', code: 'CC-1' },
             amount: { amount: '1200', currency: 'VND' },
@@ -206,6 +240,8 @@ beforeEach(async () => {
       data: {
         spendApproval: {
           ...approvalDetail.data!.spendApproval,
+          step: { ...approvalDetail.data!.spendApproval.step, state: 'APPROVED' },
+          request: { ...approvalDetail.data!.spendApproval.request, state: 'AWAITING_EXECUTION' },
           decision: {
             decision: 'APPROVED',
             reason: null,
@@ -276,7 +312,7 @@ test('returns every waiting group line in one confirmed decision', async () => {
   jest.mocked(spendApprovalLineDecide).mockResolvedValue({
     status: 200,
     headers: new Headers(),
-    data: approvalDetail satisfies SpendApprovalLineDecide200
+    data: returnedApproval(approvalDetail) satisfies SpendApprovalLineDecide200
   })
 
   const screen = await renderScreen(requestId)
@@ -307,4 +343,252 @@ test('returns every waiting group line in one confirmed decision', async () => {
     )
   )
   expect(spendApprovalDecide).not.toHaveBeenCalled()
+  await screen.findByText('Đã gửi quyết định. Hàng đợi sẽ được tải lại.')
+})
+
+test('uses the group endpoint when only one person remains in a group', async () => {
+  const requestId = '01234567-89ab-cdef-0123-456789abcdef'
+  const approvalDetail = makeApprovalDetail(1, true)
+  jest.mocked(spendApprovalGet).mockResolvedValue({ status: 200, headers: new Headers(), data: approvalDetail })
+  jest.mocked(accessRequestLineList).mockResolvedValue({
+    status: 200,
+    headers: new Headers(),
+    data: {
+      success: true,
+      message: 'ACCESS_REQUEST.LINES',
+      data: {
+        items: [makeWaitingLine('employee-1', 'Employee One')],
+        pagination: { page: 1, pageSize: 100, totalItems: 1, totalPages: 1 }
+      }
+    }
+  })
+  jest.mocked(spendApprovalLineDecide).mockResolvedValue({
+    status: 200,
+    headers: new Headers(),
+    data: returnedApproval(approvalDetail)
+  })
+
+  const screen = await renderScreen(requestId)
+  await screen.findByText('Employee One')
+  await fireEvent.press(screen.getByRole('button', { name: 'Có' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Trả về trưởng bộ phận' }))
+  await fireEvent.changeText(
+    screen.getByLabelText('Lý do (bắt buộc trừ khi checklist có câu trả lời Không)'),
+    'Needs review'
+  )
+  await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận quyết định riêng lẻ' }))
+  await waitFor(() =>
+    expect(spendApprovalLineDecide).toHaveBeenCalledWith(
+      requestId,
+      expect.objectContaining({ lines: [{ employeeId: 'employee-1', decision: 'RETURN', reason: 'Needs review' }] }),
+      expect.anything()
+    )
+  )
+  expect(spendApprovalDecide).not.toHaveBeenCalled()
+  await screen.findByText('Đã gửi quyết định. Hàng đợi sẽ được tải lại.')
+})
+
+test('does not report a group approval as successful when its request state is inconsistent', async () => {
+  const detail = makeApprovalDetail(1, true)
+  if (!detail.data) throw new Error('Missing test approval')
+  const approval = detail.data.spendApproval
+  jest.mocked(spendApprovalGet).mockResolvedValue({ status: 200, headers: new Headers(), data: detail })
+  jest.mocked(accessRequestLineList).mockResolvedValue({
+    status: 200,
+    headers: new Headers(),
+    data: {
+      success: true,
+      message: 'ACCESS_REQUEST.LINES',
+      data: {
+        items: [makeWaitingLine('employee-1', 'Employee One')],
+        pagination: { page: 1, pageSize: 100, totalItems: 1, totalPages: 1 }
+      }
+    }
+  })
+  jest.mocked(spendApprovalLineDecide).mockResolvedValue({
+    status: 200,
+    headers: new Headers(),
+    data: {
+      ...detail,
+      data: {
+        spendApproval: {
+          ...approval,
+          step: { ...approval.step, state: 'APPROVED' },
+          decision: {
+            decision: 'APPROVED',
+            reason: null,
+            decidedAt: '2026-11-18T00:00:00.000Z',
+            decidedBy: approval.request.requester
+          }
+        }
+      }
+    }
+  })
+  const screen = await renderScreen('01234567-89ab-cdef-0123-456789abcdef')
+  await screen.findByText('Employee One')
+  await fireEvent.press(screen.getByRole('button', { name: 'Duyệt' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Có' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Tiếp tục với các quyết định riêng lẻ' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận quyết định riêng lẻ' }))
+  await screen.findByText('Máy chủ chưa xác nhận kết quả. Không thử gửi lại; hãy tải hàng đợi và kiểm tra trạng thái.')
+  expect(spendApprovalLineDecide).toHaveBeenCalledTimes(1)
+  expect(screen.queryByText('Đã gửi quyết định. Hàng đợi sẽ được tải lại.')).toBeNull()
+})
+
+test('confirms a returned individual request without a spend decision record', async () => {
+  const requestId = '01234567-89ab-cdef-0123-456789abcdef'
+  jest.mocked(spendApprovalDecide).mockResolvedValue({
+    status: 200,
+    headers: new Headers(),
+    data: returnedApproval(makeApprovalDetail())
+  })
+  const screen = await renderScreen(requestId)
+  await screen.findByText('Checklist question')
+  await fireEvent.press(screen.getByRole('button', { name: 'Có' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Trả về trưởng bộ phận' }))
+  await fireEvent.changeText(
+    screen.getByLabelText('Lý do (bắt buộc trừ khi checklist có câu trả lời Không)'),
+    'Needs review'
+  )
+  await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận quyết định riêng lẻ' }))
+  await screen.findByText('Đã gửi quyết định. Hàng đợi sẽ được tải lại.')
+  expect(spendApprovalDecide).toHaveBeenCalledTimes(1)
+})
+
+test('returns a one-step request to its requester', async () => {
+  const detail = makeApprovalDetail()
+  if (!detail.data) throw new Error('Missing test approval')
+  const approval = detail.data.spendApproval
+  approval.routing = { mode: 'ONE_STEP', oneStepReason: 'REQUESTER_IS_HEAD' }
+  const returned = returnedApproval(detail)
+  if (!returned.data) throw new Error('Missing returned approval')
+  returned.data.spendApproval.request.state = 'AWAITING_REQUESTER_REVISION'
+  jest.mocked(spendApprovalGet).mockResolvedValue({ status: 200, headers: new Headers(), data: detail })
+  jest.mocked(spendApprovalDecide).mockResolvedValue({ status: 200, headers: new Headers(), data: returned })
+  const screen = await renderScreen('01234567-89ab-cdef-0123-456789abcdef')
+  await screen.findByText('Checklist question')
+  await fireEvent.press(screen.getByRole('button', { name: 'Có' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Trả về người yêu cầu' }))
+  await fireEvent.changeText(
+    screen.getByLabelText('Lý do (bắt buộc trừ khi checklist có câu trả lời Không)'),
+    'Needs review'
+  )
+  await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận quyết định riêng lẻ' }))
+  await screen.findByText('Đã gửi quyết định. Hàng đợi sẽ được tải lại.')
+})
+
+test('requires a different verified policy version before a manual retry', async () => {
+  jest.mocked(spendApprovalDecide).mockRejectedValueOnce({
+    status: 409,
+    info: { error: { code: 'POLICY.VERSION_CHANGED' } }
+  })
+  const policy = await jest.mocked(policyStepGet)('POL-MF1', '1.7')
+  if (!policy.data.data) throw new Error('Missing test policy')
+  const screen = await renderScreen('01234567-89ab-cdef-0123-456789abcdef')
+  await screen.findByText('Checklist question')
+  await fireEvent.press(screen.getByRole('button', { name: 'Có' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Duyệt' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận quyết định riêng lẻ' }))
+  await screen.findByText('Chính sách đã thay đổi trước khi ghi nhận quyết định. Tải checklist hiện tại và xem lại.')
+  await fireEvent.press(screen.getByRole('button', { name: 'Tải lại chính sách và yêu cầu hiện tại' }))
+  await screen.findByText('Không thể xác minh chính sách hoặc yêu cầu được giao. Hãy tải lại hoặc về hàng đợi.')
+  expect(spendApprovalDecide).toHaveBeenCalledTimes(1)
+
+  jest.mocked(policyStepGet).mockResolvedValue({
+    ...policy,
+    data: {
+      ...policy.data,
+      data: { ...policy.data.data, policyVersionId: '51234567-89ab-cdef-0123-456789abcdef' }
+    }
+  })
+  await fireEvent.press(screen.getByRole('button', { name: 'Tải lại chính sách và yêu cầu hiện tại' }))
+  await screen.findByText('Checklist question')
+  expect(screen.getByRole('button', { name: 'Xác nhận quyết định riêng lẻ' }).props.accessibilityState.disabled).toBe(
+    true
+  )
+  expect(spendApprovalDecide).toHaveBeenCalledTimes(1)
+})
+
+test.each([
+  [
+    409,
+    'Máy chủ đã kiểm tra lại ngân sách và trả yêu cầu về người gửi hoặc trưởng bộ phận. Chưa có quyết định nào được ghi nhận.'
+  ],
+  [500, 'Máy chủ chưa xác nhận kết quả. Không thử gửi lại; hãy tải hàng đợi và kiểm tra trạng thái.']
+])('uses HTTP status %i to distinguish a confirmed return from an uncertain failure', async (status, message) => {
+  jest.mocked(spendApprovalDecide).mockRejectedValueOnce({
+    status,
+    info: { error: { code: 'SPEND.RECHECKED_RETURNED_TO_HEAD' } }
+  })
+  const screen = await renderScreen('01234567-89ab-cdef-0123-456789abcdef')
+  await screen.findByText('Checklist question')
+  await fireEvent.press(screen.getByRole('button', { name: 'Có' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Duyệt' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận quyết định riêng lẻ' }))
+  await screen.findByText(message)
+  expect(spendApprovalDecide).toHaveBeenCalledTimes(1)
+})
+
+test('locks navigation while a decision is in flight and never reports an inconsistent response as success', async () => {
+  let resolveDecision: (value: Awaited<ReturnType<typeof spendApprovalDecide>>) => void = () => {
+    throw new Error('Decision was not started')
+  }
+  jest.mocked(spendApprovalDecide).mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        resolveDecision = resolve
+      })
+  )
+  const screen = await renderScreen('01234567-89ab-cdef-0123-456789abcdef')
+  await screen.findByText('Checklist question')
+  await fireEvent.press(screen.getByRole('button', { name: 'Có' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Duyệt' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận quyết định riêng lẻ' }))
+  await waitFor(() => {
+    expect(spendApprovalDecide).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('button', { name: 'Quay lại việc được giao' }).props.accessibilityState.disabled).toBe(true)
+    expect(screen.getByRole('tab', { name: 'Mở mục Thông báo' }).props.accessibilityState.disabled).toBe(true)
+    expect(mockPreventRemove).toHaveBeenLastCalledWith(true)
+  })
+  await act(() => resolveDecision({ status: 200, headers: new Headers(), data: makeApprovalDetail() }))
+  await screen.findByText('Máy chủ chưa xác nhận kết quả. Không thử gửi lại; hãy tải hàng đợi và kiểm tra trạng thái.')
+  expect(screen.queryByText('Đã gửi quyết định. Hàng đợi sẽ được tải lại.')).toBeNull()
+  expect(spendApprovalDecide).toHaveBeenCalledTimes(1)
+})
+
+test('blocks Android system exit on the last route while a decision is in flight', async () => {
+  const previousPlatform = Platform.OS
+  Platform.OS = 'android'
+  let back: () => boolean | null | undefined = () => false
+  const subscription = jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_event, handler) => {
+    back = handler
+    return { remove: jest.fn() }
+  })
+  let resolveDecision: (value: Awaited<ReturnType<typeof spendApprovalDecide>>) => void = () => {
+    throw new Error('Decision was not started')
+  }
+  jest.mocked(spendApprovalDecide).mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        resolveDecision = resolve
+      })
+  )
+  try {
+    const screen = await renderScreen('01234567-89ab-cdef-0123-456789abcdef')
+    await screen.findByText('Checklist question')
+    expect(back()).toBe(false)
+    await fireEvent.press(screen.getByRole('button', { name: 'Có' }))
+    await fireEvent.press(screen.getByRole('button', { name: 'Duyệt' }))
+    await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận quyết định riêng lẻ' }))
+    await waitFor(() => expect(back()).toBe(true))
+    await act(() => resolveDecision({ status: 200, headers: new Headers(), data: makeApprovalDetail() }))
+    await screen.findByText(
+      'Máy chủ chưa xác nhận kết quả. Không thử gửi lại; hãy tải hàng đợi và kiểm tra trạng thái.'
+    )
+    await waitFor(() => expect(back()).toBe(false))
+    screen.unmount()
+  } finally {
+    subscription.mockRestore()
+    Platform.OS = previousPlatform
+  }
 })

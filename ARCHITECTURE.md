@@ -21,10 +21,17 @@ only role is `SPENDING_APPROVER`; its queue is server-assigned and paginated. It
 shows the read-only budget snapshot and policy 1.7 checklist, submits individual
 decisions, and decides only the people currently awaiting a group spending decision.
 Group `RETURN` is sent for every waiting person or none; batch decisions remain web-only.
-Prototype request and Manager-demo decisions are stored only in the current app
-session and are not submitted to a backend. Contract availability alone does not resolve
+The detail's null beneficiary identifies a group even when only one person remains.
+Return closes the step without requiring a spend decision record and follows the
+server's one-step or head routing. Mutation responses must match the request, step,
+and expected outcome; inconsistent responses are treated as uncertain. Navigation
+and Android system back on the last route are blocked while a decision is in flight.
+On an explicit policy-version conflict, the user may reload the policy, request and
+group lines; a different version and the same pending step are required before
+answering again. Neither this recovery nor uncertain writes automatically retry.
+Prototype request and Manager-demo components remain available to tests but their
+legacy routes redirect to live screens. Contract availability alone does not resolve
 the differences between the current backend and newer proposed business decisions.
-The Manager demo has a separate direct route; there is no in-session role switcher.
 The authenticated landing loads `/me` and opens `/home`, which shows self-service
 shortcuts and the live Manager or Spending Approver queue only to the matching role.
 If the account cannot be loaded, the user can retry or sign out; the app does not guess the role.
@@ -32,7 +39,9 @@ The personal software screen links Manager accounts
 back to the workspace but does not show that entry for employees. The live
 screen links to live request flows instead of opening the demo, to
 avoid presenting demo data as the signed-in user's data. The live inbox at `/live-inbox`
-uses the authenticated notification API; the prototype inbox remains separate. Opening
+uses the authenticated notification API. It requests server-rendered titles and
+messages in the active language, with a legacy code-label fallback when an older
+server omits them. Opening
 an unread notification marks it read once and opens a supported destination even if
 the update fails; a dismissible warning survives navigation. Request notifications
 open real request detail. Assigned Manager need notifications search the caller's
@@ -40,7 +49,7 @@ current assigned queue across pages (up to 100 pages; exceeding that limit is an
 explicit error) and open an individual GRANT only when found;
 unavailable or group work is not sent to the individual decision route. A need
 reminder not in that queue opens request detail, where the backend checks visibility.
-Assigned Spending Approver notifications open the spending workspace only after
+Assigned and reminder Spending Approver notifications open the spending workspace only after
 the request is found in the caller's assigned queue; an unavailable item stays
 explicitly unavailable rather than opening an unverified decision detail.
 Personal expiry
@@ -95,6 +104,8 @@ An answer of No blocks approval; rejection or return requires a reason unless th
 server can derive it from a No answer.
 Backend authorization and stale-state checks remain authoritative. Failed or uncertain
 decisions are never retried automatically and require checking the refreshed queue.
+Navigation and Android system back on the last route are blocked while a Manager
+decision is in flight.
 An explicit `POLICY.VERSION_CHANGED` rejection instead lets the Manager reload the
 request and a different checklist version, then answer again before deciding manually.
 Manager group request creation and spend-batch submission remain web-only; a GH-3 flag
@@ -102,7 +113,8 @@ is not shown because the current detail contract does not expose it. The mobile 
 does not assume the newer proposed one-step manager-self-request routing has been
 implemented by the backend.
 Password recovery on the login screen directs the
-user to web until the real reset-link flow is implemented.
+user to web until the real reset-link flow is implemented. Its former prototype
+route redirects to login and cannot simulate a successful password change.
 The authenticated account header opens `/profile`, a read-only account information
 screen for the signed-in user using the shared `/me` query. It shows the department
 managed when the account is a Manager; profile editing and password changes remain
@@ -136,8 +148,8 @@ expiring count; the filter explicitly applies only to the current page. Software
 details search the authenticated current and ended rights pages for the assignment;
 no separate detail endpoint exists. They do not expose invented accounts or keys.
 An all-pages expiring filter and return workflows are not provided.
-The canonical employee request list URL is `/my-requests`; unknown request IDs
-redirect there rather than to `/my-requests/index`, which matches a dynamic ID.
+Legacy `/my-requests`, `/inbox` and `/manager` routes redirect to live screens;
+prototype request IDs redirect to the live request list.
 
 ## Runtime view
 
@@ -161,7 +173,7 @@ app/
   _layout.tsx              root route/provider attachment
   index.tsx                thin route entry
   home.tsx                 authenticated Home handoff
-  inbox.tsx                prototype inbox handoff
+  inbox.tsx                legacy inbox redirect
   live-inbox.tsx           authenticated inbox handoff
   live-requests.tsx        authenticated request list handoff
   live-request-create.tsx  authenticated individual request handoff
@@ -169,14 +181,14 @@ app/
   live-requests/           authenticated request detail handoff
   my-software.tsx          employee software handoff
   profile.tsx              read-only signed-in account handoff
-  manager.tsx              manager need-approval demo handoff
+  manager.tsx              legacy manager redirect
   spending-approvals.tsx   authenticated Spending Approver handoff
-  my-requests/             employee request routes
+  my-requests/             legacy request redirects
 src/
   providers/               application-wide framework providers
   features/
     account/                read-only signed-in account information
-    auth/                   backend login and prototype password recovery
+    auth/                   backend login and inactive prototype password recovery
     inbox/                  authenticated and prototype in-app notifications
     licenses/               employee software screens and models
     manager/                department need-approval demo presentation
@@ -310,6 +322,13 @@ entire snapshot was imported from the deployed public `/api/docs-json` (SHA-256
 That hash differs from the mobile API guide's documented export; recheck the deployed
 contract before further integration. The live request list includes both requests
 sent by the caller and requests made for the caller.
+On 2026-11-18 the notification list and mark-read response schemas and language
+headers were updated from the local backend export (SHA-256
+`6d0d216b619da6aaaf094f73bb58bed7273fe0ced88634e3fccc39843ea4e200`);
+the corresponding response schemas matched the public `/api/docs-json` (SHA-256
+`9de2b7d504cadb306ee7881f4bb507a8f5f96fa85dae51db6972ed89e98b7a90`).
+The rest of the snapshot was not reimported. Contract shape alone does not prove
+the deployed backend's behavior.
 The import adds missing top-level tag declarations and request/response aliases
 to satisfy the mobile naming conventions without renaming the backend DTOs. It also
 adds the already-inherited string type to example-only `message` overlays, and

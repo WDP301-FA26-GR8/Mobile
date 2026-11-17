@@ -58,7 +58,7 @@ export function LiveSpendingApprovalCard({
         {item.beneficiary ? (
           <Text style={styles.metaText}>{t('spending.live.beneficiary', { name: item.beneficiary.fullName })}</Text>
         ) : null}
-        {item.lineCount > 1 ? (
+        {item.beneficiary === null ? (
           <Text style={styles.metaText}>
             {t('spending.live.groupCount', {
               formattedCount: new Intl.NumberFormat(i18n.language).format(item.lineCount)

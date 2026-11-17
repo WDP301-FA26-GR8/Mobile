@@ -20392,6 +20392,20 @@ export const getNotificationListResponseDtoMock = (
               faker.datatype.boolean()
             ])
           },
+          title: faker.string.alpha({ length: { min: 1, max: 20 } }),
+          message: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          target: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+              {
+                operationId: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                pathParams: {
+                  [faker.string.alphanumeric(5)]: faker.string.alpha({ length: { min: 10, max: 20 } })
+                }
+              },
+              null
+            ]),
+            null
+          ]),
           createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
           readAt: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null])
         })),
@@ -20458,6 +20472,20 @@ export const getNotificationResponseDtoMock = (
               faker.datatype.boolean()
             ])
           },
+          title: faker.string.alpha({ length: { min: 1, max: 20 } }),
+          message: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          target: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+              {
+                operationId: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                pathParams: {
+                  [faker.string.alphanumeric(5)]: faker.string.alpha({ length: { min: 10, max: 20 } })
+                }
+              },
+              null
+            ]),
+            null
+          ]),
           createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
           readAt: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null])
         }

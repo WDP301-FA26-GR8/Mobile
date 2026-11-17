@@ -55,7 +55,6 @@ export function notificationDestination(
     )
       return { type: 'manager', requestId, source: notification.code === 'STEP_ASSIGNED' ? 'assigned' : 'reminder' }
     if (
-      notification.code === 'STEP_ASSIGNED' &&
       notification.params.stepKind === 'SPEND_APPROVAL' &&
       account?.roles.length === 1 &&
       account.roles[0] === 'SPENDING_APPROVER' &&
@@ -67,7 +66,7 @@ export function notificationDestination(
   if (['LICENSE_EXPIRY_REMINDER', 'RENEWAL_WINDOW_OPENED'].includes(notification.code)) {
     if (notification.params.audience !== 'EMPLOYEE') return { type: 'web' }
     const assignmentId =
-      notification.subject?.type === 'LicenseAssignment'
+      notification.subject?.type === 'LicenseAssignment' || notification.subject?.type === 'LICENSE_ASSIGNMENT'
         ? notification.subject.id
         : notification.subject === null
           ? notification.params.assignmentId
@@ -81,7 +80,16 @@ export function notificationDestination(
     return { type: 'software' }
   }
   if (notification.code === 'STEP_SLA_REMINDER' && notification.params.stepKind !== 'NEED') return { type: 'web' }
-  if (!requestCodes.has(notification.code)) return { type: 'web' }
+  if (!requestCodes.has(notification.code)) {
+    if (
+      notification.target?.operationId === 'accessRequestGet' &&
+      notification.subject?.type === 'ACCESS_REQUEST' &&
+      notification.target.pathParams?.id === requestId &&
+      isUuid(requestId)
+    )
+      return { type: 'request', requestId }
+    return { type: 'web' }
+  }
   if (isUuid(requestId)) {
     return { type: 'request', requestId }
   }

@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, waitFor } from '@testing-library/react-native'
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native'
+import { BackHandler, Platform } from 'react-native'
 
 import { NotificationReadErrorProvider } from '@/features/inbox'
 import { LiveNeedApprovalsScreen } from '@/features/manager'
@@ -14,8 +15,9 @@ import { notificationList, notificationUnreadCount } from '@/shared/api/generate
 import { policyStepGet } from '@/shared/api/generated/api/policies/policies'
 import { setAppLanguage } from '@/shared/i18n/i18n'
 
-const mockRouter = { replace: jest.fn(), push: jest.fn() }
+const mockRouter = { replace: jest.fn(), push: jest.fn(), canGoBack: jest.fn(() => false) }
 const mockRedirect = jest.fn()
+const mockPreventRemove = jest.fn()
 const mockSession = {
   state: 'authenticated',
   logout: jest.fn(),
@@ -27,7 +29,13 @@ jest.mock('expo-router', () => ({
     mockRedirect(props.href)
     return null
   },
-  useRouter: () => mockRouter
+  useRouter: () => mockRouter,
+  useFocusEffect: (callback: () => void | (() => void)) =>
+    jest.requireActual<typeof import('react')>('react').useEffect(callback, [callback])
+}))
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  usePreventRemove: (prevent: boolean) => mockPreventRemove(prevent)
 }))
 jest.mock('@/shared/api/session-context', () => ({ useSession: () => mockSession }))
 jest.mock('@/shared/api/generated/api/need-decisions/need-decisions', () => ({ needDecisionList: jest.fn() }))
@@ -520,6 +528,52 @@ test('does not retry or report success for an uncertain approval', async () => {
   await screen.findByText('Chưa thể xác nhận quyết định. Hãy quay lại danh sách và kiểm tra trước khi thử lại.')
   expect(accessRequestNeedDecide).toHaveBeenCalledTimes(1)
   expect(screen.getByRole('button', { name: 'Xác nhận quyết định' }).props.accessibilityState.disabled).toBe(true)
+})
+
+test('blocks navigation and Android system exit while a decision is in flight', async () => {
+  const previousPlatform = Platform.OS
+  Platform.OS = 'android'
+  let back: () => boolean | null | undefined = () => false
+  const subscription = jest.spyOn(BackHandler, 'addEventListener').mockImplementation((_event, handler) => {
+    back = handler
+    return { remove: jest.fn() }
+  })
+  let rejectDecision: (error: Error) => void = () => {
+    throw new Error('Decision was not started')
+  }
+  jest.mocked(accessRequestNeedDecide).mockImplementation(
+    () =>
+      new Promise((_resolve, reject) => {
+        rejectDecision = reject
+      })
+  )
+  try {
+    const screen = await renderScreen()
+    await screen.findByText('Figma')
+    await fireEvent.press(screen.getByRole('button', { name: 'Xem Figma do An yêu cầu' }))
+    await screen.findByText('Thiết kế')
+    expect(back()).toBe(false)
+    await fireEvent.press(screen.getByRole('button', { name: 'Duyệt nhu cầu' }))
+    await screen.findByText('Có (hệ thống kiểm tra)')
+    await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận quyết định' }))
+    await waitFor(() => {
+      expect(mockPreventRemove).toHaveBeenLastCalledWith(true)
+      expect(back()).toBe(true)
+      expect(screen.getByRole('button', { name: 'Về danh sách được giao' }).props.accessibilityState.disabled).toBe(
+        true
+      )
+      expect(screen.getByRole('tab', { name: 'Mở mục Thông báo' }).props.accessibilityState.disabled).toBe(true)
+    })
+    await act(() => rejectDecision(new Error('offline')))
+    await screen.findByText('Chưa thể xác nhận quyết định. Hãy quay lại danh sách và kiểm tra trước khi thử lại.')
+    await waitFor(() => expect(back()).toBe(false))
+    expect(accessRequestNeedDecide).toHaveBeenCalledTimes(1)
+    screen.unmount()
+  } finally {
+    subscription.mockRestore()
+    jest.mocked(accessRequestNeedDecide).mockReset()
+    Platform.OS = previousPlatform
+  }
 })
 
 test('reports a server refusal when another decision already closed the step', async () => {

@@ -1,3 +1,5 @@
-import { ManagerApprovalsScreen } from '@/features/manager'
+import { Redirect } from 'expo-router'
 
-export default ManagerApprovalsScreen
+export default function ManagerRoute() {
+  return <Redirect href='/live-need-approvals' />
+}

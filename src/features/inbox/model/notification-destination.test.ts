@@ -19,6 +19,9 @@ const notification: NotificationListResponseDtoDataItemsItem = {
   code: 'STEP_ASSIGNED',
   subject: { type: 'ACCESS_REQUEST', id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' },
   params: { stepKind: 'NEED' },
+  title: 'Title',
+  message: '',
+  target: null,
   createdAt: '2026-11-09T00:00:00Z',
   readAt: null
 }
@@ -46,6 +49,42 @@ test('routes assigned spending decisions to the authenticated Spending Approver 
   expect(notificationDestination({ ...notification, params: { stepKind: 'SPEND_APPROVAL' } }, account)).toEqual({
     type: 'web'
   })
+  expect(
+    notificationDestination(
+      { ...notification, code: 'STEP_SLA_REMINDER', params: { stepKind: 'SPEND_APPROVAL' } },
+      { ...account, roles: ['SPENDING_APPROVER'], managerScope: null }
+    )
+  ).toEqual({ type: 'spending', requestId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' })
+})
+
+test('routes only supported, consistent server targets for new notification codes', () => {
+  const target = { operationId: 'accessRequestGet', pathParams: { id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' } }
+  const item = { ...notification, code: 'NEW_CODE', target }
+  expect(notificationDestination(item, account)).toEqual({
+    type: 'request',
+    requestId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+  })
+
+  expect(notificationDestination({ ...item, target: { ...target, pathParams: { id: 'other' } } }, account)).toEqual({
+    type: 'web'
+  })
+  expect(
+    notificationDestination({ ...item, target: { ...target, operationId: 'provisioningTaskGet' } }, account)
+  ).toEqual({ type: 'web' })
+})
+
+test.each(['LICENSE_ASSIGNMENT', 'LicenseAssignment'])('opens expiry notices using subject type %s', (type) => {
+  expect(
+    notificationDestination(
+      {
+        ...notification,
+        code: 'LICENSE_EXPIRY_REMINDER',
+        subject: { type, id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' },
+        params: { audience: 'EMPLOYEE' }
+      },
+      account
+    )
+  ).toEqual({ type: 'software-detail', assignmentId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' })
 })
 
 test('does not send IT or spending reminders to an employee request', () => {
