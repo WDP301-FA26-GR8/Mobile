@@ -84,7 +84,21 @@ export function LiveHomeScreen() {
               </Text>
             ) : null}
             {role === 'SPENDING_APPROVER' ? (
-              <Text style={styles.notice}>{t('home.live.spendingUnavailable')}</Text>
+              <Pressable
+                accessibilityRole='button'
+                accessibilityLabel={t('spending.live.openQueue')}
+                onPress={() => router.push('/spending-approvals')}
+                style={styles.featured}
+              >
+                <View style={styles.cardIcon}>
+                  <Feather name='credit-card' size={22} color={colors.primaryInk} />
+                </View>
+                <View style={styles.cardCopy}>
+                  <Text style={styles.cardTitle}>{t('spending.live.openQueue')}</Text>
+                  <Text style={styles.cardDescription}>{t('home.live.spendingDescription')}</Text>
+                </View>
+                <Feather name='chevron-right' size={20} color={colors.muted} />
+              </Pressable>
             ) : null}
             <Text accessibilityRole='header' style={styles.sectionTitle}>
               {t('home.live.actions')}

@@ -29,10 +29,23 @@ test('only routes assigned need work to an active manager queue', () => {
     requestId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
     source: 'assigned'
   })
+
   expect(notificationDestination({ ...notification, params: { stepKind: 'SPEND_APPROVAL' } }, account)).toEqual({
     type: 'web'
   })
   expect(notificationDestination(notification, { ...account, managerScope: null })).toEqual({ type: 'web' })
+})
+
+test('routes assigned spending decisions to the authenticated Spending Approver queue', () => {
+  expect(
+    notificationDestination(
+      { ...notification, params: { stepKind: 'SPEND_APPROVAL' } },
+      { ...account, roles: ['SPENDING_APPROVER'], managerScope: null }
+    )
+  ).toEqual({ type: 'spending', requestId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' })
+  expect(notificationDestination({ ...notification, params: { stepKind: 'SPEND_APPROVAL' } }, account)).toEqual({
+    type: 'web'
+  })
 })
 
 test('does not send IT or spending reminders to an employee request', () => {

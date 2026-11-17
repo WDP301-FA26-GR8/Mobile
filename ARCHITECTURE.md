@@ -15,15 +15,19 @@ Push notifications, offline mode, biometrics, file downloads, phone usage
 collection, and IT Admin/Finance/Super Admin workflows are outside mobile scope.
 The committed OpenAPI snapshot contains the backend's business operations. Login,
 the signed-in account, personal software, inbox and employee requests use the backend.
-The live need-approval workspace supports assigned individual grants; spending-approval
-and the original manager demo screens remain prototypes. Prototype decisions are stored only in the current app session
-and are not submitted to a backend. Contract availability alone does not resolve
+The live need-approval workspace supports assigned individual grants. The
+`/spending-approvals` workspace is API-backed and restricted to an account whose
+only role is `SPENDING_APPROVER`; its queue is server-assigned and paginated. It
+shows the read-only budget snapshot and policy 1.7 checklist, submits individual
+decisions, and decides only the people currently awaiting a group spending decision.
+Group `RETURN` is sent for every waiting person or none; batch decisions remain web-only.
+Prototype request and Manager-demo decisions are stored only in the current app
+session and are not submitted to a backend. Contract availability alone does not resolve
 the differences between the current backend and newer proposed business decisions.
-Manager and spending demos have separate direct route entry points; there is no
-in-session role switcher. The authenticated landing loads `/me` and opens `/home`,
-which shows self-service shortcuts and the live Manager queue only to an active
-Manager. Spending decisions remain unavailable in the live app. If the account
-cannot be loaded, the user can retry or sign out; the app does not guess the role.
+The Manager demo has a separate direct route; there is no in-session role switcher.
+The authenticated landing loads `/me` and opens `/home`, which shows self-service
+shortcuts and the live Manager or Spending Approver queue only to the matching role.
+If the account cannot be loaded, the user can retry or sign out; the app does not guess the role.
 The personal software screen links Manager accounts
 back to the workspace but does not show that entry for employees. The live
 screen links to live request flows instead of opening the demo, to
@@ -36,6 +40,9 @@ current assigned queue across pages (up to 100 pages; exceeding that limit is an
 explicit error) and open an individual GRANT only when found;
 unavailable or group work is not sent to the individual decision route. A need
 reminder not in that queue opens request detail, where the backend checks visibility.
+Assigned Spending Approver notifications open the spending workspace only after
+the request is found in the caller's assigned queue; an unavailable item stays
+explicitly unavailable rather than opening an unverified decision detail.
 Personal expiry
 notices open the matching software access, and access revocation notices open the
 software list. Unsupported, malformed, and web-only
@@ -76,8 +83,9 @@ management is web-only, and the header links to personal self-service. A Manager
 `managerScope` sees an explicit unavailable state rather than a fabricated queue.
 The queue is filtered by the backend to the caller's assigned GRANT steps; it is not an
 authorization check or a department-wide request list. This workspace is currently
-restricted to MANAGER accounts; Spending Approver and fallback-decider workflows have
-not yet been connected to role-specific navigation. The request detail queries the
+restricted to MANAGER accounts; Spending Approver work is handled by the separate
+`/spending-approvals` workspace, and fallback-decider workflows remain unconnected.
+The request detail queries the
 assignee-only similar seats endpoint separately, with pagination and explicit
 loading/error states. The contract supplies a due date but no exact deadline or
 all-queue urgent count; the UI does not invent an hourly SLA countdown.
@@ -162,7 +170,7 @@ app/
   my-software.tsx          employee software handoff
   profile.tsx              read-only signed-in account handoff
   manager.tsx              manager need-approval demo handoff
-  spending-approvals.tsx   spending-approver demo handoff
+  spending-approvals.tsx   authenticated Spending Approver handoff
   my-requests/             employee request routes
 src/
   providers/               application-wide framework providers

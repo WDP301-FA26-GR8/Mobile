@@ -42,6 +42,9 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
           params: { requestId: target.requestId, source: target.source }
         })
         break
+      case 'spending':
+        router.push({ pathname: '/spending-approvals', params: { requestId: target.requestId } })
+        break
       case 'software':
         router.push('/my-software')
         break

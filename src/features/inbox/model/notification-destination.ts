@@ -4,6 +4,7 @@ import type { MeResponseDtoData } from '@/shared/api/generated/contracts/me'
 export type NotificationDestination =
   | { type: 'request'; requestId: string }
   | { type: 'manager'; requestId: string; source: 'assigned' | 'reminder' }
+  | { type: 'spending'; requestId: string }
   | { type: 'software' }
   | { type: 'software-detail'; assignmentId: string }
   | { type: 'web' }
@@ -53,6 +54,14 @@ export function notificationDestination(
       isUuid(requestId)
     )
       return { type: 'manager', requestId, source: notification.code === 'STEP_ASSIGNED' ? 'assigned' : 'reminder' }
+    if (
+      notification.code === 'STEP_ASSIGNED' &&
+      notification.params.stepKind === 'SPEND_APPROVAL' &&
+      account?.roles.length === 1 &&
+      account.roles[0] === 'SPENDING_APPROVER' &&
+      isUuid(requestId)
+    )
+      return { type: 'spending', requestId }
     if (notification.code === 'STEP_ASSIGNED' || notification.params.stepKind !== 'NEED') return { type: 'web' }
   }
   if (['LICENSE_EXPIRY_REMINDER', 'RENEWAL_WINDOW_OPENED'].includes(notification.code)) {

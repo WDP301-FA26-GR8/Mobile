@@ -1,3 +1,8 @@
-import { SpendingApprovalsScreen } from '@/features/spending-approval'
+import { useLocalSearchParams } from 'expo-router'
 
-export default SpendingApprovalsScreen
+import { LiveSpendingApprovalsScreen } from '@/features/spending-approval'
+
+export default function SpendingApprovalsRoute() {
+  const { requestId } = useLocalSearchParams<{ requestId?: string }>()
+  return <LiveSpendingApprovalsScreen requestId={requestId} />
+}
