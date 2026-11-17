@@ -1,5 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 
+import { mobileColors } from '@/shared/theme/colors'
+
 interface CapabilityCardProps {
   description: string
   title: string
@@ -18,20 +20,20 @@ export function CapabilityCard({ description, title }: CapabilityCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#ffffff',
-    borderColor: '#d8e2e8',
+    backgroundColor: mobileColors.surface,
+    borderColor: mobileColors.border,
     borderRadius: 16,
     borderWidth: 1,
     gap: 7,
     padding: 18
   },
   description: {
-    color: '#52677a',
+    color: mobileColors.muted,
     fontSize: 14,
     lineHeight: 21
   },
   title: {
-    color: '#17324d',
+    color: mobileColors.foreground,
     fontSize: 17,
     fontWeight: '700'
   }

@@ -5,9 +5,9 @@
   "version": "1.0.0",
   "scripts": {
     "android": "expo start --android",
-    "api:generate": "pnpm api:validate && orval --config ./orval.config.ts",
+    "api:generate": "pnpm api:validate && node ./scripts/clean-generated-mocks.mjs && orval --config ./orval.config.ts",
     "api:validate": "node ./scripts/validate-openapi.mjs ./openapi/openapi.yaml",
-    "api:watch": "pnpm api:validate && orval --config ./orval.config.ts --watch",
+    "api:watch": "pnpm api:validate && node ./scripts/clean-generated-mocks.mjs && orval --config ./orval.config.ts --watch",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm security:test",
     "export:web": "expo export --platform web",
     "ios": "expo start --ios",
@@ -38,6 +38,7 @@
     "expo-linking": "~8.0.12",
     "expo-localization": "~17.0.9",
     "expo-router": "~6.0.24",
+    "expo-secure-store": "~15.0.8",
     "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.9",
     "expo-symbols": "~1.0.8",
@@ -88,7 +89,7 @@
       "<rootDir>/test/setup.ts"
     ],
     "transformIgnorePatterns": [
-      "node_modules/(?!(.pnpm|(jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg))"
+      "node_modules/(?!(.pnpm|(jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|@faker-js/faker|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg))"
     ]
   },
   "engines": {
