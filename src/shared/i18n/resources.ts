@@ -172,6 +172,10 @@ export const resources = {
             'Individual requests assigned to you. Other request types and department-wide views are not available here.',
           loading: 'Loading approvals',
           queueError: 'Could not load assigned approvals. Please try again.',
+          notificationLoading: 'Checking whether this request is assigned to you…',
+          notificationError: 'Could not verify the request in your assigned queue. Please try again.',
+          notificationUnavailable:
+            'This request is no longer assigned to you or cannot be reviewed in the app. Check the queue or use the web.',
           detailError: 'Could not load this request. It may no longer be assigned to you.',
           count: '{{formattedCount}} assigned requests',
           assignedLabel: 'Assigned individual requests',
@@ -203,6 +207,7 @@ export const resources = {
           longTermBlocked:
             'Approval for terms over 12 months requires a confirmation not available in the current API. Use the web workflow or contact support.',
           stale: 'This step is no longer available for a decision. Return to the queue and refresh.',
+          notAssigned: 'The server refused this decision because you cannot decide this request. Return to the queue.',
           saved: 'The need decision was recorded. Return to the queue to see the latest assignments.',
           uncertain:
             'The decision could not be confirmed. Return to the queue and check the request before trying again.',
@@ -752,6 +757,18 @@ export const resources = {
           sending: 'Sending request. Please wait.',
           submitUncertain:
             'The result could not be confirmed. Check your requests before trying again to avoid duplicates.',
+          submitRejected: {
+            existingAccess: 'The server rejected this request because you already have access to this plan.',
+            openRequest: 'The server rejected this request because another request for this plan is already open.',
+            costCenter: 'The server rejected this request because your department has no active cost center.',
+            department: 'The server rejected this request because your account has no eligible department.',
+            plan: 'The server rejected this request because the selected plan is no longer available.',
+            ineligible: 'The server rejected this request because your account is not eligible.',
+            limit: 'The server rejected this request because the weekly limit has been reached.',
+            term: 'The server rejected the requested duration. Check the duration and review again.',
+            invalid: 'The server rejected the request details. Check them and review again.'
+          },
+          recheckRejected: 'Edit and check again',
           withdraw: 'Withdraw',
           withdrawNamed: 'Withdraw request for {{name}}',
           confirmWithdraw: 'Withdraw this request?',
@@ -803,6 +820,7 @@ export const resources = {
           loading: 'Loading requests',
           listError: 'Could not load requests. Please try again.',
           detailError: 'Could not load this request. It may be unavailable to your account.',
+          detailNotFound: 'This request was not found or you cannot view it. If needed, check it on the web.',
           empty: 'No requests on this page.',
           unnamed: 'Software request',
           openNamed: 'Open request for {{name}}',
@@ -1155,6 +1173,10 @@ export const resources = {
           scope: 'Yêu cầu cá nhân được giao cho bạn. Các loại yêu cầu khác và danh sách toàn phòng chưa có tại đây.',
           loading: 'Đang tải yêu cầu cần duyệt',
           queueError: 'Không thể tải danh sách được giao. Vui lòng thử lại.',
+          notificationLoading: 'Đang kiểm tra yêu cầu trong hàng đợi của bạn…',
+          notificationError: 'Không thể kiểm tra yêu cầu trong hàng đợi được giao. Vui lòng thử lại.',
+          notificationUnavailable:
+            'Yêu cầu không còn được giao cho bạn hoặc chưa thể duyệt trên ứng dụng. Hãy kiểm tra hàng đợi hoặc xem trên web.',
           detailError: 'Không thể tải yêu cầu này. Yêu cầu có thể không còn được giao cho bạn.',
           count: '{{formattedCount}} yêu cầu được giao',
           assignedLabel: 'Yêu cầu cá nhân được giao',
@@ -1186,6 +1208,8 @@ export const resources = {
           longTermBlocked:
             'Duyệt thời hạn trên 12 tháng cần xác nhận chưa có trong API hiện tại. Hãy dùng web hoặc liên hệ hỗ trợ.',
           stale: 'Bước này không còn sẵn sàng để quyết định. Hãy quay lại và tải mới danh sách.',
+          notAssigned:
+            'Máy chủ từ chối vì bạn không có quyền quyết định yêu cầu này. Hãy quay lại danh sách được giao.',
           saved: 'Đã ghi nhận quyết định nhu cầu. Quay lại danh sách để xem các việc được giao mới nhất.',
           uncertain: 'Chưa thể xác nhận quyết định. Hãy quay lại danh sách và kiểm tra trước khi thử lại.',
           reject: 'Từ chối',
@@ -1727,6 +1751,18 @@ export const resources = {
           sending: 'Đang gửi yêu cầu. Vui lòng chờ.',
           submitUncertain:
             'Chưa thể xác nhận kết quả. Hãy kiểm tra danh sách yêu cầu trước khi gửi lại để tránh trùng.',
+          submitRejected: {
+            existingAccess: 'Máy chủ từ chối vì bạn đã có quyền sử dụng gói này.',
+            openRequest: 'Máy chủ từ chối vì bạn đã có yêu cầu đang xử lý cho gói này.',
+            costCenter: 'Máy chủ từ chối vì phòng ban chưa có trung tâm chi phí đang hoạt động.',
+            department: 'Máy chủ từ chối vì tài khoản chưa thuộc phòng ban hợp lệ.',
+            plan: 'Máy chủ từ chối vì gói đã chọn không còn khả dụng.',
+            ineligible: 'Máy chủ từ chối vì tài khoản không đủ điều kiện gửi yêu cầu.',
+            limit: 'Máy chủ từ chối vì đã đạt giới hạn yêu cầu trong tuần.',
+            term: 'Máy chủ từ chối thời gian sử dụng. Hãy kiểm tra và xem lại yêu cầu.',
+            invalid: 'Máy chủ từ chối thông tin yêu cầu. Hãy kiểm tra và xem lại.'
+          },
+          recheckRejected: 'Chỉnh sửa và kiểm tra lại',
           withdraw: 'Rút yêu cầu',
           withdrawNamed: 'Rút yêu cầu cho {{name}}',
           confirmWithdraw: 'Rút yêu cầu này?',
@@ -1777,6 +1813,7 @@ export const resources = {
           loading: 'Đang tải yêu cầu',
           listError: 'Không thể tải yêu cầu. Vui lòng thử lại.',
           detailError: 'Không thể tải yêu cầu này. Tài khoản của bạn có thể không có quyền xem.',
+          detailNotFound: 'Không tìm thấy yêu cầu này hoặc bạn không có quyền xem. Nếu cần, hãy kiểm tra trên web.',
           empty: 'Không có yêu cầu trên trang này.',
           unnamed: 'Yêu cầu phần mềm',
           openNamed: 'Xem yêu cầu cho {{name}}',

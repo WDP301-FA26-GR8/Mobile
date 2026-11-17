@@ -46,14 +46,14 @@ jest.mock('@/shared/api/generated/api/access-requests/access-requests', () => ({
 }))
 
 const id = '01234567-89ab-cdef-0123-456789abcdef'
-function renderScreen() {
+function renderScreen(notification?: { requestId: string; source: 'assigned' | 'reminder' }) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { retry: false, gcTime: 0 } }
   })
   return render(
     <QueryClientProvider client={client}>
       <NotificationReadErrorProvider>
-        <LiveNeedApprovalsScreen />
+        <LiveNeedApprovalsScreen notification={notification} />
       </NotificationReadErrorProvider>
     </QueryClientProvider>
   )
@@ -243,6 +243,89 @@ test('loads only assigned individual grants and opens real details', async () =>
     id,
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
+})
+
+test('opens assigned notification work found on a later queue page', async () => {
+  const response = await jest.mocked(needDecisionList)()
+  if (!response.data.data) throw new Error('Expected queue')
+  const data = response.data.data
+  jest.mocked(needDecisionList).mockImplementation(async (params) => {
+    if (params?.pageSize !== 100) return response
+    const page = params.page ?? 1
+    return {
+      ...response,
+      data: {
+        ...response.data,
+        data: {
+          ...data,
+          items: page === 1 ? [] : data.items,
+          pagination: { ...data.pagination, page, totalPages: 2 }
+        }
+      }
+    }
+  })
+  const screen = await renderScreen({ requestId: id, source: 'assigned' })
+  await screen.findByText('Thiết kế')
+  expect(needDecisionList).toHaveBeenCalledWith(
+    { page: 2, pageSize: 100 },
+    expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
+  )
+  expect(accessRequestGet).toHaveBeenCalledWith(id, expect.anything())
+  await screen.findByText('Không có quyền hiện có cùng nhóm chức năng.')
+  await fireEvent.press(screen.getByRole('button', { name: 'Về danh sách được giao' }))
+  await screen.findByText('Figma')
+  expect(screen.queryByText('Thiết kế')).toBeNull()
+})
+
+test('does not open a stale or unsupported assigned notification as an individual decision', async () => {
+  const response = await jest.mocked(needDecisionList)()
+  if (!response.data.data) throw new Error('Expected queue')
+  const data = response.data.data
+  jest.mocked(needDecisionList).mockImplementation(async (params) =>
+    params?.pageSize === 100
+      ? {
+          ...response,
+          data: { ...response.data, data: { ...data, items: [{ ...data.items[0], type: 'GROUP_GRANT' }] } }
+        }
+      : response
+  )
+  const screen = await renderScreen({ requestId: id, source: 'assigned' })
+  await screen.findByText(
+    'Yêu cầu không còn được giao cho bạn hoặc chưa thể duyệt trên ứng dụng. Hãy kiểm tra hàng đợi hoặc xem trên web.'
+  )
+  expect(accessRequestGet).not.toHaveBeenCalled()
+  expect(accessRequestNeedDecide).not.toHaveBeenCalled()
+})
+
+test('opens request detail for a need reminder not in the manager queue', async () => {
+  const response = await jest.mocked(needDecisionList)()
+  if (!response.data.data) throw new Error('Expected queue')
+  const data = response.data.data
+  jest
+    .mocked(needDecisionList)
+    .mockImplementation(async (params) =>
+      params?.pageSize === 100 ? { ...response, data: { ...response.data, data: { ...data, items: [] } } } : response
+    )
+  await renderScreen({ requestId: id, source: 'reminder' })
+  await waitFor(() =>
+    expect(mockRouter.replace).toHaveBeenCalledWith({
+      pathname: '/live-requests/[requestId]',
+      params: { requestId: id }
+    })
+  )
+  expect(accessRequestNeedDecide).not.toHaveBeenCalled()
+})
+
+test('does not fall back to request detail when checking the assigned queue fails', async () => {
+  const response = await jest.mocked(needDecisionList)()
+  jest.mocked(needDecisionList).mockImplementation(async (params) => {
+    if (params?.pageSize === 100) throw new Error('offline')
+    return response
+  })
+  const screen = await renderScreen({ requestId: id, source: 'reminder' })
+  await screen.findByText('Không thể kiểm tra yêu cầu trong hàng đợi được giao. Vui lòng thử lại.')
+  expect(mockRouter.replace).not.toHaveBeenCalled()
+  expect(accessRequestGet).not.toHaveBeenCalled()
 })
 
 test('uses manager tabs and links to personal software', async () => {
@@ -435,6 +518,23 @@ test('does not retry or report success for an uncertain approval', async () => {
   await screen.findByText('Có (hệ thống kiểm tra)')
   await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận quyết định' }))
   await screen.findByText('Chưa thể xác nhận quyết định. Hãy quay lại danh sách và kiểm tra trước khi thử lại.')
+  expect(accessRequestNeedDecide).toHaveBeenCalledTimes(1)
+  expect(screen.getByRole('button', { name: 'Xác nhận quyết định' }).props.accessibilityState.disabled).toBe(true)
+})
+
+test('reports a server refusal when another decision already closed the step', async () => {
+  jest.mocked(accessRequestNeedDecide).mockRejectedValueOnce({
+    status: 409,
+    info: { success: false, error: { code: 'ACCESS_REQUEST.STEP_NOT_PENDING' } }
+  })
+  const screen = await renderScreen()
+  await screen.findByText('Figma')
+  await fireEvent.press(screen.getByRole('button', { name: 'Xem Figma do An yêu cầu' }))
+  await screen.findByText('Thiết kế')
+  await fireEvent.press(screen.getByRole('button', { name: 'Duyệt nhu cầu' }))
+  await screen.findByText('Có (hệ thống kiểm tra)')
+  await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận quyết định' }))
+  await screen.findByText('Bước này không còn sẵn sàng để quyết định. Hãy quay lại và tải mới danh sách.')
   expect(accessRequestNeedDecide).toHaveBeenCalledTimes(1)
   expect(screen.getByRole('button', { name: 'Xác nhận quyết định' }).props.accessibilityState.disabled).toBe(true)
 })

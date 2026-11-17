@@ -18,10 +18,18 @@ const mockSession = {
   read: <T,>(operation: (token: string) => Promise<T>) => operation('test-token'),
   write: <T,>(operation: (token: string) => Promise<T>) => operation('test-token')
 }
+const mockProfile = {
+  data: {
+    roles: ['EMPLOYEE'],
+    employee: { unplaced: false },
+    managerScope: null as { departmentId: string; departmentCode: string; departmentName: string } | null
+  },
+  isError: false
+}
 jest.mock('expo-router', () => ({ Redirect: () => null, useRouter: () => mockRouter }))
 jest.mock('@/shared/api/session-context', () => ({ useSession: () => mockSession }))
 jest.mock('@/shared/api/use-account-profile', () => ({
-  useAccountProfile: () => ({ data: { roles: ['EMPLOYEE'], employee: { unplaced: false } }, isError: false })
+  useAccountProfile: () => mockProfile
 }))
 jest.mock('@/shared/api/generated/api/notifications/notifications', () => ({
   notificationList: jest.fn(),
@@ -53,6 +61,8 @@ beforeEach(async () => {
   await setAppLanguage('vi', false)
   jest.clearAllMocks()
   mockSession.state = 'authenticated'
+  mockProfile.data.roles = ['EMPLOYEE']
+  mockProfile.data.managerScope = null
   jest.mocked(notificationList).mockResolvedValue({
     status: 200,
     headers: new Headers(),
@@ -214,6 +224,25 @@ test('opens the backend subject rather than an unrelated legacy request id', asy
       params: { requestId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }
     })
   )
+})
+
+test('passes the assigned request to the manager queue after marking the notification read', async () => {
+  mockProfile.data.roles = ['MANAGER']
+  mockProfile.data.managerScope = { departmentId: 'department', departmentCode: 'IT', departmentName: 'IT' }
+  const response = await jest.mocked(notificationList)()
+  if (!response.data.data) throw new Error('Expected notification data')
+  response.data.data.items[0].code = 'STEP_ASSIGNED'
+  response.data.data.items[0].subject = { type: 'ACCESS_REQUEST', id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }
+  response.data.data.items[0].params = { stepKind: 'NEED' }
+  const screen = await renderScreen()
+  await fireEvent.press(await screen.findByRole('button', { name: 'Mở thông báo: Có bước xử lý được giao cho bạn' }))
+  await waitFor(() =>
+    expect(mockRouter.push).toHaveBeenCalledWith({
+      pathname: '/live-need-approvals',
+      params: { requestId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', source: 'assigned' }
+    })
+  )
+  expect(notificationMarkRead).toHaveBeenCalledTimes(1)
 })
 
 test('does not open a malformed request id', async () => {

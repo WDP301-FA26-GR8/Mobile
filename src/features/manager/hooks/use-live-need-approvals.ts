@@ -33,6 +33,7 @@ export function useLiveNeedApprovals(page: number, requestId?: string, permitted
         if (!result.data.data || !('request' in result.data.data) || result.data.data.request.id !== requestId) {
           throw new Error('Missing or inconsistent request details')
         }
+
         return result.data.data.request
       })
   })
@@ -71,4 +72,37 @@ export function useLiveNeedApprovals(page: number, requestId?: string, permitted
     }
   })
   return { queue, detail, policy, decision }
+}
+
+export function useNotificationNeedApproval(requestId: string | undefined, permitted: boolean) {
+  const session = useSession()
+  return useQuery({
+    queryKey: ['session', 'notification-need-approval', requestId],
+    enabled: session.state === 'authenticated' && permitted && !!requestId,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    queryFn: ({ signal }) =>
+      session.read(async (token) => {
+        if (!requestId) throw new Error('Missing notification request ID')
+        for (let page = 1; page <= 100; page += 1) {
+          const result = await needDecisionList(
+            { page, pageSize: 100 },
+            { signal, headers: { Authorization: `Bearer ${token}` } }
+          )
+          const data = result.data.data
+          if (
+            !data ||
+            !Array.isArray(data.items) ||
+            data.pagination.page !== page ||
+            !Number.isSafeInteger(data.pagination.totalPages) ||
+            data.pagination.totalPages < 0
+          )
+            throw new Error('Missing or inconsistent need approval page')
+          const item = data.items.find((candidate) => candidate.requestId === requestId)
+          if (item) return item
+          if (page >= data.pagination.totalPages) return null
+        }
+        throw new Error('Need approval search exceeded page limit')
+      })
+  })
 }

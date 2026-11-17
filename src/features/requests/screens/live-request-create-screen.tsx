@@ -44,6 +44,67 @@ function previewErrorKey(error: unknown) {
   }
 }
 
+function submitRejection(error: unknown) {
+  if (typeof error !== 'object' || error === null || !('status' in error) || !('info' in error)) return undefined
+  const info = error.info
+  if (typeof info !== 'object' || info === null || !('error' in info)) return undefined
+  const detail = info.error
+  if (typeof detail !== 'object' || detail === null || !('code' in detail)) return undefined
+  if (error.status === 409) {
+    switch (detail.code) {
+      case 'ACCESS_REQUEST.ALREADY_HOLDS_ACCESS':
+        return 'existingAccess'
+      case 'ACCESS_REQUEST.OPEN_REQUEST_EXISTS':
+        return 'openRequest'
+      case 'FINANCE.SETUP_INCOMPLETE':
+        return 'costCenter'
+      case 'ACCESS_REQUEST.APPLICATION_RETIRED':
+      case 'ACCESS_REQUEST.NO_DEPARTMENT':
+        return detail.code === 'ACCESS_REQUEST.NO_DEPARTMENT' ? 'department' : 'plan'
+    }
+  }
+  if (error.status === 404 && detail.code === 'ACCESS_REQUEST.PLAN_NOT_FOUND') return 'plan'
+  if (error.status === 403 && detail.code === 'ACCESS_REQUEST.SUPER_ADMIN_CANNOT_REQUEST') return 'ineligible'
+  if (error.status === 422) {
+    switch (detail.code) {
+      case 'ACCESS_REQUEST.OPEN_LIMIT_REACHED':
+        return 'limit'
+      case 'REQUEST_PARTY.INELIGIBLE':
+        return 'ineligible'
+      case 'ACCESS_REQUEST.TERM_REQUIRED':
+      case 'ACCESS_REQUEST.TERM_MONTHS_OUT_OF_RANGE':
+      case 'ACCESS_REQUEST.TERM_NOT_ASKED':
+      case 'ACCESS_REQUEST.TERM_LONG_TERM_NOT_ALLOWED':
+      case 'ACCESS_REQUEST.TERM_CONTRACT_ENDED':
+        return 'term'
+      case 'VALIDATION_ERROR':
+        return 'invalid'
+    }
+  }
+  return undefined
+}
+
+function submitConflictId(error: unknown, rejection: string | undefined) {
+  if (rejection !== 'openRequest' && rejection !== 'existingAccess') return undefined
+  if (typeof error !== 'object' || error === null || !('info' in error)) return undefined
+  const info = error.info
+  if (typeof info !== 'object' || info === null || !('error' in info)) return undefined
+  const detail = info.error
+  if (typeof detail !== 'object' || detail === null || !('details' in detail)) return undefined
+  const fields = detail.details
+  if (typeof fields !== 'object' || fields === null) return undefined
+  let id: unknown
+  if (rejection === 'openRequest' && 'requestId' in fields) id = fields.requestId
+  if (rejection === 'existingAccess' && 'assignment' in fields) {
+    const assignment = fields.assignment
+    if (typeof assignment === 'object' && assignment !== null && 'assignmentId' in assignment)
+      id = assignment.assignmentId
+  }
+  return typeof id === 'string' && /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(id)
+    ? id
+    : undefined
+}
+
 export function LiveRequestCreateScreen() {
   const { colors: mobileColors } = useMobileTheme()
   const styles = createStyles(mobileColors)
@@ -135,6 +196,8 @@ export function LiveRequestCreateScreen() {
     )
   }
   const locked = submit.isPending || submit.isError || submit.isSuccess
+  const rejection = submit.isError ? submitRejection(submit.error) : undefined
+  const conflictId = submit.isError ? submitConflictId(submit.error, rejection) : undefined
   function review() {
     if (!selected || !valid) {
       setValidation(true)
@@ -202,9 +265,50 @@ export function LiveRequestCreateScreen() {
           </View>
         </View>
         {locked ? (
-          <Text accessibilityRole='alert' style={styles.error}>
-            {submit.isError ? t('requests.createLive.submitUncertain') : t('requests.createLive.sending')}
-          </Text>
+          <View>
+            <Text accessibilityRole='alert' style={styles.error}>
+              {submit.isError
+                ? rejection
+                  ? t(`requests.createLive.submitRejected.${rejection}`)
+                  : t('requests.createLive.submitUncertain')
+                : t('requests.createLive.sending')}
+            </Text>
+            {conflictId && rejection === 'openRequest' ? (
+              <Pressable
+                accessibilityRole='button'
+                onPress={() =>
+                  navigateTo({ pathname: '/live-requests/[requestId]', params: { requestId: conflictId } })
+                }
+                style={styles.action}
+              >
+                <Text style={styles.actionText}>{t('requests.createLive.reviewDetails.openRequest')}</Text>
+              </Pressable>
+            ) : null}
+            {conflictId && rejection === 'existingAccess' ? (
+              <Pressable
+                accessibilityRole='button'
+                onPress={() =>
+                  navigateTo({ pathname: '/my-software/[softwareId]', params: { softwareId: conflictId } })
+                }
+                style={styles.action}
+              >
+                <Text style={styles.actionText}>{t('requests.createLive.reviewDetails.openAccess')}</Text>
+              </Pressable>
+            ) : null}
+            {rejection ? (
+              <Pressable
+                accessibilityRole='button'
+                onPress={() => {
+                  sent.current = false
+                  submit.reset()
+                  preview.reset()
+                }}
+                style={styles.action}
+              >
+                <Text style={styles.actionText}>{t('requests.createLive.recheckRejected')}</Text>
+              </Pressable>
+            ) : null}
+          </View>
         ) : null}
         {!selected || choosing ? (
           <>

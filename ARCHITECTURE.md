@@ -31,11 +31,16 @@ avoid presenting demo data as the signed-in user's data. The live inbox at `/liv
 uses the authenticated notification API; the prototype inbox remains separate. Opening
 an unread notification marks it read once and opens a supported destination even if
 the update fails; a dismissible warning survives navigation. Request notifications
-open real request detail, assigned Manager need steps open the queue, personal expiry
+open real request detail. Assigned Manager need notifications search the caller's
+current assigned queue across pages (up to 100 pages; exceeding that limit is an
+explicit error) and open an individual GRANT only when found;
+unavailable or group work is not sent to the individual decision route. A need
+reminder not in that queue opens request detail, where the backend checks visibility.
+Personal expiry
 notices open the matching software access, and access revocation notices open the
 software list. Unsupported, malformed, and web-only
 notification destinations stay in the inbox with an explicit web guidance message.
-Exact Manager-item notification links are not yet available. Live
+Live
 request list and detail routes are `/live-requests` and `/live-requests/[requestId]`.
 The list contains requests sent by or made for the caller, while notification detail
 access is authorized by the backend. Individual catalog requests use `/live-request-create`:
@@ -61,6 +66,9 @@ tab and parent unmounts outside navigation cannot be intercepted.
 Writes are never automatically retried; an uncertain result requires checking the list
 before trying again. The backend has no client-provided idempotency key in this contract,
 so this cannot guarantee prevention of duplicate submissions across navigation/restarts.
+Explicit, recognized validation/conflict responses are shown as rejections; a new
+submission requires the user to request a fresh preview first. Unknown or inconsistent
+failures remain uncertain and locked.
 The Manager landing is `/live-need-approvals`; it shows the authenticated account,
 department, assigned-work count, and a Manager-specific queue/team/inbox tab bar.
 The inbox uses the live notification feature; the team tab explains that department

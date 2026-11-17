@@ -231,6 +231,70 @@ test('requires a valid reason, previews the actual plan, and locks after an unce
   expect(accessRequestSubmit).toHaveBeenCalledTimes(1)
 })
 
+test('explains a confirmed rejection and requires a fresh preview before another submission', async () => {
+  jest.mocked(accessRequestSubmit).mockRejectedValueOnce({
+    status: 409,
+    info: { success: false, error: { code: 'ACCESS_REQUEST.OPEN_REQUEST_EXISTS', details: { requestId: id } } }
+  })
+  const screen = await renderScreen()
+  await openFigma(screen)
+  await fireEvent.press(screen.getByRole('button', { name: 'Chọn Figma, Pro' }))
+  await fireEvent.changeText(screen.getByLabelText('Lý do nghiệp vụ (bắt buộc)'), 'Thiết kế')
+  await fireEvent.press(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }))
+  await screen.findByText('Có thể gửi yêu cầu. Máy chủ sẽ kiểm tra lại khi gửi.')
+  await fireEvent.press(screen.getByRole('button', { name: 'Gửi yêu cầu' }))
+  await screen.findByText('Máy chủ từ chối vì bạn đã có yêu cầu đang xử lý cho gói này.')
+  expect(accessRequestSubmit).toHaveBeenCalledTimes(1)
+  await fireEvent.press(screen.getByRole('button', { name: 'Xem yêu cầu đang xử lý' }))
+  screen.getByText('Gói đã chọn và thông tin bạn nhập sẽ không được lưu.')
+  await fireEvent.press(screen.getByRole('button', { name: 'Tiếp tục chỉnh sửa' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Chỉnh sửa và kiểm tra lại' }))
+  expect((await screen.findByLabelText('Lý do nghiệp vụ (bắt buộc)')).props.value).toBe('Thiết kế')
+  expect(screen.queryByRole('button', { name: 'Gửi yêu cầu' })).toBeNull()
+  await fireEvent.press(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }))
+  await screen.findByText('Có thể gửi yêu cầu. Máy chủ sẽ kiểm tra lại khi gửi.')
+  expect(accessRequestPreview).toHaveBeenCalledTimes(2)
+  expect(accessRequestSubmit).toHaveBeenCalledTimes(1)
+})
+
+test('links a confirmed existing-access conflict to its server-provided assignment', async () => {
+  jest.mocked(accessRequestSubmit).mockRejectedValueOnce({
+    status: 409,
+    info: {
+      success: false,
+      error: { code: 'ACCESS_REQUEST.ALREADY_HOLDS_ACCESS', details: { assignment: { assignmentId: id } } }
+    }
+  })
+  const screen = await renderScreen()
+  await openFigma(screen)
+  await fireEvent.press(screen.getByRole('button', { name: 'Chọn Figma, Pro' }))
+  await fireEvent.changeText(screen.getByLabelText('Lý do nghiệp vụ (bắt buộc)'), 'Thiết kế')
+  await fireEvent.press(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }))
+  await screen.findByText('Có thể gửi yêu cầu. Máy chủ sẽ kiểm tra lại khi gửi.')
+  await fireEvent.press(screen.getByRole('button', { name: 'Gửi yêu cầu' }))
+  await screen.findByText('Máy chủ từ chối vì bạn đã có quyền sử dụng gói này.')
+  await fireEvent.press(screen.getByRole('button', { name: 'Xem quyền đã có' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Rời yêu cầu' }))
+  expect(mockRouter.replace).toHaveBeenCalledWith({ pathname: '/my-software/[softwareId]', params: { softwareId: id } })
+})
+
+test('keeps the result uncertain for an unexpected status even when it contains a known code', async () => {
+  jest.mocked(accessRequestSubmit).mockRejectedValueOnce({
+    status: 503,
+    info: { success: false, error: { code: 'ACCESS_REQUEST.OPEN_REQUEST_EXISTS' } }
+  })
+  const screen = await renderScreen()
+  await openFigma(screen)
+  await fireEvent.press(screen.getByRole('button', { name: 'Chọn Figma, Pro' }))
+  await fireEvent.changeText(screen.getByLabelText('Lý do nghiệp vụ (bắt buộc)'), 'Thiết kế')
+  await fireEvent.press(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }))
+  await screen.findByText('Có thể gửi yêu cầu. Máy chủ sẽ kiểm tra lại khi gửi.')
+  await fireEvent.press(screen.getByRole('button', { name: 'Gửi yêu cầu' }))
+  await screen.findByText('Chưa thể xác nhận kết quả. Hãy kiểm tra danh sách yêu cầu trước khi gửi lại để tránh trùng.')
+  expect(screen.queryByRole('button', { name: 'Chỉnh sửa và kiểm tra lại' })).toBeNull()
+  expect(accessRequestSubmit).toHaveBeenCalledTimes(1)
+})
+
 test('removes preview on form changes and blocks submission if server rejects preview', async () => {
   const screen = await renderScreen()
   await openFigma(screen)

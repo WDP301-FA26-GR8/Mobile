@@ -21,7 +21,9 @@ export function LiveRequestDetailsScreen({ requestId }: { requestId: string }) {
   const session = useSession()
   const router = useRouter()
   const query = useLiveRequest(requestId)
-  const data = query.data
+  const data = query.isError ? undefined : query.data
+  const notFound =
+    typeof query.error === 'object' && query.error !== null && 'status' in query.error && query.error.status === 404
   const request = data && 'request' in data ? data.request : undefined
   const draft = data && 'draft' in data ? data.draft : undefined
   const submitted = request ? new Date(request.submittedAt) : null
@@ -46,7 +48,7 @@ export function LiveRequestDetailsScreen({ requestId }: { requestId: string }) {
         {query.isError ? (
           <View style={styles.card}>
             <Text accessibilityRole='alert' style={styles.error}>
-              {t('requests.live.detailError')}
+              {t(notFound ? 'requests.live.detailNotFound' : 'requests.live.detailError')}
             </Text>
             <Pressable accessibilityRole='button' onPress={() => void query.refetch()} style={styles.action}>
               <Text style={styles.actionText}>{t('licenses.live.retry')}</Text>

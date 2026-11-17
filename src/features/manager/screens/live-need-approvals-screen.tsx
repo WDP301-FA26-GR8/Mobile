@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons'
 import { Redirect, useRouter } from 'expo-router'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -15,7 +15,7 @@ import { ThemeSwitch } from '@/shared/ui/theme-switch'
 
 import { ManagerLiveTabs } from '../components/manager-live-tabs'
 import { SimilarSeats } from '../components/similar-seats'
-import { useLiveNeedApprovals } from '../hooks/use-live-need-approvals'
+import { useLiveNeedApprovals, useNotificationNeedApproval } from '../hooks/use-live-need-approvals'
 
 function policyVersionChanged(error: unknown) {
   if (typeof error !== 'object' || error === null || !('status' in error) || error.status !== 409 || !('info' in error))
@@ -26,7 +26,26 @@ function policyVersionChanged(error: unknown) {
   return typeof detail === 'object' && detail !== null && 'code' in detail && detail.code === 'POLICY.VERSION_CHANGED'
 }
 
-export function LiveNeedApprovalsScreen() {
+function decisionRefusal(error: unknown) {
+  if (typeof error !== 'object' || error === null || !('status' in error) || !('info' in error)) return undefined
+  const info = error.info
+  if (typeof info !== 'object' || info === null || !('error' in info)) return undefined
+  const detail = info.error
+  if (typeof detail !== 'object' || detail === null || !('code' in detail)) return undefined
+  if (error.status === 409 && detail.code === 'ACCESS_REQUEST.STEP_NOT_PENDING') return 'stale'
+  if (
+    error.status === 403 &&
+    (detail.code === 'ACCESS_REQUEST.NOT_THE_ASSIGNEE' || detail.code === 'ACCESS_REQUEST.OWN_REQUEST')
+  )
+    return 'notAssigned'
+  return undefined
+}
+
+export function LiveNeedApprovalsScreen({
+  notification
+}: {
+  notification?: { requestId: string; source: 'assigned' | 'reminder' }
+} = {}) {
   const { colors: mobileColors } = useMobileTheme()
   const styles = createStyles(mobileColors)
   const { t, i18n } = useTranslation()
@@ -46,10 +65,39 @@ export function LiveNeedApprovalsScreen() {
   const sent = useRef(false)
   const recoveryEpoch = useRef(0)
   const recovering = useRef(false)
+  const handledNotification = useRef<string | undefined>(undefined)
   const profile = useAccountProfile()
   const isManager = !!profile.data?.roles.includes('MANAGER') && !profile.isError
   const hasScope = isManager && !!profile.data?.managerScope
   const { queue, detail, policy, decision } = useLiveNeedApprovals(page, selected?.requestId, hasScope)
+  const notificationLookup = useNotificationNeedApproval(notification?.requestId, hasScope)
+  useEffect(() => {
+    if (
+      !notification ||
+      !hasScope ||
+      activeTab !== 'queue' ||
+      selected ||
+      notificationLookup.isFetching ||
+      !notificationLookup.isSuccess ||
+      handledNotification.current === `${notification.source}:${notification.requestId}`
+    )
+      return
+    handledNotification.current = `${notification.source}:${notification.requestId}`
+    if (notificationLookup.data?.type === 'GRANT' && notificationLookup.data.stepKind === 'NEED') {
+      setSelected(notificationLookup.data)
+    } else if (!notificationLookup.data && notification.source === 'reminder') {
+      router.replace({ pathname: '/live-requests/[requestId]', params: { requestId: notification.requestId } })
+    }
+  }, [
+    notification,
+    hasScope,
+    activeTab,
+    selected,
+    notificationLookup.isFetching,
+    notificationLookup.isSuccess,
+    notificationLookup.data,
+    router
+  ])
   const request = detail.data
   const checklist = policy.data?.step.checklist
   const answers = response && response.version === policy.data?.policyVersionId ? response.answers : {}
@@ -70,6 +118,7 @@ export function LiveNeedApprovalsScreen() {
     request.needStep.state === 'PENDING' &&
     !request.needDecision
   const locked = decision.isPending || decision.isError || decision.isSuccess
+  const refusal = decision.isError ? decisionRefusal(decision.error) : undefined
 
   function closeDetails() {
     if (decision.isPending) return
@@ -310,6 +359,35 @@ export function LiveNeedApprovalsScreen() {
           ) : null}
           {isManager && activeTab === 'queue' && !selected ? (
             <>
+              {hasScope && notification && notificationLookup.isFetching ? (
+                <Text accessibilityRole='progressbar' style={styles.muted}>
+                  {t('manager.live.notificationLoading')}
+                </Text>
+              ) : null}
+              {hasScope && notification && notificationLookup.isError ? (
+                <View style={styles.card}>
+                  <Text accessibilityRole='alert' style={styles.error}>
+                    {t('manager.live.notificationError')}
+                  </Text>
+                  <Pressable
+                    accessibilityRole='button'
+                    onPress={() => void notificationLookup.refetch()}
+                    style={styles.action}
+                  >
+                    <Text style={styles.link}>{t('licenses.live.retry')}</Text>
+                  </Pressable>
+                </View>
+              ) : null}
+              {hasScope &&
+              notification &&
+              notificationLookup.isSuccess &&
+              !notificationLookup.isFetching &&
+              (notificationLookup.data?.type !== 'GRANT' || notificationLookup.data.stepKind !== 'NEED') &&
+              (notificationLookup.data || notification.source === 'assigned') ? (
+                <Text accessibilityRole='alert' style={styles.error}>
+                  {t('manager.live.notificationUnavailable')}
+                </Text>
+              ) : null}
               {!hasScope ? (
                 <View style={styles.card}>
                   <Text accessibilityRole='alert' style={styles.error}>
@@ -493,7 +571,7 @@ export function LiveNeedApprovalsScreen() {
                   </View>
                 ) : (
                   <Text accessibilityRole='alert' style={styles.error}>
-                    {t('manager.live.uncertain')}
+                    {refusal ? t(`manager.live.${refusal}`) : t('manager.live.uncertain')}
                   </Text>
                 )
               ) : null}

@@ -24,7 +24,11 @@ const notification: NotificationListResponseDtoDataItemsItem = {
 }
 
 test('only routes assigned need work to an active manager queue', () => {
-  expect(notificationDestination(notification, account)).toEqual({ type: 'manager' })
+  expect(notificationDestination(notification, account)).toEqual({
+    type: 'manager',
+    requestId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+    source: 'assigned'
+  })
   expect(notificationDestination({ ...notification, params: { stepKind: 'SPEND_APPROVAL' } }, account)).toEqual({
     type: 'web'
   })
@@ -41,6 +45,23 @@ test('does not send IT or spending reminders to an employee request', () => {
       },
       account
     )
+  ).toEqual({ type: 'web' })
+})
+
+test('routes need reminders through the manager queue when the recipient is an active manager', () => {
+  expect(notificationDestination({ ...notification, code: 'STEP_SLA_REMINDER' }, account)).toEqual({
+    type: 'manager',
+    requestId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+    source: 'reminder'
+  })
+  expect(
+    notificationDestination(
+      { ...notification, code: 'STEP_SLA_REMINDER' },
+      { ...account, roles: ['EMPLOYEE'], managerScope: null }
+    )
+  ).toEqual({ type: 'request', requestId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' })
+  expect(
+    notificationDestination({ ...notification, subject: { type: 'ACCESS_REQUEST', id: 'invalid' } }, account)
   ).toEqual({ type: 'web' })
 })
 

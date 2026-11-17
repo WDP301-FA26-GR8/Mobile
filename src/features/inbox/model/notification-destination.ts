@@ -3,7 +3,7 @@ import type { MeResponseDtoData } from '@/shared/api/generated/contracts/me'
 
 export type NotificationDestination =
   | { type: 'request'; requestId: string }
-  | { type: 'manager' }
+  | { type: 'manager'; requestId: string; source: 'assigned' | 'reminder' }
   | { type: 'software' }
   | { type: 'software-detail'; assignmentId: string }
   | { type: 'web' }
@@ -38,15 +38,22 @@ export function notificationDestination(
   notification: NotificationListResponseDtoDataItemsItem,
   account: MeResponseDtoData | undefined
 ): NotificationDestination {
-  if (notification.code === 'STEP_ASSIGNED') {
+  const requestId =
+    notification.subject?.type === 'ACCESS_REQUEST'
+      ? notification.subject.id
+      : notification.subject === null
+        ? notification.params.requestId
+        : undefined
+  if (notification.code === 'STEP_ASSIGNED' || notification.code === 'STEP_SLA_REMINDER') {
     if (
       notification.params.stepKind === 'NEED' &&
       account?.roles.length === 1 &&
       account.roles[0] === 'MANAGER' &&
-      account.managerScope
+      account.managerScope &&
+      isUuid(requestId)
     )
-      return { type: 'manager' }
-    return { type: 'web' }
+      return { type: 'manager', requestId, source: notification.code === 'STEP_ASSIGNED' ? 'assigned' : 'reminder' }
+    if (notification.code === 'STEP_ASSIGNED' || notification.params.stepKind !== 'NEED') return { type: 'web' }
   }
   if (['LICENSE_EXPIRY_REMINDER', 'RENEWAL_WINDOW_OPENED'].includes(notification.code)) {
     if (notification.params.audience !== 'EMPLOYEE') return { type: 'web' }
@@ -66,12 +73,6 @@ export function notificationDestination(
   }
   if (notification.code === 'STEP_SLA_REMINDER' && notification.params.stepKind !== 'NEED') return { type: 'web' }
   if (!requestCodes.has(notification.code)) return { type: 'web' }
-  const requestId =
-    notification.subject?.type === 'ACCESS_REQUEST'
-      ? notification.subject.id
-      : notification.subject === null
-        ? notification.params.requestId
-        : undefined
   if (isUuid(requestId)) {
     return { type: 'request', requestId }
   }

@@ -338,7 +338,7 @@ test('reports list failures and retries without showing demo requests', async ()
 test('shows detail from server and handles missing authorization with retry', async () => {
   jest.mocked(accessRequestGet).mockRejectedValueOnce({ status: 404 })
   const screen = await renderScreen(<LiveRequestDetailsScreen requestId={id} />)
-  await screen.findByText('Không thể tải yêu cầu này. Tài khoản của bạn có thể không có quyền xem.')
+  await screen.findByText('Không tìm thấy yêu cầu này hoặc bạn không có quyền xem. Nếu cần, hãy kiểm tra trên web.')
   await fireEvent.press(screen.getByRole('button', { name: 'Thử lại' }))
   await screen.findByText('Thiết kế')
   screen.getByText('Figma')
