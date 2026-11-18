@@ -1,4 +1,3 @@
-import { Feather } from '@expo/vector-icons'
 import { type NavigationAction, useNavigation, usePreventRemove } from '@react-navigation/native'
 import { type Href, Redirect, useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useRef, useState } from 'react'
@@ -13,6 +12,7 @@ import { useSession } from '@/shared/api/session-context'
 import { useAccountProfile } from '@/shared/api/use-account-profile'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
+import { PreferenceSwitches } from '@/shared/ui/preference-switches'
 import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 
 import { RequestCatalog } from '../components/request-catalog'
@@ -257,15 +257,7 @@ export function LiveRequestCreateScreen() {
             </Text>
             <Text style={styles.headerSubtitle}>{t('requests.createLive.intro')}</Text>
           </View>
-          <View style={styles.headerIcon}>
-            <Feather
-              accessibilityElementsHidden
-              importantForAccessibility='no'
-              name='plus-circle'
-              size={22}
-              color={mobileColors.primaryInk}
-            />
-          </View>
+          <PreferenceSwitches />
         </View>
         {locked ? (
           <View>

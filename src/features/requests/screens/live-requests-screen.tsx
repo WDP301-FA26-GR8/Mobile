@@ -13,6 +13,7 @@ import { useAccountProfile } from '@/shared/api/use-account-profile'
 import { goBackOr } from '@/shared/lib/go-back-or'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
+import { PreferenceSwitches } from '@/shared/ui/preference-switches'
 import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 
 import { LiveRequestStatus } from '../components/live-request-status'
@@ -67,15 +68,7 @@ export function LiveRequestsScreen() {
               </Text>
               <Text style={styles.headerSubtitle}>{t('requests.live.subtitle')}</Text>
             </View>
-            <View style={styles.icon}>
-              <Feather
-                accessibilityElementsHidden
-                importantForAccessibility='no'
-                name='file-text'
-                size={21}
-                color={mobileColors.primaryInk}
-              />
-            </View>
+            <PreferenceSwitches />
           </View>
           <View style={styles.filters}>
             {(['open', 'ended'] as const).map((value) => (

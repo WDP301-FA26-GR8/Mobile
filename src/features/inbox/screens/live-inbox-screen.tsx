@@ -12,6 +12,7 @@ import { useAccountProfile } from '@/shared/api/use-account-profile'
 import { goBackOr } from '@/shared/lib/go-back-or'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
+import { PreferenceSwitches } from '@/shared/ui/preference-switches'
 import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 
 import { useNotificationReadError } from '../components/notification-read-error-provider'
@@ -103,15 +104,7 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
                   : t('inbox.live.countUnavailable')}
               </Text>
             </View>
-            <View style={styles.headerIcon}>
-              <Feather
-                accessibilityElementsHidden
-                importantForAccessibility='no'
-                name='bell'
-                size={21}
-                color={mobileColors.primaryInk}
-              />
-            </View>
+            <PreferenceSwitches />
           </View>
           {count.isError ? (
             <Pressable accessibilityRole='button' onPress={() => void count.refetch()} style={styles.action}>
