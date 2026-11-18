@@ -16,7 +16,8 @@ const mockSession = {
 }
 
 const mockPush = jest.fn()
-jest.mock('expo-router', () => ({ Redirect: () => null, useRouter: () => ({ push: mockPush }) }))
+const mockReplace = jest.fn()
+jest.mock('expo-router', () => ({ Redirect: () => null, useRouter: () => ({ push: mockPush, replace: mockReplace }) }))
 jest.mock('@/shared/api/session-context', () => ({ useSession: () => mockSession }))
 jest.mock('@/shared/api/generated/api/me/me', () => ({ meGet: jest.fn(), meSoftwareRightList: jest.fn() }))
 jest.mock('@/shared/api/generated/api/dashboards/dashboards', () => ({ employeeDashboardGet: jest.fn() }))
@@ -61,11 +62,15 @@ beforeEach(async () => {
           employeeCode: 'E1',
           fullName: 'Nguyễn An',
           department: null,
-          unplaced: true,
+          unplaced: false,
           jobTitle: null
         },
         roles: ['EMPLOYEE'],
-        managerScope: null
+        managerScope: null,
+        upcomingUnits: [],
+        pendingPolicyAcknowledgements: [],
+        avatar: null,
+        workPhone: null
       }
     }
   })
@@ -80,8 +85,8 @@ beforeEach(async () => {
         view: 'current',
         items: [
           {
-            assignmentId: 'assignment-id',
-            application: { id: 'application-id', name: 'Figma' },
+            assignmentId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+            application: { id: 'application-id', name: 'Figma', logoUrl: null },
             plan: { id: 'plan-id', name: 'Professional' },
             provisioningType: 'K4',
             status: 'ACTIVE',
@@ -103,19 +108,12 @@ beforeEach(async () => {
 test('shows only server account and rights, without invented license keys', async () => {
   const screen = await renderScreen()
   await screen.findByText('Figma')
-  screen.getByText('Nguyễn An')
   screen.getByText('Gói: Professional')
   screen.getByText('Đang sử dụng')
   screen.getByText('0 quyền')
   screen.getByText('1 quyền')
   expect(screen.queryByText('Không gian nhân viên · demo')).toBeNull()
   expect(screen.queryByRole('button', { name: 'Trang trước' })).toBeNull()
-  await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Tạo yêu cầu' }))
-  expect(mockPush).toHaveBeenCalledWith('/live-request-create')
-  await fireEvent.press(screen.getByRole('button', { name: 'Mở mục Thông báo' }))
-  expect(mockPush).toHaveBeenCalledWith('/live-inbox')
-  await fireEvent.press(screen.getByRole('button', { name: 'Mở thông tin tài khoản của Nguyễn An' }))
-  expect(mockPush).toHaveBeenCalledWith('/profile')
   expect(screen.queryByRole('button', { name: 'Đăng xuất' })).toBeNull()
   expect(screen.queryByRole('button', { name: 'Duyệt nhu cầu' })).toBeNull()
   expect(screen.queryByText(/FIG-PRO/)).toBeNull()
@@ -123,10 +121,15 @@ test('shows only server account and rights, without invented license keys', asyn
     { view: 'current', page: 1, pageSize: 20 },
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
+  await fireEvent.press(screen.getByRole('button', { name: 'Mở quyền phần mềm: Figma, Professional' }))
+  expect(mockPush).toHaveBeenCalledWith({
+    pathname: '/my-software/[softwareId]',
+    params: { softwareId: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' }
+  })
 })
 
-test('switches the live software screen to dark appearance', async () => {
-  await AsyncStorage.removeItem('saas-sentry.theme')
+test('uses the stored dark appearance', async () => {
+  await AsyncStorage.setItem('saas-sentry.theme', 'dark')
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
   const screen = await render(
     <QueryClientProvider client={client}>
@@ -136,32 +139,10 @@ test('switches the live software screen to dark appearance', async () => {
     </QueryClientProvider>
   )
   await screen.findByText('Figma')
-  await fireEvent.press(screen.getByRole('button', { name: 'Giao diện' }))
-  await fireEvent.press(screen.getByRole('radio', { name: 'Tối' }))
   await waitFor(() =>
     expect(screen.getByRole('header', { name: 'Phần mềm của tôi' })).toHaveStyle({ color: '#f8fcff' })
   )
   expect(screen.getByText('Figma')).toBeTruthy()
-})
-
-test('allows an active manager to return to the manager workspace', async () => {
-  const response = await jest.mocked(meGet)()
-  if (!response.data.data) throw new Error('Expected account')
-  jest.mocked(meGet).mockResolvedValue({
-    ...response,
-    data: {
-      ...response.data,
-      data: {
-        ...response.data.data,
-        roles: ['MANAGER'],
-        managerScope: { departmentId: 'department-id', departmentCode: 'IT', departmentName: 'IT' }
-      }
-    }
-  })
-  const screen = await renderScreen()
-  await screen.findByText('Nguyễn An')
-  await fireEvent.press(screen.getByRole('button', { name: 'Duyệt nhu cầu' }))
-  expect(mockPush).toHaveBeenCalledWith('/live-need-approvals')
 })
 
 test('filters the current page and explains the filter scope', async () => {
@@ -173,6 +154,34 @@ test('filters the current page and explains the filter scope', async () => {
   expect(screen.queryByText('Figma')).toBeNull()
   await fireEvent.press(screen.getByRole('button', { name: 'Tất cả' }))
   screen.getByText('Figma')
+})
+
+test('switches to ended software and resets the current-page filter', async () => {
+  const response = await jest.mocked(meSoftwareRightList)()
+  if (!response.data.data) throw new Error('Expected software data')
+  const current = response.data.data
+  jest.mocked(meSoftwareRightList).mockImplementation(async (params) => ({
+    ...response,
+    data: {
+      ...response.data,
+      data:
+        params?.view === 'ended'
+          ? { ...current, view: 'ended', items: [{ ...current.items[0], status: 'ENDED' }] }
+          : current
+    }
+  }))
+  const screen = await renderScreen()
+  await screen.findByText('Figma')
+  await fireEvent.press(screen.getByRole('button', { name: 'Sắp hết hạn' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Đã kết thúc' }))
+  await waitFor(() =>
+    expect(meSoftwareRightList).toHaveBeenCalledWith({ view: 'ended', page: 1, pageSize: 20 }, expect.anything())
+  )
+  await screen.findByText('Figma')
+  expect(screen.queryByRole('button', { name: 'Sắp hết hạn' })).toBeNull()
+  await fireEvent.press(screen.getByRole('button', { name: 'Hiện có' }))
+  await screen.findByText('Figma')
+  screen.getByRole('button', { name: 'Sắp hết hạn' })
 })
 
 test('keeps the active status visible alongside an expiry warning', async () => {
@@ -230,9 +239,7 @@ test('shows live software and unavailable navigation in English', async () => {
   await setAppLanguage('en', false)
   const screen = await renderScreen()
   await screen.findByText('Figma')
-  screen.getByText('My workspace')
-  await fireEvent.press(screen.getByRole('tab', { name: 'Open Requests' }))
-  expect(mockPush).toHaveBeenCalledWith('/live-requests')
+  screen.getByRole('header', { name: 'My software' })
 })
 
 test('shows errors and retries without falling back to mock data', async () => {
@@ -271,12 +278,4 @@ test('loads subsequent pages from the server', async () => {
   await fireEvent.press(screen.getByRole('button', { name: 'Trang sau' }))
   await screen.findByText('Không có quyền phần mềm trên trang này.')
   expect(meSoftwareRightList).toHaveBeenLastCalledWith({ view: 'current', page: 2, pageSize: 20 }, expect.anything())
-})
-
-test('allows opening account information when the profile cannot be loaded', async () => {
-  jest.mocked(meGet).mockRejectedValueOnce(new Error('offline'))
-  const screen = await renderScreen()
-  await screen.findByText('Không thể tải thông tin. Vui lòng kiểm tra kết nối và thử lại.')
-  await fireEvent.press(screen.getByRole('button', { name: 'Thông tin tài khoản' }))
-  expect(mockPush).toHaveBeenCalledWith('/profile')
 })

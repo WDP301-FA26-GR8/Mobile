@@ -21,12 +21,12 @@ export type DraftSubmitResponseDtoDataRequestNeedStep = {
   routingRow: number
   /** @nullable */
   waitingReason: DraftSubmitResponseDtoDataRequestNeedStepWaitingReason
-  samePersonAsSpend: boolean
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0
+   * @nullable
    */
-  slaWorkingDays: number
+  slaWorkingDays: number | null
   createdAt: string
   /** @nullable */
   assignedAt: string | null

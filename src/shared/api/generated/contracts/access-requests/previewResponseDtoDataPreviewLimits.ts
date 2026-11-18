@@ -18,17 +18,7 @@ export type PreviewResponseDtoDataPreviewLimits = {
    * @exclusiveMinimum 0
    */
   openNewMax: number
-  /**
-   * @minimum 0
-   * @maximum 9007199254740991
-   */
-  paidSoftwareCount: number
-  /**
-   * @maximum 9007199254740991
-   * @exclusiveMinimum 0
-   */
-  paidSoftwareThreshold: number
-  reasonRequired: boolean
+  resetsOn: string
   /** @nullable */
   refusal: PreviewResponseDtoDataPreviewLimitsRefusal
   /** @nullable */

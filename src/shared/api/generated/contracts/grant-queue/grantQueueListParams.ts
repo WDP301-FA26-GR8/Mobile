@@ -5,9 +5,18 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { GrantQueueListState } from './grantQueueListState'
 
 export type GrantQueueListParams = {
   beneficiaryEmployeeId?: string
+  /**
+   * Only the people waiting for this plan: what the stock of the plan lists to grant from.
+   */
+  planId?: string
+  /**
+   * Only the people whose grant stands here: WAITING (no task yet), EXECUTING (a task is being worked or has failed and waits for a decision) or DONE (completed, or closed as failed). Without it, every state is listed, the waiting ones first.
+   */
+  state?: GrantQueueListState
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0

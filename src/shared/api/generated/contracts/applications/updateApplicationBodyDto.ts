@@ -5,7 +5,6 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
-import type { UpdateApplicationBodyDtoCommunication } from './updateApplicationBodyDtoCommunication'
 import type { UpdateApplicationBodyDtoDataSensitivity } from './updateApplicationBodyDtoDataSensitivity'
 
 export interface UpdateApplicationBodyDto {
@@ -16,11 +15,16 @@ export interface UpdateApplicationBodyDto {
    * @items.maxLength 1000
    */
   domains?: string[]
-  dataSensitivity?: UpdateApplicationBodyDtoDataSensitivity
-  businessOwnerEmployeeId?: string
-  communication?: UpdateApplicationBodyDtoCommunication
   /** @nullable */
-  functionalGroupId?: string | null
+  dataSensitivity?: UpdateApplicationBodyDtoDataSensitivity
+  functionalGroupId?: string
+  /**
+   * A link to the logo image, https only; left out it stays, null removes it.
+   * @maxLength 500
+   * @nullable
+   * @pattern ^https:\/\/\S+$
+   */
+  logoUrl?: string | null
   /** @nullable */
   dictionaryServiceLineId?: string | null
 }

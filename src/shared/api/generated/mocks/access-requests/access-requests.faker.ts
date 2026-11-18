@@ -12,37 +12,49 @@ import type {
   AccessRequestAssessmentGet200,
   AccessRequestAssessmentReject200,
   AccessRequestAssessmentSave200,
+  AccessRequestAuditFlagList200,
   AccessRequestCancelForDeparture200,
   AccessRequestCatalogLink200,
   AccessRequestDraftDelete200,
   AccessRequestDraftList200,
   AccessRequestDraftSave201,
   AccessRequestDraftSubmit201,
+  AccessRequestEventList200,
   AccessRequestGet200,
   AccessRequestInternalRegister200,
+  AccessRequestList200,
   AccessRequestNeedDecide200,
   AccessRequestPreview200,
   AccessRequestPropose201,
   AccessRequestRenewalSubmit201,
-  AccessRequestServiceAccountReview200,
-  AccessRequestServiceAccountSubmit201,
+  AccessRequestResubmit200,
   AccessRequestSimilarSeatList200,
   AccessRequestSubmit201,
   AccessRequestTimingsGet200,
   AccessRequestWithdraw200,
-  AssessmentQueueList200
+  AssessmentDecisionList200,
+  AssessmentQueueDepartmentList200,
+  AssessmentQueueList200,
+  DepartmentAccessRequestList200
 } from '../../contracts'
 
 import {
   getAccessRequestDraftPageResponseDtoResponseMock,
   getAccessRequestDraftResponseDtoResponseMock,
+  getAccessRequestHistoryPageResponseDtoResponseMock,
   getAccessRequestOrDraftResponseDtoResponseMock,
   getAccessRequestResponseDtoResponseMock,
+  getAssessmentDecisionsResponseDtoResponseMock,
+  getAssessmentQueueDepartmentsResponseDtoResponseMock,
   getAssessmentQueueResponseDtoResponseMock,
   getAssessmentResponseDtoResponseMock,
+  getCatalogLinkResponseDtoResponseMock,
+  getDepartmentAccessRequestPageResponseDtoResponseMock,
   getDraftSubmitResponseDtoResponseMock,
   getPreviewResponseDtoResponseMock,
   getRenewalResponseDtoResponseMock,
+  getRequestAuditFlagPageResponseDtoResponseMock,
+  getRequestEventPageResponseDtoResponseMock,
   getRequestTimingsResponseDtoResponseMock,
   getSimilarSeatsResponseDtoResponseMock
 } from '../../contracts/index.faker'
@@ -72,8 +84,18 @@ export const getAccessRequestSubmitResponseMock = (): AccessRequestSubmit201 => 
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 
+export const getAccessRequestListResponseMock = (): AccessRequestList200 => ({
+  ...{ ...getAccessRequestHistoryPageResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
 export const getAccessRequestPreviewResponseMock = (): AccessRequestPreview200 => ({
   ...{ ...getPreviewResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
+export const getAccessRequestResubmitResponseMock = (): AccessRequestResubmit200 => ({
+  ...{ ...getAccessRequestResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 
@@ -133,7 +155,7 @@ export const getAccessRequestInternalRegisterResponseMock = (): AccessRequestInt
 })
 
 export const getAccessRequestCatalogLinkResponseMock = (): AccessRequestCatalogLink200 => ({
-  ...{ ...getAccessRequestResponseDtoResponseMock() },
+  ...{ ...getCatalogLinkResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 
@@ -142,13 +164,13 @@ export const getAssessmentQueueListResponseMock = (): AssessmentQueueList200 => 
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 
-export const getAccessRequestServiceAccountSubmitResponseMock = (): AccessRequestServiceAccountSubmit201 => ({
-  ...{ ...getAccessRequestResponseDtoResponseMock() },
+export const getAssessmentQueueDepartmentListResponseMock = (): AssessmentQueueDepartmentList200 => ({
+  ...{ ...getAssessmentQueueDepartmentsResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 
-export const getAccessRequestServiceAccountReviewResponseMock = (): AccessRequestServiceAccountReview200 => ({
-  ...{ ...getAccessRequestResponseDtoResponseMock() },
+export const getAssessmentDecisionListResponseMock = (): AssessmentDecisionList200 => ({
+  ...{ ...getAssessmentDecisionsResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 
@@ -159,5 +181,20 @@ export const getAccessRequestRenewalSubmitResponseMock = (): AccessRequestRenewa
 
 export const getAccessRequestTimingsGetResponseMock = (): AccessRequestTimingsGet200 => ({
   ...{ ...getRequestTimingsResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
+export const getDepartmentAccessRequestListResponseMock = (): DepartmentAccessRequestList200 => ({
+  ...{ ...getDepartmentAccessRequestPageResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
+export const getAccessRequestEventListResponseMock = (): AccessRequestEventList200 => ({
+  ...{ ...getRequestEventPageResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
+export const getAccessRequestAuditFlagListResponseMock = (): AccessRequestAuditFlagList200 => ({
+  ...{ ...getRequestAuditFlagPageResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })

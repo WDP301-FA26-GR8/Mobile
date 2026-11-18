@@ -9,6 +9,7 @@ import type { PreviewResponseDtoDataPreviewAnnualVendorAmount } from './previewR
 import type { PreviewResponseDtoDataPreviewBlockedBy } from './previewResponseDtoDataPreviewBlockedBy'
 import type { PreviewResponseDtoDataPreviewBranch } from './previewResponseDtoDataPreviewBranch'
 import type { PreviewResponseDtoDataPreviewChainItem } from './previewResponseDtoDataPreviewChainItem'
+import type { PreviewResponseDtoDataPreviewCost } from './previewResponseDtoDataPreviewCost'
 import type { PreviewResponseDtoDataPreviewCostCenter } from './previewResponseDtoDataPreviewCostCenter'
 import type { PreviewResponseDtoDataPreviewCostEstimate } from './previewResponseDtoDataPreviewCostEstimate'
 import type { PreviewResponseDtoDataPreviewDepartment } from './previewResponseDtoDataPreviewDepartment'
@@ -16,19 +17,25 @@ import type { PreviewResponseDtoDataPreviewExistingAccess } from './previewRespo
 import type { PreviewResponseDtoDataPreviewLimitExemption } from './previewResponseDtoDataPreviewLimitExemption'
 import type { PreviewResponseDtoDataPreviewLimits } from './previewResponseDtoDataPreviewLimits'
 import type { PreviewResponseDtoDataPreviewPlan } from './previewResponseDtoDataPreviewPlan'
+import type { PreviewResponseDtoDataPreviewPriceSource } from './previewResponseDtoDataPreviewPriceSource'
 import type { PreviewResponseDtoDataPreviewPricing } from './previewResponseDtoDataPreviewPricing'
 import type { PreviewResponseDtoDataPreviewSpendSubmission } from './previewResponseDtoDataPreviewSpendSubmission'
+import type { PreviewResponseDtoDataPreviewTermRefusal } from './previewResponseDtoDataPreviewTermRefusal'
 
 export type PreviewResponseDtoDataPreview = {
   plan: PreviewResponseDtoDataPreviewPlan
   branch: PreviewResponseDtoDataPreviewBranch
+  /**
+   * @minimum -9007199254740991
+   * @maximum 9007199254740991
+   * @nullable
+   */
+  termMonths: number | null
   /** @nullable */
-  expectedEndDate: string | null
+  termRefusal: PreviewResponseDtoDataPreviewTermRefusal
   department: PreviewResponseDtoDataPreviewDepartment
   /** @nullable */
   costCenter: PreviewResponseDtoDataPreviewCostCenter
-  maxEndDate: string
-  termRequired: boolean
   /** @nullable */
   annualVendorAmount: PreviewResponseDtoDataPreviewAnnualVendorAmount
   /** @nullable */
@@ -46,6 +53,10 @@ export type PreviewResponseDtoDataPreview = {
    */
   budgetYear: number | null
   pricing: PreviewResponseDtoDataPreviewPricing
+  /** @nullable */
+  priceSource: PreviewResponseDtoDataPreviewPriceSource
+  /** @nullable */
+  cost: PreviewResponseDtoDataPreviewCost
   /** @nullable */
   costEstimate: PreviewResponseDtoDataPreviewCostEstimate
   spendSubmission: PreviewResponseDtoDataPreviewSpendSubmission

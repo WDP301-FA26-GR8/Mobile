@@ -7,6 +7,7 @@
  */
 import type { OffboardingPageResponseDtoDataItemsItemAccessBlockMode } from './offboardingPageResponseDtoDataItemsItemAccessBlockMode'
 import type { OffboardingPageResponseDtoDataItemsItemEmployee } from './offboardingPageResponseDtoDataItemsItemEmployee'
+import type { OffboardingPageResponseDtoDataItemsItemRevocation } from './offboardingPageResponseDtoDataItemsItemRevocation'
 import type { OffboardingPageResponseDtoDataItemsItemRoleFlags } from './offboardingPageResponseDtoDataItemsItemRoleFlags'
 import type { OffboardingPageResponseDtoDataItemsItemState } from './offboardingPageResponseDtoDataItemsItemState'
 
@@ -15,7 +16,6 @@ export type OffboardingPageResponseDtoDataItemsItem = {
   employee: OffboardingPageResponseDtoDataItemsItemEmployee
   state: OffboardingPageResponseDtoDataItemsItemState
   accessBlockMode: OffboardingPageResponseDtoDataItemsItemAccessBlockMode
-  abrupt: boolean
   lastWorkingDay: string
   /** @nullable */
   handoverDueOn: string | null
@@ -28,6 +28,7 @@ export type OffboardingPageResponseDtoDataItemsItem = {
    * @maximum 9007199254740991
    */
   heldRights: number
+  revocation: OffboardingPageResponseDtoDataItemsItemRevocation
   accountLockMissing: boolean
   closed: boolean
   roleFlags: OffboardingPageResponseDtoDataItemsItemRoleFlags

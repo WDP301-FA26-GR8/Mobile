@@ -7,12 +7,17 @@
  */
 import type { GrantQueueResponseDtoDataItemsItemBeneficiary } from './grantQueueResponseDtoDataItemsItemBeneficiary'
 import type { GrantQueueResponseDtoDataItemsItemBoundaryState } from './grantQueueResponseDtoDataItemsItemBoundaryState'
+import type { GrantQueueResponseDtoDataItemsItemDepartment } from './grantQueueResponseDtoDataItemsItemDepartment'
+import type { GrantQueueResponseDtoDataItemsItemExecution } from './grantQueueResponseDtoDataItemsItemExecution'
 import type { GrantQueueResponseDtoDataItemsItemPlan } from './grantQueueResponseDtoDataItemsItemPlan'
 import type { GrantQueueResponseDtoDataItemsItemRequester } from './grantQueueResponseDtoDataItemsItemRequester'
+import type { GrantQueueResponseDtoDataItemsItemState } from './grantQueueResponseDtoDataItemsItemState'
+import type { GrantQueueResponseDtoDataItemsItemStock } from './grantQueueResponseDtoDataItemsItemStock'
 import type { GrantQueueResponseDtoDataItemsItemType } from './grantQueueResponseDtoDataItemsItemType'
 
 export type GrantQueueResponseDtoDataItemsItem = {
   requestId: string
+  /** SERVICE_ACCOUNT is on records of the earlier releases only: no request for a service account is made any more. */
   type: GrantQueueResponseDtoDataItemsItemType
   /**
    * @maximum 9007199254740991
@@ -22,9 +27,15 @@ export type GrantQueueResponseDtoDataItemsItem = {
   /** @nullable */
   boundaryState: GrantQueueResponseDtoDataItemsItemBoundaryState
   plan: GrantQueueResponseDtoDataItemsItemPlan
+  /** The department the request was sent for: the IT Admin works the departments they are in charge of. */
+  department: GrantQueueResponseDtoDataItemsItemDepartment
   beneficiary: GrantQueueResponseDtoDataItemsItemBeneficiary
+  state: GrantQueueResponseDtoDataItemsItemState
+  /** @nullable */
+  execution: GrantQueueResponseDtoDataItemsItemExecution
   requester: GrantQueueResponseDtoDataItemsItemRequester
   /** @nullable */
   expectedEndDate: string | null
+  stock: GrantQueueResponseDtoDataItemsItemStock
   submittedAt: string
 }

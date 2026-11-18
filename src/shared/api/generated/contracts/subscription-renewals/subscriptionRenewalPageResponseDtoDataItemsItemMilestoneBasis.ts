@@ -12,5 +12,7 @@ export type SubscriptionRenewalPageResponseDtoDataItemsItemMilestoneBasis =
 export const SubscriptionRenewalPageResponseDtoDataItemsItemMilestoneBasis = {
   DECLARED: 'DECLARED',
   INFERRED_UNCONFIRMED: 'INFERRED_UNCONFIRMED',
-  BY_END_DATE: 'BY_END_DATE'
+  BY_END_DATE: 'BY_END_DATE',
+  BY_RENEWAL_DATE: 'BY_RENEWAL_DATE',
+  BY_PAYMENT_DATE: 'BY_PAYMENT_DATE'
 } as const

@@ -7,6 +7,7 @@
  */
 import type { OffboardingCaseListAccountLockMissing } from './offboardingCaseListAccountLockMissing'
 import type { OffboardingCaseListPastLastDay } from './offboardingCaseListPastLastDay'
+import type { OffboardingCaseListRevocationOverdue } from './offboardingCaseListRevocationOverdue'
 import type { OffboardingCaseListRoleFlag } from './offboardingCaseListRoleFlag'
 import type { OffboardingCaseListState } from './offboardingCaseListState'
 
@@ -15,7 +16,16 @@ export type OffboardingCaseListParams = {
   state?: OffboardingCaseListState
   pastLastDay?: OffboardingCaseListPastLastDay
   accountLockMissing?: OffboardingCaseListAccountLockMissing
+  revocationOverdue?: OffboardingCaseListRevocationOverdue
   roleFlag?: OffboardingCaseListRoleFlag
+  /**
+   * A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused).
+   */
+  lastWorkingDayFrom?: string
+  /**
+   * A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused).
+   */
+  lastWorkingDayTo?: string
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0

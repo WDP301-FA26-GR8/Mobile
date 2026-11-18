@@ -17,10 +17,14 @@ export type BatchItemListResponseDtoDataItemsItem = {
    * @exclusiveMinimum 0
    */
   position: number
+  /** SENT_TO_FINANCE is on batches of the earlier releases only; it is not given any more. */
   outcome: BatchItemListResponseDtoDataItemsItemOutcome
   /** @nullable */
   stopReason: BatchItemListResponseDtoDataItemsItemStopReason
-  /** @nullable */
+  /**
+   * RETURNED_BY_FINANCE and CONFLICT_OF_INTEREST are on batches of the earlier releases only; they are not given any more.
+   * @nullable
+   */
   leftReason: BatchItemListResponseDtoDataItemsItemLeftReason
   /** @nullable */
   leftAt: string | null

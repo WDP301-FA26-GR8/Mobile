@@ -1,23 +1,53 @@
 import { Feather } from '@expo/vector-icons'
-import { Redirect, useRouter } from 'expo-router'
-import { useRef, useState } from 'react'
+import { usePreventRemove } from '@react-navigation/native'
+import { Redirect, useFocusEffect, useRouter } from 'expo-router'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { BackHandler, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { LiveInboxScreen } from '@/features/inbox'
 import type { NeedQueueResponseDtoDataItemsItem } from '@/shared/api/generated/contracts/need-decisions'
 import { useSession } from '@/shared/api/session-context'
 import { useAccountProfile } from '@/shared/api/use-account-profile'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
-import { ThemeSwitch } from '@/shared/ui/theme-switch'
+import { ErrorReference } from '@/shared/ui/error-reference'
 
-import { ManagerLiveTabs } from '../components/manager-live-tabs'
+import { ManagerGroupDecision } from '../components/manager-group-decision'
+import { NeedQueueCard } from '../components/need-queue-card'
 import { SimilarSeats } from '../components/similar-seats'
-import { useLiveNeedApprovals } from '../hooks/use-live-need-approvals'
+import { useLiveNeedApprovals, useNotificationNeedApproval } from '../hooks/use-live-need-approvals'
+import { isDecidableNeedType } from '../model/group-need-decision.model'
 
-export function LiveNeedApprovalsScreen() {
+function policyVersionChanged(error: unknown) {
+  if (typeof error !== 'object' || error === null || !('status' in error) || error.status !== 409 || !('info' in error))
+    return false
+  const info = error.info
+  if (typeof info !== 'object' || info === null || !('error' in info)) return false
+  const detail = info.error
+  return typeof detail === 'object' && detail !== null && 'code' in detail && detail.code === 'POLICY.VERSION_CHANGED'
+}
+
+function decisionRefusal(error: unknown) {
+  if (typeof error !== 'object' || error === null || !('status' in error) || !('info' in error)) return undefined
+  const info = error.info
+  if (typeof info !== 'object' || info === null || !('error' in info)) return undefined
+  const detail = info.error
+  if (typeof detail !== 'object' || detail === null || !('code' in detail)) return undefined
+  if (error.status === 409 && detail.code === 'ACCESS_REQUEST.STEP_NOT_PENDING') return 'stale'
+  if (
+    error.status === 403 &&
+    (detail.code === 'ACCESS_REQUEST.NOT_THE_ASSIGNEE' || detail.code === 'ACCESS_REQUEST.OWN_REQUEST')
+  )
+    return 'notAssigned'
+  return undefined
+}
+
+export function LiveNeedApprovalsScreen({
+  notification
+}: {
+  notification?: { requestId: string; source: 'assigned' | 'reminder' }
+} = {}) {
   const { colors: mobileColors } = useMobileTheme()
   const styles = createStyles(mobileColors)
   const { t, i18n } = useTranslation()
@@ -25,43 +55,138 @@ export function LiveNeedApprovalsScreen() {
   const session = useSession()
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState<NeedQueueResponseDtoDataItemsItem>()
-  const [choice, setChoice] = useState<'APPROVE' | 'REJECT'>()
+  const [choice, setChoice] = useState<'APPROVE' | 'REJECT' | 'RETURN'>()
+  const [response, setResponse] = useState<{ version: string; answers: Record<string, 'YES' | 'NO'> }>()
   const [reason, setReason] = useState('')
   const [validation, setValidation] = useState(false)
-  const [activeTab, setActiveTab] = useState<'queue' | 'team' | 'inbox'>('queue')
   const [loggingOut, setLoggingOut] = useState(false)
+  const [groupBusy, setGroupBusy] = useState(false)
+  const [groupDone, setGroupDone] = useState(false)
   const [logoutError, setLogoutError] = useState(false)
+  const [recoveryBusy, setRecoveryBusy] = useState(false)
+  const [recoveryError, setRecoveryError] = useState(false)
   const sent = useRef(false)
+  const recoveryEpoch = useRef(0)
+  const recovering = useRef(false)
+  const handledNotification = useRef<string | undefined>(undefined)
   const profile = useAccountProfile()
   const isManager = !!profile.data?.roles.includes('MANAGER') && !profile.isError
   const hasScope = isManager && !!profile.data?.managerScope
-  const { queue, detail, decision } = useLiveNeedApprovals(page, selected?.requestId, hasScope)
+  const { queue, detail, policy, decision } = useLiveNeedApprovals(page, selected?.requestId, hasScope)
+  const notificationLookup = useNotificationNeedApproval(notification?.requestId, hasScope)
+  useEffect(() => {
+    if (
+      !notification ||
+      !hasScope ||
+      selected ||
+      notificationLookup.isFetching ||
+      !notificationLookup.isSuccess ||
+      handledNotification.current === `${notification.source}:${notification.requestId}`
+    )
+      return
+    handledNotification.current = `${notification.source}:${notification.requestId}`
+    if (isDecidableNeedType(notificationLookup.data?.type) && notificationLookup.data?.stepKind === 'NEED') {
+      setSelected(notificationLookup.data)
+    } else if (!notificationLookup.data && notification.source === 'reminder') {
+      router.replace({ pathname: '/live-requests/[requestId]', params: { requestId: notification.requestId } })
+    }
+  }, [
+    notification,
+    hasScope,
+    selected,
+    notificationLookup.isFetching,
+    notificationLookup.isSuccess,
+    notificationLookup.data,
+    router
+  ])
   const request = detail.data
+  const checklist = policy.data?.step.checklist
+  const answers = response && response.version === policy.data?.policyVersionId ? response.answers : {}
+  const complete =
+    !policy.isError &&
+    !policy.isFetching &&
+    !!checklist?.length &&
+    checklist.every((item) => item.check === 'SYSTEM' || !!answers[item.code])
+  const hasNo = checklist?.some((item) => item.check === 'PERSON' && answers[item.code] === 'NO') ?? false
   const canDecide =
     hasScope &&
     !!selected &&
     !!request &&
     !detail.isError &&
     request.id === selected.requestId &&
-    request.type === 'GRANT' &&
+    (request.type === 'GRANT' || request.type === 'RENEWAL') &&
     request.needStep.id === selected.stepId &&
     request.needStep.state === 'PENDING' &&
     !request.needDecision
-  const locked = decision.isPending || decision.isError || decision.isSuccess
+  const groupDecidable =
+    hasScope &&
+    !!selected &&
+    !!request &&
+    !detail.isError &&
+    request.id === selected.requestId &&
+    request.type === 'GROUP_GRANT' &&
+    request.needStep.id === selected.stepId &&
+    request.needStep.state === 'PENDING'
+  const canDecideGroup = groupDecidable || groupDone
+  const inFlight = decision.isPending || groupBusy || (sent.current && !decision.isError && !decision.isSuccess)
+  usePreventRemove(inFlight, () => undefined)
+  useFocusEffect(
+    useCallback(() => {
+      if (Platform.OS !== 'android') return
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        () => inFlight || (sent.current && !decision.isError && !decision.isSuccess)
+      )
+      return () => subscription.remove()
+    }, [decision.isError, decision.isSuccess, inFlight])
+  )
+  const locked = inFlight || decision.isError || decision.isSuccess
+  const refusal = decision.isError ? decisionRefusal(decision.error) : undefined
 
   function closeDetails() {
-    if (decision.isPending) return
+    if (inFlight || (sent.current && !decision.isError && !decision.isSuccess)) return
     setSelected(undefined)
+    setGroupDone(false)
     setChoice(undefined)
+    setResponse(undefined)
     setReason('')
     setValidation(false)
+    recoveryEpoch.current += 1
+    recovering.current = false
+    setRecoveryBusy(false)
+    setRecoveryError(false)
+    sent.current = false
+    decision.reset()
+  }
+  async function reloadChangedPolicy() {
+    if (recovering.current || !decision.isError || !policyVersionChanged(decision.error)) return
+    const epoch = recoveryEpoch.current
+    const previousVersion = decision.variables?.body.checklist.policyVersionId
+    recovering.current = true
+    setRecoveryBusy(true)
+    setRecoveryError(false)
+    setResponse(undefined)
+    const [updatedPolicy, updatedDetail] = await Promise.all([policy.refetch(), detail.refetch()])
+    if (epoch !== recoveryEpoch.current) return
+    recovering.current = false
+    setRecoveryBusy(false)
+    if (
+      updatedPolicy.isError ||
+      updatedDetail.isError ||
+      !previousVersion ||
+      !updatedPolicy.data ||
+      updatedPolicy.data.policyVersionId === previousVersion
+    ) {
+      setRecoveryError(true)
+      return
+    }
     sent.current = false
     decision.reset()
   }
   function confirm() {
-    if (!selected || !choice || !canDecide || locked || sent.current) return
-    if (choice === 'APPROVE' && request && request.termMonths > 12) return
-    if (choice === 'REJECT' && (reason.trim().length < 1 || reason.trim().length > 1000)) {
+    if (!selected || !choice || !canDecide || !policy.data || !checklist || !complete || locked || sent.current) return
+    if (choice === 'APPROVE' && hasNo) return
+    if (choice !== 'APPROVE' && !hasNo && (reason.trim().length < 1 || reason.trim().length > 1000)) {
       setValidation(true)
       return
     }
@@ -69,11 +194,21 @@ export function LiveNeedApprovalsScreen() {
     sent.current = true
     decision.mutate({
       id: selected.requestId,
-      body: choice === 'APPROVE' ? { decision: choice } : { decision: choice, reason: reason.trim() }
+      body: {
+        decision: choice,
+        ...(choice !== 'APPROVE' && reason.trim() ? { reason: reason.trim() } : {}),
+        checklist: {
+          policyVersionId: policy.data.policyVersionId,
+          answers: checklist.map((item) => ({
+            itemCode: item.code,
+            answer: item.check === 'SYSTEM' ? 'YES' : answers[item.code]
+          }))
+        }
+      }
     })
   }
   async function logout() {
-    if (loggingOut || decision.isPending) return
+    if (loggingOut || inFlight || (sent.current && !decision.isError && !decision.isSuccess)) return
     setLoggingOut(true)
     setLogoutError(false)
     try {
@@ -84,86 +219,12 @@ export function LiveNeedApprovalsScreen() {
       setLoggingOut(false)
     }
   }
-  function selectTab(tab: 'queue' | 'team' | 'inbox') {
-    if (decision.isPending) return
-    if (selected) closeDetails()
-    setActiveTab(tab)
-  }
   if (session.state === 'anonymous') return <Redirect href='/' />
   if (profile.data && !profile.isError && !isManager) return <Redirect href='/my-software' />
-  const tabs = <ManagerLiveTabs active={activeTab} disabled={decision.isPending} onSelect={selectTab} />
-  if (isManager && activeTab === 'inbox') return <LiveInboxScreen navigation={tabs} />
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.screen}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps='handled'>
-          {!selected && isManager && profile.data ? (
-            <View style={styles.profile}>
-              <Pressable
-                accessibilityRole='button'
-                accessibilityLabel={t('account.openProfile', { name: profile.data.employee.fullName })}
-                onPress={() => router.push('/profile')}
-                style={styles.profileIdentity}
-              >
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>
-                    {profile.data.employee.fullName.trim().slice(0, 1).toLocaleUpperCase()}
-                  </Text>
-                </View>
-                <View style={styles.headingCopy}>
-                  <Text numberOfLines={1} style={styles.name}>
-                    {profile.data.employee.fullName}
-                  </Text>
-                  <Text numberOfLines={1} style={styles.muted}>
-                    {profile.data.managerScope?.departmentName ?? t('licenses.live.noDepartment')}
-                  </Text>
-                </View>
-                <Feather
-                  accessibilityElementsHidden
-                  importantForAccessibility='no'
-                  name='chevron-right'
-                  size={16}
-                  color={mobileColors.muted}
-                />
-              </Pressable>
-              <ThemeSwitch />
-            </View>
-          ) : null}
-          {!selected && isManager && profile.data ? (
-            <View style={styles.profileActions}>
-              <Pressable
-                accessibilityRole='button'
-                accessibilityLabel={t('manager.live.personal')}
-                onPress={() => router.push('/my-software')}
-                style={styles.personalButton}
-              >
-                <Feather
-                  accessibilityElementsHidden
-                  importantForAccessibility='no'
-                  name='user'
-                  size={18}
-                  color={mobileColors.primaryInk}
-                />
-                <Text style={styles.personalLabel}>{t('manager.live.personal')}</Text>
-              </Pressable>
-              <Pressable
-                accessibilityRole='button'
-                accessibilityLabel={t('licenses.live.logout')}
-                accessibilityState={{ disabled: loggingOut, busy: loggingOut }}
-                disabled={loggingOut}
-                onPress={() => void logout()}
-                style={styles.iconButton}
-              >
-                <Feather
-                  accessibilityElementsHidden
-                  importantForAccessibility='no'
-                  name='log-out'
-                  size={18}
-                  color={mobileColors.primaryInk}
-                />
-              </Pressable>
-            </View>
-          ) : null}
           {logoutError ? (
             <Text accessibilityRole='alert' style={styles.error}>
               {t('licenses.live.logoutError')}
@@ -196,44 +257,53 @@ export function LiveNeedApprovalsScreen() {
           {selected ? (
             <Pressable
               accessibilityRole='button'
-              accessibilityState={{ disabled: decision.isPending }}
-              disabled={decision.isPending}
+              accessibilityState={{ disabled: inFlight }}
+              disabled={inFlight}
               onPress={closeDetails}
               style={styles.action}
             >
               <Text style={styles.link}>{t('manager.live.backQueue')}</Text>
             </Pressable>
           ) : null}
-          {isManager && activeTab === 'team' ? (
-            <View style={styles.card}>
-              <Text accessibilityRole='header' style={styles.name}>
-                {t('manager.live.teamTitle')}
+          {isManager ? (
+            <View style={styles.titleBlock}>
+              <Text accessibilityRole='header' style={styles.pageTitle}>
+                {selected ? t('manager.live.details') : t('manager.live.title')}
               </Text>
-              <Text style={styles.muted}>{t('manager.live.teamWebOnly')}</Text>
+              <Text style={styles.muted}>{t('manager.live.scope')}</Text>
             </View>
           ) : null}
-          {isManager && activeTab === 'queue' ? (
-            <View style={styles.heading}>
-              <View style={styles.headingCopy}>
-                <Text style={styles.kicker}>{t('manager.live.kicker')}</Text>
-                <Text accessibilityRole='header' style={styles.title}>
-                  {selected ? t('manager.live.details') : t('manager.live.title')}
-                </Text>
-                <Text style={[styles.muted, styles.heroSubtitle]}>{t('manager.live.scope')}</Text>
-              </View>
-              <View style={styles.icon}>
-                <Feather
-                  accessibilityElementsHidden
-                  importantForAccessibility='no'
-                  name='check-square'
-                  size={22}
-                  color={mobileColors.primaryInk}
-                />
-              </View>
-            </View>
-          ) : null}
-          {isManager && activeTab === 'queue' && !selected ? (
+          {isManager && !selected ? (
             <>
+              {hasScope && notification && notificationLookup.isFetching ? (
+                <Text accessibilityRole='progressbar' style={styles.muted}>
+                  {t('manager.live.notificationLoading')}
+                </Text>
+              ) : null}
+              {hasScope && notification && notificationLookup.isError ? (
+                <View style={styles.card}>
+                  <Text accessibilityRole='alert' style={styles.error}>
+                    {t('manager.live.notificationError')}
+                  </Text>
+                  <Pressable
+                    accessibilityRole='button'
+                    onPress={() => void notificationLookup.refetch()}
+                    style={styles.action}
+                  >
+                    <Text style={styles.link}>{t('licenses.live.retry')}</Text>
+                  </Pressable>
+                </View>
+              ) : null}
+              {hasScope &&
+              notification &&
+              notificationLookup.isSuccess &&
+              !notificationLookup.isFetching &&
+              (!isDecidableNeedType(notificationLookup.data?.type) || notificationLookup.data?.stepKind !== 'NEED') &&
+              (notificationLookup.data || notification.source === 'assigned') ? (
+                <Text accessibilityRole='alert' style={styles.error}>
+                  {t('manager.live.notificationUnavailable')}
+                </Text>
+              ) : null}
               {!hasScope ? (
                 <View style={styles.card}>
                   <Text accessibilityRole='alert' style={styles.error}>
@@ -294,58 +364,7 @@ export function LiveNeedApprovalsScreen() {
                 </View>
               ) : null}
               {hasScope &&
-                queue.data?.items.map((item) => {
-                  const name = item.plan?.applicationName ?? item.softwareName ?? t('requests.live.unnamed')
-                  return (
-                    <Pressable
-                      key={item.stepId}
-                      accessibilityRole='button'
-                      accessibilityLabel={t('manager.live.openNamed', { name, person: item.requester.fullName })}
-                      onPress={() => setSelected(item)}
-                      style={styles.card}
-                    >
-                      <View style={styles.row}>
-                        <View style={styles.avatar}>
-                          <Text style={styles.avatarText}>
-                            {item.requester.fullName.trim().slice(0, 1).toLocaleUpperCase()}
-                          </Text>
-                        </View>
-                        <View style={styles.headingCopy}>
-                          <Text style={styles.name}>{item.requester.fullName}</Text>
-                          <Text style={styles.muted}>{item.department.name}</Text>
-                        </View>
-                        <Feather
-                          accessibilityElementsHidden
-                          importantForAccessibility='no'
-                          name='chevron-right'
-                          size={20}
-                          color={mobileColors.muted}
-                        />
-                      </View>
-                      <View style={styles.divider} />
-                      <Text style={styles.name}>{name}</Text>
-                      {item.plan ? (
-                        <Text style={styles.muted}>{t('licenses.live.plan', { plan: item.plan.planName })}</Text>
-                      ) : null}
-                      <Text style={styles.muted}>
-                        {t('manager.live.due', {
-                          date: formatDate(item.dueOn, i18n.language, t('licenses.live.dateUnavailable'))
-                        })}
-                      </Text>
-                      <View style={styles.divider} />
-                      <View style={styles.reviewRow}>
-                        <Text style={styles.review}>{t('manager.live.review')}</Text>
-                        <Feather
-                          accessibilityElementsHidden
-                          importantForAccessibility='no'
-                          name='arrow-right'
-                          size={14}
-                          color={mobileColors.primary}
-                        />
-                      </View>
-                    </Pressable>
-                  )
-                })}
+                queue.data?.items.map((item) => <NeedQueueCard key={item.stepId} item={item} onPress={setSelected} />)}
               {hasScope && queue.data && queue.data.pagination.totalPages > 1 ? (
                 <View style={styles.pagination}>
                   <Pressable
@@ -372,7 +391,7 @@ export function LiveNeedApprovalsScreen() {
                 </View>
               ) : null}
             </>
-          ) : hasScope && activeTab === 'queue' && selected ? (
+          ) : hasScope && selected ? (
             <>
               {detail.isLoading ? (
                 <Text accessibilityRole='progressbar' style={styles.muted}>
@@ -395,9 +414,34 @@ export function LiveNeedApprovalsScreen() {
                 </Text>
               ) : null}
               {decision.isError ? (
-                <Text accessibilityRole='alert' style={styles.error}>
-                  {t('manager.live.uncertain')}
-                </Text>
+                policyVersionChanged(decision.error) ? (
+                  <View>
+                    <Text accessibilityRole='alert' style={styles.error}>
+                      {t('manager.live.policyChanged')}
+                    </Text>
+                    {recoveryError ? (
+                      <Text accessibilityRole='alert' style={styles.error}>
+                        {t('manager.live.policyReloadError')}
+                      </Text>
+                    ) : null}
+                    <Pressable
+                      accessibilityRole='button'
+                      disabled={recoveryBusy}
+                      accessibilityState={{ disabled: recoveryBusy, busy: recoveryBusy }}
+                      onPress={() => void reloadChangedPolicy()}
+                      style={styles.action}
+                    >
+                      <Text style={styles.link}>{t('manager.live.reloadChecklist')}</Text>
+                    </Pressable>
+                  </View>
+                ) : (
+                  <>
+                    <Text accessibilityRole='alert' style={styles.error}>
+                      {refusal ? t(`manager.live.${refusal}`) : t('manager.live.uncertain')}
+                    </Text>
+                    <ErrorReference error={decision.error} />
+                  </>
+                )
               ) : null}
               {request ? (
                 <View style={styles.card}>
@@ -422,11 +466,13 @@ export function LiveNeedApprovalsScreen() {
                   <Text style={styles.value}>{request.businessReason}</Text>
                   <Text style={styles.label}>{t('requests.live.term')}</Text>
                   <Text style={styles.value}>
-                    {t('requests.live.months', {
-                      months: new Intl.NumberFormat(i18n.language).format(request.termMonths)
-                    })}
+                    {request.termMonths === null
+                      ? t('manager.live.noTerm')
+                      : t('requests.live.months', {
+                          months: new Intl.NumberFormat(i18n.language).format(request.termMonths)
+                        })}
                   </Text>
-                  <SimilarSeats requestId={request.id} />
+                  {request.type !== 'GROUP_GRANT' ? <SimilarSeats requestId={request.id} /> : null}
                   <Text style={styles.label}>{t('manager.live.cost')}</Text>
                   <Text style={styles.value}>
                     {request.pricing.status === 'NOT_APPLICABLE'
@@ -435,26 +481,31 @@ export function LiveNeedApprovalsScreen() {
                         ? t('manager.live.costMissing')
                         : (formatCost(request.pricing.amount, i18n.language) ?? t('manager.live.costUnavailable'))}
                   </Text>
-                  {request.termMonths > 12 ? (
-                    <Text style={styles.error}>{t('manager.live.longTermBlocked')}</Text>
-                  ) : null}
-                  {!canDecide && !locked && !detail.isError ? (
+                  {!canDecide && !canDecideGroup && !locked && !detail.isError ? (
                     <Text accessibilityRole='alert' style={styles.error}>
                       {t('manager.live.stale')}
                     </Text>
+                  ) : null}
+                  {canDecideGroup ? (
+                    <ManagerGroupDecision
+                      requestId={request.id}
+                      checklist={policy.data}
+                      checklistLoading={policy.isLoading}
+                      checklistError={policy.isError}
+                      onReloadChecklist={() => void policy.refetch()}
+                      onBusyChange={setGroupBusy}
+                      onDone={() => setGroupDone(true)}
+                    />
                   ) : null}
                   {canDecide && !locked && !choice ? (
                     <View style={styles.actions}>
                       <Pressable accessibilityRole='button' onPress={() => setChoice('REJECT')} style={styles.outline}>
                         <Text style={styles.link}>{t('manager.live.reject')}</Text>
                       </Pressable>
-                      <Pressable
-                        accessibilityRole='button'
-                        accessibilityState={{ disabled: request.termMonths > 12 }}
-                        disabled={request.termMonths > 12}
-                        onPress={() => setChoice('APPROVE')}
-                        style={[styles.primary, request.termMonths > 12 && styles.disabled]}
-                      >
+                      <Pressable accessibilityRole='button' onPress={() => setChoice('RETURN')} style={styles.outline}>
+                        <Text style={styles.link}>{t('manager.live.return')}</Text>
+                      </Pressable>
+                      <Pressable accessibilityRole='button' onPress={() => setChoice('APPROVE')} style={styles.primary}>
                         <Text style={styles.primaryText}>{t('manager.live.approve')}</Text>
                       </Pressable>
                     </View>
@@ -462,10 +513,67 @@ export function LiveNeedApprovalsScreen() {
                   {choice && !decision.isSuccess ? (
                     <View style={styles.confirm}>
                       <Text style={styles.name}>
-                        {t(choice === 'APPROVE' ? 'manager.live.confirmApprove' : 'manager.live.confirmReject')}
+                        {t(
+                          choice === 'APPROVE'
+                            ? 'manager.live.confirmApprove'
+                            : choice === 'REJECT'
+                              ? 'manager.live.confirmReject'
+                              : 'manager.live.confirmReturn'
+                        )}
                       </Text>
                       <Text style={styles.muted}>{t('manager.live.confirmNote')}</Text>
-                      {choice === 'REJECT' ? (
+                      {policy.isLoading ? (
+                        <Text accessibilityRole='progressbar' style={styles.muted}>
+                          {t('manager.live.checklistLoading')}
+                        </Text>
+                      ) : null}
+                      {policy.isError ? (
+                        <Pressable
+                          accessibilityRole='button'
+                          onPress={() => void policy.refetch()}
+                          style={styles.action}
+                        >
+                          <Text accessibilityRole='alert' style={styles.error}>
+                            {t('manager.live.checklistError')}
+                          </Text>
+                          <Text style={styles.link}>{t('licenses.live.retry')}</Text>
+                        </Pressable>
+                      ) : null}
+                      {checklist?.map((item) => (
+                        <View key={item.code}>
+                          <Text style={styles.label}>{item.text}</Text>
+                          {item.check === 'SYSTEM' ? (
+                            <Text style={styles.muted}>{t('manager.live.systemYes')}</Text>
+                          ) : (
+                            <View style={styles.actions}>
+                              {(['YES', 'NO'] as const).map((answer) => (
+                                <Pressable
+                                  key={answer}
+                                  accessibilityRole='radio'
+                                  accessibilityState={{ checked: answers[item.code] === answer, disabled: locked }}
+                                  disabled={locked}
+                                  onPress={() => {
+                                    if (!policy.data) return
+                                    setResponse({
+                                      version: policy.data.policyVersionId,
+                                      answers: { ...answers, [item.code]: answer }
+                                    })
+                                  }}
+                                  style={answers[item.code] === answer ? styles.primary : styles.outline}
+                                >
+                                  <Text style={answers[item.code] === answer ? styles.primaryText : styles.link}>
+                                    {t(answer === 'YES' ? 'manager.live.yes' : 'manager.live.no')}
+                                  </Text>
+                                </Pressable>
+                              ))}
+                            </View>
+                          )}
+                        </View>
+                      ))}
+                      {choice === 'APPROVE' && hasNo ? (
+                        <Text style={styles.error}>{t('manager.live.noBlocksApproval')}</Text>
+                      ) : null}
+                      {choice !== 'APPROVE' ? (
                         <>
                           <Text style={styles.label}>{t('manager.live.rejectReason')}</Text>
                           <TextInput
@@ -499,10 +607,16 @@ export function LiveNeedApprovalsScreen() {
                         </Pressable>
                         <Pressable
                           accessibilityRole='button'
-                          accessibilityState={{ disabled: locked || !canDecide, busy: decision.isPending }}
-                          disabled={locked || !canDecide}
+                          accessibilityState={{
+                            disabled: locked || !canDecide || !complete || (choice === 'APPROVE' && hasNo),
+                            busy: decision.isPending
+                          }}
+                          disabled={locked || !canDecide || !complete || (choice === 'APPROVE' && hasNo)}
                           onPress={confirm}
-                          style={[styles.primary, (locked || !canDecide) && styles.disabled]}
+                          style={[
+                            styles.primary,
+                            (locked || !canDecide || !complete || (choice === 'APPROVE' && hasNo)) && styles.disabled
+                          ]}
                         >
                           <Text style={styles.primaryText}>{t('manager.live.confirm')}</Text>
                         </Pressable>
@@ -514,17 +628,9 @@ export function LiveNeedApprovalsScreen() {
             </>
           ) : null}
         </ScrollView>
-        {isManager ? tabs : null}
       </View>
     </SafeAreaView>
   )
-}
-
-function formatDate(value: string, locale: string, fallback: string) {
-  const date = new Date(`${value}T00:00:00Z`)
-  return Number.isNaN(date.getTime())
-    ? fallback
-    : new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: 'UTC' }).format(date)
 }
 
 function formatCost(value: { amount: string; currency: string } | null, locale: string) {
@@ -539,6 +645,8 @@ function formatCost(value: { amount: string; currency: string } | null, locale: 
 
 const createStyles = (mobileColors: MobileColors) =>
   StyleSheet.create({
+    titleBlock: { gap: 4 },
+    pageTitle: { color: mobileColors.foreground, fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
     safe: { flex: 1, backgroundColor: mobileColors.background },
     screen: { flex: 1 },
     profile: {

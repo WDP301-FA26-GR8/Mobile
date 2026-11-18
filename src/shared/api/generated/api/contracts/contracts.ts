@@ -21,7 +21,19 @@ import type {
   UseQueryResult
 } from '@tanstack/react-query'
 
-import type { ContractCreate201, ContractGet200, CreateContractBodyDto, ErrorEnvelopeDto } from '../../contracts'
+import type {
+  ContractCreate201,
+  ContractGet200,
+  ContractList200,
+  ContractListParams,
+  ContractSubscriptionLink201,
+  ContractSubscriptionUnlink200,
+  ContractUpdate200,
+  CreateContractBodyDto,
+  ErrorEnvelopeDto,
+  LinkSubscriptionBodyDto,
+  UpdateContractBodyDto
+} from '../../contracts'
 
 import { env } from '@/shared/config/env'
 
@@ -38,6 +50,193 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
     })
   }
   return result
+}
+
+export type contractListResponse200 = {
+  data: ContractList200
+  status: 200
+}
+
+export type contractListResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type contractListResponse403 = {
+  data: ErrorEnvelopeDto
+  status: 403
+}
+
+export type contractListResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type contractListResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type contractListResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type contractListResponseSuccess = contractListResponse200 & {
+  headers: Headers
+}
+export type contractListResponseError = (
+  | contractListResponse401
+  | contractListResponse403
+  | contractListResponse422
+  | contractListResponse429
+  | contractListResponse503
+) & {
+  headers: Headers
+}
+
+export const getContractListUrl = (params?: ContractListParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `${env.API_BASE_URL}/api/v1/contracts?${stringifiedParams}`
+    : `${env.API_BASE_URL}/api/v1/contracts`
+}
+
+/**
+ * @summary List the contracts
+ */
+export const contractList = async (
+  params?: ContractListParams,
+  options?: RequestInit
+): Promise<contractListResponseSuccess> => {
+  const res = await fetch(getContractListUrl(params), {
+    ...options,
+    method: 'GET'
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: contractListResponseError['data']; status?: number } = new globalThis.Error()
+    const data: contractListResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: contractListResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as contractListResponseSuccess
+}
+
+export const getContractListQueryKey = (params?: ContractListParams) => {
+  return [`${env.API_BASE_URL}/api/v1/contracts`, ...(params ? [params] : [])] as const
+}
+
+export const getContractListQueryOptions = <
+  TData = Awaited<ReturnType<typeof contractList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: ContractListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof contractList>>, TError, TData>>
+    fetch?: RequestInit
+  }
+) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getContractListQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof contractList>>> = ({ signal }) =>
+    contractList(params, { signal, ...fetchOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof contractList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ContractListQueryResult = NonNullable<Awaited<ReturnType<typeof contractList>>>
+export type ContractListQueryError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+export function useContractList<
+  TData = Awaited<ReturnType<typeof contractList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params: undefined | ContractListParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof contractList>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof contractList>>,
+          TError,
+          Awaited<ReturnType<typeof contractList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useContractList<
+  TData = Awaited<ReturnType<typeof contractList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: ContractListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof contractList>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof contractList>>,
+          TError,
+          Awaited<ReturnType<typeof contractList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useContractList<
+  TData = Awaited<ReturnType<typeof contractList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: ContractListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof contractList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List the contracts
+ */
+
+export function useContractList<
+  TData = Awaited<ReturnType<typeof contractList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: ContractListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof contractList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getContractListQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
 }
 
 export type contractCreateResponse201 = {
@@ -58,6 +257,11 @@ export type contractCreateResponse401 = {
 export type contractCreateResponse403 = {
   data: ErrorEnvelopeDto
   status: 403
+}
+
+export type contractCreateResponse409 = {
+  data: ErrorEnvelopeDto
+  status: 409
 }
 
 export type contractCreateResponse413 = {
@@ -92,6 +296,7 @@ export type contractCreateResponseError = (
   | contractCreateResponse400
   | contractCreateResponse401
   | contractCreateResponse403
+  | contractCreateResponse409
   | contractCreateResponse413
   | contractCreateResponse415
   | contractCreateResponse422
@@ -367,4 +572,491 @@ export function useContractGet<
   }
 
   return withQueryKey(query, queryOptions.queryKey)
+}
+
+export type contractUpdateResponse200 = {
+  data: ContractUpdate200
+  status: 200
+}
+
+export type contractUpdateResponse400 = {
+  data: ErrorEnvelopeDto
+  status: 400
+}
+
+export type contractUpdateResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type contractUpdateResponse403 = {
+  data: ErrorEnvelopeDto
+  status: 403
+}
+
+export type contractUpdateResponse404 = {
+  data: ErrorEnvelopeDto
+  status: 404
+}
+
+export type contractUpdateResponse409 = {
+  data: ErrorEnvelopeDto
+  status: 409
+}
+
+export type contractUpdateResponse413 = {
+  data: ErrorEnvelopeDto
+  status: 413
+}
+
+export type contractUpdateResponse415 = {
+  data: ErrorEnvelopeDto
+  status: 415
+}
+
+export type contractUpdateResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type contractUpdateResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type contractUpdateResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type contractUpdateResponseSuccess = contractUpdateResponse200 & {
+  headers: Headers
+}
+export type contractUpdateResponseError = (
+  | contractUpdateResponse400
+  | contractUpdateResponse401
+  | contractUpdateResponse403
+  | contractUpdateResponse404
+  | contractUpdateResponse409
+  | contractUpdateResponse413
+  | contractUpdateResponse415
+  | contractUpdateResponse422
+  | contractUpdateResponse429
+  | contractUpdateResponse503
+) & {
+  headers: Headers
+}
+
+export const getContractUpdateUrl = (id: string) => {
+  return `${env.API_BASE_URL}/api/v1/contracts/${id}`
+}
+
+/**
+ * @summary Change a contract
+ */
+export const contractUpdate = async (
+  id: string,
+  updateContractBodyDto: UpdateContractBodyDto,
+  options?: RequestInit
+): Promise<contractUpdateResponseSuccess> => {
+  const res = await fetch(getContractUpdateUrl(id), {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(updateContractBodyDto)
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: contractUpdateResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: contractUpdateResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: contractUpdateResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as contractUpdateResponseSuccess
+}
+
+export const getContractUpdateMutationOptions = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof contractUpdate>>,
+    TError,
+    { id: string; data: UpdateContractBodyDto },
+    TContext
+  >
+  fetch?: RequestInit
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof contractUpdate>>,
+  TError,
+  { id: string; data: UpdateContractBodyDto },
+  TContext
+> => {
+  const mutationKey = ['contractUpdate']
+  const { mutation: mutationOptions, fetch: fetchOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, fetch: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof contractUpdate>>,
+    { id: string; data: UpdateContractBodyDto }
+  > = (props) => {
+    const { id, data } = props ?? {}
+
+    return contractUpdate(id, data, fetchOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ContractUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof contractUpdate>>>
+export type ContractUpdateMutationBody = UpdateContractBodyDto
+export type ContractUpdateMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+/**
+ * @summary Change a contract
+ */
+export const useContractUpdate = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof contractUpdate>>,
+      TError,
+      { id: string; data: UpdateContractBodyDto },
+      TContext
+    >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof contractUpdate>>,
+  TError,
+  { id: string; data: UpdateContractBodyDto },
+  TContext
+> => {
+  return useMutation(getContractUpdateMutationOptions(options), queryClient)
+}
+export type contractSubscriptionLinkResponse201 = {
+  data: ContractSubscriptionLink201
+  status: 201
+}
+
+export type contractSubscriptionLinkResponse400 = {
+  data: ErrorEnvelopeDto
+  status: 400
+}
+
+export type contractSubscriptionLinkResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type contractSubscriptionLinkResponse403 = {
+  data: ErrorEnvelopeDto
+  status: 403
+}
+
+export type contractSubscriptionLinkResponse404 = {
+  data: ErrorEnvelopeDto
+  status: 404
+}
+
+export type contractSubscriptionLinkResponse409 = {
+  data: ErrorEnvelopeDto
+  status: 409
+}
+
+export type contractSubscriptionLinkResponse413 = {
+  data: ErrorEnvelopeDto
+  status: 413
+}
+
+export type contractSubscriptionLinkResponse415 = {
+  data: ErrorEnvelopeDto
+  status: 415
+}
+
+export type contractSubscriptionLinkResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type contractSubscriptionLinkResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type contractSubscriptionLinkResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type contractSubscriptionLinkResponseSuccess = contractSubscriptionLinkResponse201 & {
+  headers: Headers
+}
+export type contractSubscriptionLinkResponseError = (
+  | contractSubscriptionLinkResponse400
+  | contractSubscriptionLinkResponse401
+  | contractSubscriptionLinkResponse403
+  | contractSubscriptionLinkResponse404
+  | contractSubscriptionLinkResponse409
+  | contractSubscriptionLinkResponse413
+  | contractSubscriptionLinkResponse415
+  | contractSubscriptionLinkResponse422
+  | contractSubscriptionLinkResponse429
+  | contractSubscriptionLinkResponse503
+) & {
+  headers: Headers
+}
+
+export const getContractSubscriptionLinkUrl = (id: string) => {
+  return `${env.API_BASE_URL}/api/v1/contracts/${id}/subscriptions`
+}
+
+/**
+ * @summary Link a subscription to a contract
+ */
+export const contractSubscriptionLink = async (
+  id: string,
+  linkSubscriptionBodyDto: LinkSubscriptionBodyDto,
+  options?: RequestInit
+): Promise<contractSubscriptionLinkResponseSuccess> => {
+  const res = await fetch(getContractSubscriptionLinkUrl(id), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(linkSubscriptionBodyDto)
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: contractSubscriptionLinkResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: contractSubscriptionLinkResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: contractSubscriptionLinkResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as contractSubscriptionLinkResponseSuccess
+}
+
+export const getContractSubscriptionLinkMutationOptions = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof contractSubscriptionLink>>,
+    TError,
+    { id: string; data: LinkSubscriptionBodyDto },
+    TContext
+  >
+  fetch?: RequestInit
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof contractSubscriptionLink>>,
+  TError,
+  { id: string; data: LinkSubscriptionBodyDto },
+  TContext
+> => {
+  const mutationKey = ['contractSubscriptionLink']
+  const { mutation: mutationOptions, fetch: fetchOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, fetch: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof contractSubscriptionLink>>,
+    { id: string; data: LinkSubscriptionBodyDto }
+  > = (props) => {
+    const { id, data } = props ?? {}
+
+    return contractSubscriptionLink(id, data, fetchOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ContractSubscriptionLinkMutationResult = NonNullable<Awaited<ReturnType<typeof contractSubscriptionLink>>>
+export type ContractSubscriptionLinkMutationBody = LinkSubscriptionBodyDto
+export type ContractSubscriptionLinkMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+/**
+ * @summary Link a subscription to a contract
+ */
+export const useContractSubscriptionLink = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof contractSubscriptionLink>>,
+      TError,
+      { id: string; data: LinkSubscriptionBodyDto },
+      TContext
+    >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof contractSubscriptionLink>>,
+  TError,
+  { id: string; data: LinkSubscriptionBodyDto },
+  TContext
+> => {
+  return useMutation(getContractSubscriptionLinkMutationOptions(options), queryClient)
+}
+export type contractSubscriptionUnlinkResponse200 = {
+  data: ContractSubscriptionUnlink200
+  status: 200
+}
+
+export type contractSubscriptionUnlinkResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type contractSubscriptionUnlinkResponse403 = {
+  data: ErrorEnvelopeDto
+  status: 403
+}
+
+export type contractSubscriptionUnlinkResponse404 = {
+  data: ErrorEnvelopeDto
+  status: 404
+}
+
+export type contractSubscriptionUnlinkResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type contractSubscriptionUnlinkResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type contractSubscriptionUnlinkResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type contractSubscriptionUnlinkResponseSuccess = contractSubscriptionUnlinkResponse200 & {
+  headers: Headers
+}
+export type contractSubscriptionUnlinkResponseError = (
+  | contractSubscriptionUnlinkResponse401
+  | contractSubscriptionUnlinkResponse403
+  | contractSubscriptionUnlinkResponse404
+  | contractSubscriptionUnlinkResponse422
+  | contractSubscriptionUnlinkResponse429
+  | contractSubscriptionUnlinkResponse503
+) & {
+  headers: Headers
+}
+
+export const getContractSubscriptionUnlinkUrl = (id: string, subscriptionId: string) => {
+  return `${env.API_BASE_URL}/api/v1/contracts/${id}/subscriptions/${subscriptionId}`
+}
+
+/**
+ * @summary Unlink a subscription from a contract
+ */
+export const contractSubscriptionUnlink = async (
+  id: string,
+  subscriptionId: string,
+  options?: RequestInit
+): Promise<contractSubscriptionUnlinkResponseSuccess> => {
+  const res = await fetch(getContractSubscriptionUnlinkUrl(id, subscriptionId), {
+    ...options,
+    method: 'DELETE'
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: contractSubscriptionUnlinkResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: contractSubscriptionUnlinkResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: contractSubscriptionUnlinkResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as contractSubscriptionUnlinkResponseSuccess
+}
+
+export const getContractSubscriptionUnlinkMutationOptions = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof contractSubscriptionUnlink>>,
+    TError,
+    { id: string; subscriptionId: string },
+    TContext
+  >
+  fetch?: RequestInit
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof contractSubscriptionUnlink>>,
+  TError,
+  { id: string; subscriptionId: string },
+  TContext
+> => {
+  const mutationKey = ['contractSubscriptionUnlink']
+  const { mutation: mutationOptions, fetch: fetchOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, fetch: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof contractSubscriptionUnlink>>,
+    { id: string; subscriptionId: string }
+  > = (props) => {
+    const { id, subscriptionId } = props ?? {}
+
+    return contractSubscriptionUnlink(id, subscriptionId, fetchOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ContractSubscriptionUnlinkMutationResult = NonNullable<
+  Awaited<ReturnType<typeof contractSubscriptionUnlink>>
+>
+
+export type ContractSubscriptionUnlinkMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+/**
+ * @summary Unlink a subscription from a contract
+ */
+export const useContractSubscriptionUnlink = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof contractSubscriptionUnlink>>,
+      TError,
+      { id: string; subscriptionId: string },
+      TContext
+    >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof contractSubscriptionUnlink>>,
+  TError,
+  { id: string; subscriptionId: string },
+  TContext
+> => {
+  return useMutation(getContractSubscriptionUnlinkMutationOptions(options), queryClient)
 }

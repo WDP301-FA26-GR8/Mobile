@@ -7,17 +7,9 @@
  */
 import { faker } from '@faker-js/faker'
 
-import type {
-  PlanTermOpinionList200,
-  PlanTermOpinionRecord201,
-  PlanTermsGet200,
-  PlanTermsSet200,
-  PlanWarningList200
-} from '../../contracts'
+import type { PlanTermsGet200, PlanTermsSet200, PlanWarningList200 } from '../../contracts'
 
 import {
-  getOpinionPageResponseDtoResponseMock,
-  getOpinionResponseDtoResponseMock,
   getPlanTermsResponseDtoResponseMock,
   getPlanTermsSetResponseDtoResponseMock,
   getPlanWarningPageResponseDtoResponseMock
@@ -30,16 +22,6 @@ export const getPlanTermsGetResponseMock = (): PlanTermsGet200 => ({
 
 export const getPlanTermsSetResponseMock = (): PlanTermsSet200 => ({
   ...{ ...getPlanTermsSetResponseDtoResponseMock() },
-  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
-})
-
-export const getPlanTermOpinionListResponseMock = (): PlanTermOpinionList200 => ({
-  ...{ ...getOpinionPageResponseDtoResponseMock() },
-  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
-})
-
-export const getPlanTermOpinionRecordResponseMock = (): PlanTermOpinionRecord201 => ({
-  ...{ ...getOpinionResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 

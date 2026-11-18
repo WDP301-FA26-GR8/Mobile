@@ -9,10 +9,11 @@
 export interface RenewalBodyDto {
   assignmentId: string
   /**
-   * @minimum 1
-   * @maximum 12
+   * @minimum -9007199254740991
+   * @maximum 9007199254740991
    */
-  extensionMonths: number
+  extensionMonths?: number
+  longTerm?: true
   /**
    * @minLength 1
    * @maxLength 1000

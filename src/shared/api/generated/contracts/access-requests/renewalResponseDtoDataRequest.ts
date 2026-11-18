@@ -8,8 +8,10 @@
 import type { RenewalResponseDtoDataRequestBeneficiary } from './renewalResponseDtoDataRequestBeneficiary'
 import type { RenewalResponseDtoDataRequestBranch } from './renewalResponseDtoDataRequestBranch'
 import type { RenewalResponseDtoDataRequestCancellation } from './renewalResponseDtoDataRequestCancellation'
+import type { RenewalResponseDtoDataRequestCost } from './renewalResponseDtoDataRequestCost'
 import type { RenewalResponseDtoDataRequestCostCenter } from './renewalResponseDtoDataRequestCostCenter'
 import type { RenewalResponseDtoDataRequestDepartment } from './renewalResponseDtoDataRequestDepartment'
+import type { RenewalResponseDtoDataRequestLimitExemption } from './renewalResponseDtoDataRequestLimitExemption'
 import type { RenewalResponseDtoDataRequestNeedDecision } from './renewalResponseDtoDataRequestNeedDecision'
 import type { RenewalResponseDtoDataRequestNeedStep } from './renewalResponseDtoDataRequestNeedStep'
 import type { RenewalResponseDtoDataRequestPlan } from './renewalResponseDtoDataRequestPlan'
@@ -18,6 +20,7 @@ import type { RenewalResponseDtoDataRequestPricing } from './renewalResponseDtoD
 import type { RenewalResponseDtoDataRequestProposal } from './renewalResponseDtoDataRequestProposal'
 import type { RenewalResponseDtoDataRequestRenewal } from './renewalResponseDtoDataRequestRenewal'
 import type { RenewalResponseDtoDataRequestRequester } from './renewalResponseDtoDataRequestRequester'
+import type { RenewalResponseDtoDataRequestRouting } from './renewalResponseDtoDataRequestRouting'
 import type { RenewalResponseDtoDataRequestServiceAccount } from './renewalResponseDtoDataRequestServiceAccount'
 import type { RenewalResponseDtoDataRequestSpend } from './renewalResponseDtoDataRequestSpend'
 import type { RenewalResponseDtoDataRequestState } from './renewalResponseDtoDataRequestState'
@@ -26,9 +29,11 @@ import type { RenewalResponseDtoDataRequestWithdrawal } from './renewalResponseD
 
 export type RenewalResponseDtoDataRequest = {
   id: string
+  /** SERVICE_ACCOUNT is on records of the earlier releases only: no request for a service account is made any more. */
   type: RenewalResponseDtoDataRequestType
   branch: RenewalResponseDtoDataRequestBranch
   state: RenewalResponseDtoDataRequestState
+  routing: RenewalResponseDtoDataRequestRouting
   /** @nullable */
   plan: RenewalResponseDtoDataRequestPlan
   /** @nullable */
@@ -48,12 +53,15 @@ export type RenewalResponseDtoDataRequest = {
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0
+   * @nullable
    */
-  termMonths: number
+  termMonths: number | null
   /** @nullable */
   expectedEndDate: string | null
   /** @nullable */
   serviceAccount: RenewalResponseDtoDataRequestServiceAccount
+  /** @nullable */
+  limitExemption: RenewalResponseDtoDataRequestLimitExemption
   /** @nullable */
   renewal: RenewalResponseDtoDataRequestRenewal
   /** @nullable */
@@ -65,6 +73,8 @@ export type RenewalResponseDtoDataRequest = {
    */
   budgetYear: number | null
   pricing: RenewalResponseDtoDataRequestPricing
+  /** @nullable */
+  cost: RenewalResponseDtoDataRequestCost
   policy: RenewalResponseDtoDataRequestPolicy
   submittedAt: string
   needStep: RenewalResponseDtoDataRequestNeedStep

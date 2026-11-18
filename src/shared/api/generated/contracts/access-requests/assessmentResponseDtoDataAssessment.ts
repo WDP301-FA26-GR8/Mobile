@@ -14,10 +14,10 @@ import type { AssessmentResponseDtoDataAssessmentEquivalentTool } from './assess
 import type { AssessmentResponseDtoDataAssessmentOpinion } from './assessmentResponseDtoDataAssessmentOpinion'
 import type { AssessmentResponseDtoDataAssessmentPricing } from './assessmentResponseDtoDataAssessmentPricing'
 import type { AssessmentResponseDtoDataAssessmentProposal } from './assessmentResponseDtoDataAssessmentProposal'
-import type { AssessmentResponseDtoDataAssessmentProposedBusinessOwner } from './assessmentResponseDtoDataAssessmentProposedBusinessOwner'
 import type { AssessmentResponseDtoDataAssessmentProvisioningType } from './assessmentResponseDtoDataAssessmentProvisioningType'
 import type { AssessmentResponseDtoDataAssessmentQuote } from './assessmentResponseDtoDataAssessmentQuote'
 import type { AssessmentResponseDtoDataAssessmentRejection } from './assessmentResponseDtoDataAssessmentRejection'
+import type { AssessmentResponseDtoDataAssessmentScope } from './assessmentResponseDtoDataAssessmentScope'
 import type { AssessmentResponseDtoDataAssessmentStatus } from './assessmentResponseDtoDataAssessmentStatus'
 import type { AssessmentResponseDtoDataAssessmentStep } from './assessmentResponseDtoDataAssessmentStep'
 import type { AssessmentResponseDtoDataAssessmentVendor } from './assessmentResponseDtoDataAssessmentVendor'
@@ -26,6 +26,7 @@ export type AssessmentResponseDtoDataAssessment = {
   requestId: string
   status: AssessmentResponseDtoDataAssessmentStatus
   proposal: AssessmentResponseDtoDataAssessmentProposal
+  scope: AssessmentResponseDtoDataAssessmentScope
   /** @nullable */
   step: AssessmentResponseDtoDataAssessmentStep
   /** @nullable */
@@ -53,8 +54,6 @@ export type AssessmentResponseDtoDataAssessment = {
   opinion: AssessmentResponseDtoDataAssessmentOpinion
   /** @nullable */
   equivalentTool: AssessmentResponseDtoDataAssessmentEquivalentTool
-  /** @nullable */
-  proposedBusinessOwner: AssessmentResponseDtoDataAssessmentProposedBusinessOwner
   /** @nullable */
   controlLevel: AssessmentResponseDtoDataAssessmentControlLevel
   /** @nullable */

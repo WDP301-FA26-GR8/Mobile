@@ -17,4 +17,8 @@ export type AssessmentQueueListParams = {
    * @exclusiveMinimum 0
    */
   pageSize?: number
+  /**
+   * Only the proposals of this department; a department outside the departments the caller reads gives an empty page, not an error.
+   */
+  departmentId?: string
 }

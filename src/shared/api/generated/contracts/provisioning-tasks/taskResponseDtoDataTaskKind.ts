@@ -10,5 +10,6 @@ export type TaskResponseDtoDataTaskKind = (typeof TaskResponseDtoDataTaskKind)[k
 
 export const TaskResponseDtoDataTaskKind = {
   GRANT: 'GRANT',
-  REVOKE: 'REVOKE'
+  REVOKE: 'REVOKE',
+  EXTEND: 'EXTEND'
 } as const

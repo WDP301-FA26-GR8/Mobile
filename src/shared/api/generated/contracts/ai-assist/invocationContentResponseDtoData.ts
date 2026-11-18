@@ -7,6 +7,7 @@
  */
 import type { InvocationContentResponseDtoDataContext } from './invocationContentResponseDtoDataContext'
 import type { InvocationContentResponseDtoDataParsed } from './invocationContentResponseDtoDataParsed'
+import type { InvocationContentResponseDtoDataProviderMode } from './invocationContentResponseDtoDataProviderMode'
 import type { InvocationContentResponseDtoDataResult } from './invocationContentResponseDtoDataResult'
 
 /**
@@ -14,6 +15,8 @@ import type { InvocationContentResponseDtoDataResult } from './invocationContent
  */
 export type InvocationContentResponseDtoData = {
   invocationId: string
+  /** Where the answer came from: MODEL, the AI service; SIMULATED, the simulation that calls no model (show the label 'Giả lập — không phải AI'). */
+  providerMode: InvocationContentResponseDtoDataProviderMode
   /** The allow-listed context sent to the AI service, with opaque references (R001, C001) in place of ids. A JSON object. */
   context: InvocationContentResponseDtoDataContext
   /**

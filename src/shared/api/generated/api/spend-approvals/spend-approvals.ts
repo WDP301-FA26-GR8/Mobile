@@ -594,6 +594,11 @@ export type spendBatchDecideResponse404 = {
   status: 404
 }
 
+export type spendBatchDecideResponse409 = {
+  data: ErrorEnvelopeDto
+  status: 409
+}
+
 export type spendBatchDecideResponse413 = {
   data: ErrorEnvelopeDto
   status: 413
@@ -626,6 +631,7 @@ export type spendBatchDecideResponseError = (
   | spendBatchDecideResponse400
   | spendBatchDecideResponse401
   | spendBatchDecideResponse404
+  | spendBatchDecideResponse409
   | spendBatchDecideResponse413
   | spendBatchDecideResponse415
   | spendBatchDecideResponse422

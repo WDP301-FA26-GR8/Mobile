@@ -11,5 +11,6 @@ export type TaskPageResponseDtoDataItemsItemKind =
 
 export const TaskPageResponseDtoDataItemsItemKind = {
   GRANT: 'GRANT',
-  REVOKE: 'REVOKE'
+  REVOKE: 'REVOKE',
+  EXTEND: 'EXTEND'
 } as const

@@ -11,5 +11,6 @@ export type LineNeedDecisionBodyDtoLinesItemDecision =
 
 export const LineNeedDecisionBodyDtoLinesItemDecision = {
   APPROVE: 'APPROVE',
-  REJECT: 'REJECT'
+  REJECT: 'REJECT',
+  RETURN: 'RETURN'
 } as const

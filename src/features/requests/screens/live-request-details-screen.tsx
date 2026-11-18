@@ -4,14 +4,20 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { SoftwareIcon } from '@/entities/software'
+import { mayCreateRequest } from '@/shared/api/request-eligibility'
 import { useSession } from '@/shared/api/session-context'
+import { useAccountProfile } from '@/shared/api/use-account-profile'
 import { goBackOr } from '@/shared/lib/go-back-or'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
 
 import { LiveRequestStatus } from '../components/live-request-status'
 import { LiveRequestType } from '../components/live-request-type'
+import { RequestApprovalRoute } from '../components/request-approval-route'
+import { RequestTimeline } from '../components/request-timeline'
+import { RequestWithdrawPanel } from '../components/request-withdraw-panel'
 import { useLiveRequest } from '../hooks/use-live-requests'
+import { approvalRoute, canOfferWithdrawal, canRequestAgain } from '../model/request-detail.model'
 
 export function LiveRequestDetailsScreen({ requestId }: { requestId: string }) {
   const { colors: mobileColors } = useMobileTheme()
@@ -19,8 +25,11 @@ export function LiveRequestDetailsScreen({ requestId }: { requestId: string }) {
   const { t, i18n } = useTranslation()
   const session = useSession()
   const router = useRouter()
+  const profile = useAccountProfile()
   const query = useLiveRequest(requestId)
-  const data = query.data
+  const data = query.isError ? undefined : query.data
+  const notFound =
+    typeof query.error === 'object' && query.error !== null && 'status' in query.error && query.error.status === 404
   const request = data && 'request' in data ? data.request : undefined
   const draft = data && 'draft' in data ? data.draft : undefined
   const submitted = request ? new Date(request.submittedAt) : null
@@ -45,7 +54,7 @@ export function LiveRequestDetailsScreen({ requestId }: { requestId: string }) {
         {query.isError ? (
           <View style={styles.card}>
             <Text accessibilityRole='alert' style={styles.error}>
-              {t('requests.live.detailError')}
+              {t(notFound ? 'requests.live.detailNotFound' : 'requests.live.detailError')}
             </Text>
             <Pressable accessibilityRole='button' onPress={() => void query.refetch()} style={styles.action}>
               <Text style={styles.actionText}>{t('licenses.live.retry')}</Text>
@@ -131,6 +140,34 @@ export function LiveRequestDetailsScreen({ requestId }: { requestId: string }) {
                 </>
               ) : null}
             </View>
+            <RequestApprovalRoute steps={approvalRoute(request)} />
+            {request.state === 'AWAITING_REQUESTER_REVISION' ? (
+              <View accessibilityRole='alert' style={styles.card}>
+                <Text style={styles.value}>{t('requests.live.revisionWebOnly')}</Text>
+              </View>
+            ) : null}
+            {canOfferWithdrawal(request, profile.data?.employee.id) ? (
+              <RequestWithdrawPanel requestId={request.id} />
+            ) : null}
+            {canRequestAgain(request) && request.plan && mayCreateRequest(profile.data) ? (
+              <Pressable
+                accessibilityRole='button'
+                accessibilityLabel={t('requests.live.requestAgainNamed', { name })}
+                onPress={() =>
+                  router.push({
+                    pathname: '/live-request-create',
+                    params: {
+                      applicationId: request.plan?.applicationId,
+                      applicationName: request.plan?.applicationName
+                    }
+                  })
+                }
+                style={styles.action}
+              >
+                <Text style={styles.actionText}>{t('requests.live.requestAgain')}</Text>
+              </Pressable>
+            ) : null}
+            <RequestTimeline key={request.id} requestId={request.id} />
           </>
         ) : null}
         {draft ? (

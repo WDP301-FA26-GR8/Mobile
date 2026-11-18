@@ -780,7 +780,7 @@ export const getPlanWorkspaceProfileSetUrl = (id: string) => {
 }
 
 /**
- * @summary Record the workspace profile of a K2 plan
+ * @summary Record who administers a plan at the vendor
  */
 export const planWorkspaceProfileSet = async (
   id: string,
@@ -848,7 +848,7 @@ export type PlanWorkspaceProfileSetMutationBody = WorkspaceProfileBodyDto
 export type PlanWorkspaceProfileSetMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
 
 /**
- * @summary Record the workspace profile of a K2 plan
+ * @summary Record who administers a plan at the vendor
  */
 export const usePlanWorkspaceProfileSet = <
   TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },

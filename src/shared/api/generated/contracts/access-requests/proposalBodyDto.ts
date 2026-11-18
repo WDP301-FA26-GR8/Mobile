@@ -33,8 +33,18 @@ export interface ProposalBodyDto {
    */
   expectedUsers: number
   /**
-   * @minimum 1
-   * @maximum 12
+   * The time of use in whole months: required for a plan bought by the month (1 to 9); 1 to 12, or null for a right with no end, for a plan of seats or internal software (not for a contractor, a freelancer or an intern); none for a plan bought once.
+   * @minimum -9007199254740991
+   * @maximum 9007199254740991
+   * @nullable
    */
-  termMonths: number
+  termMonths?: number | null
+  /** Case B, short: the application of the catalog the software is already in, when only the plan asked for is missing; give it with plannedPlanName. Left out, the software is new to the company and is refused when the catalog already has it (ACCESS_REQUEST.SOFTWARE_IN_CATALOG). */
+  existingApplicationId?: string
+  /**
+   * Case B, short: the name of the plan asked for, which the application does not have yet; give it with existingApplicationId.
+   * @minLength 1
+   * @maxLength 200
+   */
+  plannedPlanName?: string
 }

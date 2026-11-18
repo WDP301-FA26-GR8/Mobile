@@ -10,8 +10,10 @@ import type { GrantResponseDtoDataTaskBeneficiary } from './grantResponseDtoData
 import type { GrantResponseDtoDataTaskChannel } from './grantResponseDtoDataTaskChannel'
 import type { GrantResponseDtoDataTaskDoneWhen } from './grantResponseDtoDataTaskDoneWhen'
 import type { GrantResponseDtoDataTaskFailureKind } from './grantResponseDtoDataTaskFailureKind'
+import type { GrantResponseDtoDataTaskK1Checklist } from './grantResponseDtoDataTaskK1Checklist'
 import type { GrantResponseDtoDataTaskKind } from './grantResponseDtoDataTaskKind'
 import type { GrantResponseDtoDataTaskPlan } from './grantResponseDtoDataTaskPlan'
+import type { GrantResponseDtoDataTaskPurchase } from './grantResponseDtoDataTaskPurchase'
 import type { GrantResponseDtoDataTaskRevocation } from './grantResponseDtoDataTaskRevocation'
 import type { GrantResponseDtoDataTaskStatus } from './grantResponseDtoDataTaskStatus'
 import type { GrantResponseDtoDataTaskStepsItem } from './grantResponseDtoDataTaskStepsItem'
@@ -34,6 +36,17 @@ export type GrantResponseDtoDataTask = {
   /** @nullable */
   defaultResponsibleEmployeeId: string | null
   inGeneralQueue: boolean
+  /**
+   * A calendar date as YYYY-MM-DD.
+   * @nullable
+   */
+  dueOn: string | null
+  /**
+   * A calendar date as YYYY-MM-DD.
+   * @nullable
+   */
+  notBefore: string | null
+  claimableNow: boolean
   createdAt: string
   /** @nullable */
   claimedBy: string | null
@@ -62,6 +75,13 @@ export type GrantResponseDtoDataTask = {
   closedAt: string | null
   /** @nullable */
   revocation: GrantResponseDtoDataTaskRevocation
+  /** @nullable */
+  purchase: GrantResponseDtoDataTaskPurchase
+  /**
+   * A calendar date as YYYY-MM-DD.
+   * @nullable
+   */
+  termCutAt: string | null
   /**
    * @minimum 0
    * @maximum 9007199254740991
@@ -90,4 +110,9 @@ export type GrantResponseDtoDataTask = {
   closedBy: string | null
   /** @nullable */
   closeReason: string | null
+  /**
+   * Present on a K1 task that can still be completed (the steps to tick) and on one completed with a checklist (what was ticked and when). The variant is decided by the server. GRANT is the grant of a K1 seat: register on the company email of the person themself, and do not turn on multi-factor sign-in with a personal device. For a K1 revocation it comes from why the seat is revoked: DEPARTURE (a person who leaves: reset the mailbox password, Forgot password on the software, sign out every session, turn off the renewal, record the evidence and, only on the last K1 revocation of the person, lock the mailbox: while another K1 revocation of the same person is not over this task has the five steps before the lock) or STILL_EMPLOYED (turn off the renewal, record the evidence). The system does not control Google or Microsoft 365: the IT Admin does the steps there and ticks them here, in order. Null on any other task (an extension, another kind of seat), on a K1 task completed before the checklist, and on one cancelled or closed as failed.
+   * @nullable
+   */
+  k1Checklist: GrantResponseDtoDataTaskK1Checklist
 }

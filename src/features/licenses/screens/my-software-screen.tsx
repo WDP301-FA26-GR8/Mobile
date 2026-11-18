@@ -8,9 +8,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useSession } from '@/shared/api/session-context'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
-import { EmployeeProfileHeader } from '@/shared/ui/employee-profile-header'
-import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
-import { ThemeSwitch } from '@/shared/ui/theme-switch'
 
 import { LiveSoftwareCard } from '../components/live-software-card'
 import { useMySoftware } from '../hooks/use-my-software'
@@ -22,11 +19,19 @@ export function MySoftwareScreen() {
   const session = useSession()
   const router = useRouter()
   const [page, setPage] = useState(1)
+  const [view, setView] = useState<'current' | 'ended'>('current')
   const [filter, setFilter] = useState<'all' | 'expiring'>('all')
-  const { profile, software, summary } = useMySoftware(page)
+  const { profile, software, summary } = useMySoftware(page, view)
   const items = software.data?.items.filter((item) => filter === 'all' || item.expiringSoon) ?? []
   const expiring = summary.data?.expiringRights
   const expiringCount = expiring?.state === 'COUNTED' && expiring.count !== null ? expiring.count : undefined
+  const currentSummary = summary.data?.softwareRights
+  const currentCount =
+    view === 'current'
+      ? software.data?.pagination.totalItems
+      : currentSummary?.state === 'COUNTED' && currentSummary.count !== null
+        ? currentSummary.count
+        : undefined
   const formatCount = (value: number) => new Intl.NumberFormat(i18n.language).format(value)
 
   if (session.state === 'anonymous') return <Redirect href='/' />
@@ -35,87 +40,11 @@ export function MySoftwareScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.screen}>
         <ScrollView contentContainerStyle={styles.content}>
-          {session.state === 'authenticated' ? (
-            <View style={styles.profile}>
-              <View style={styles.profileCopy}>
-                {profile.data ? (
-                  <EmployeeProfileHeader
-                    initials={profile.data.employee.fullName.trim().slice(0, 1).toLocaleUpperCase()}
-                    name={profile.data.employee.fullName}
-                    meta={profile.data.employee.department?.name ?? t('licenses.live.noDepartment')}
-                    onOpenProfile={() => router.push('/profile')}
-                  />
-                ) : profile.isError ? (
-                  <Pressable
-                    accessibilityRole='button'
-                    accessibilityLabel={t('account.title')}
-                    onPress={() => router.push('/profile')}
-                    style={styles.profileFallback}
-                  >
-                    <Feather
-                      accessibilityElementsHidden
-                      importantForAccessibility='no'
-                      name='user'
-                      size={19}
-                      color={mobileColors.primaryInk}
-                    />
-                    <Text style={styles.buttonText}>{t('account.title')}</Text>
-                  </Pressable>
-                ) : null}
-              </View>
-              <ThemeSwitch />
-              <Pressable
-                accessibilityRole='button'
-                accessibilityLabel={t('navigation.openTab', { tab: t('navigation.inbox') })}
-                onPress={() => router.push('/live-inbox')}
-                style={({ pressed }) => [styles.inboxButton, pressed && styles.pressed]}
-              >
-                <Feather
-                  accessibilityElementsHidden
-                  importantForAccessibility='no'
-                  name='bell'
-                  size={18}
-                  color={mobileColors.primaryInk}
-                />
-              </Pressable>
-            </View>
-          ) : null}
-          <View style={styles.heading}>
-            <View style={styles.headingMain}>
-              <View style={styles.headingCopy}>
-                <Text style={styles.kicker}>{t('licenses.live.kicker')}</Text>
-                <Text accessibilityRole='header' style={styles.title}>
-                  {t('licenses.screenTitle')}
-                </Text>
-                <Text style={[styles.subtitle, styles.heroSubtitle]}>{t('licenses.live.description')}</Text>
-              </View>
-              <View style={styles.headingIcon}>
-                <Feather
-                  accessibilityElementsHidden
-                  importantForAccessibility='no'
-                  name='grid'
-                  size={24}
-                  color={mobileColors.primaryInk}
-                />
-              </View>
-            </View>
-            {profile.data?.roles.includes('MANAGER') ? (
-              <Pressable
-                accessibilityRole='button'
-                accessibilityLabel={t('manager.live.openQueue')}
-                onPress={() => router.push('/live-need-approvals')}
-                style={styles.approvalsLink}
-              >
-                <Feather
-                  accessibilityElementsHidden
-                  importantForAccessibility='no'
-                  name='check-square'
-                  size={16}
-                  color={mobileColors.primaryInk}
-                />
-                <Text style={styles.buttonText}>{t('manager.live.openQueue')}</Text>
-              </Pressable>
-            ) : null}
+          <View style={styles.titleBlock}>
+            <Text accessibilityRole='header' style={styles.pageTitle}>
+              {t('licenses.screenTitle')}
+            </Text>
+            <Text style={styles.subtitle}>{t('licenses.live.description')}</Text>
           </View>
 
           <View style={styles.summary}>
@@ -130,10 +59,10 @@ export function MySoftwareScreen() {
                 />
               </View>
               <Text style={styles.summaryValue}>
-                {software.data
+                {currentCount !== undefined
                   ? t('licenses.live.total', {
-                      count: software.data.pagination.totalItems,
-                      formattedCount: formatCount(software.data.pagination.totalItems)
+                      count: currentCount,
+                      formattedCount: formatCount(currentCount)
                     })
                   : t('licenses.live.countUnavailable')}
               </Text>
@@ -174,25 +103,46 @@ export function MySoftwareScreen() {
               {t('licenses.listTitle')}
             </Text>
           </View>
-          <View accessibilityLabel={t('licenses.filterLabel')} style={styles.filters}>
-            {(['all', 'expiring'] as const).map((value) => (
+          <View style={styles.filters}>
+            {(['current', 'ended'] as const).map((value) => (
               <Pressable
                 key={value}
                 accessibilityRole='button'
-                accessibilityState={{ selected: filter === value }}
-                onPress={() => setFilter(value)}
-                style={({ pressed }) => [
-                  styles.filterButton,
-                  filter === value && styles.filterSelected,
-                  pressed && styles.pressed
-                ]}
+                accessibilityState={{ selected: view === value }}
+                onPress={() => {
+                  setView(value)
+                  setPage(1)
+                  setFilter('all')
+                }}
+                style={[styles.filterButton, view === value && styles.filterSelected]}
               >
-                <Text style={[styles.filterText, filter === value && styles.filterTextSelected]}>
-                  {t(`licenses.listFilters.${value}`)}
+                <Text style={[styles.filterText, view === value && styles.filterTextSelected]}>
+                  {t(`licenses.live.views.${value}`)}
                 </Text>
               </Pressable>
             ))}
           </View>
+          {view === 'current' ? (
+            <View accessibilityLabel={t('licenses.filterLabel')} style={styles.filters}>
+              {(['all', 'expiring'] as const).map((value) => (
+                <Pressable
+                  key={value}
+                  accessibilityRole='button'
+                  accessibilityState={{ selected: filter === value }}
+                  onPress={() => setFilter(value)}
+                  style={({ pressed }) => [
+                    styles.filterButton,
+                    filter === value && styles.filterSelected,
+                    pressed && styles.pressed
+                  ]}
+                >
+                  <Text style={[styles.filterText, filter === value && styles.filterTextSelected]}>
+                    {t(`licenses.listFilters.${value}`)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
           {filter === 'expiring' ? <Text style={styles.subtitle}>{t('licenses.live.pageFilterNote')}</Text> : null}
           {session.state === 'loading' || profile.isLoading || software.isLoading ? (
             <Text accessibilityRole='progressbar' style={styles.subtitle}>
@@ -228,7 +178,13 @@ export function MySoftwareScreen() {
           {software.data ? (
             <View style={styles.list}>
               {items.map((item) => (
-                <LiveSoftwareCard key={item.assignmentId} item={item} />
+                <LiveSoftwareCard
+                  key={item.assignmentId}
+                  item={item}
+                  onPress={() =>
+                    router.push({ pathname: '/my-software/[softwareId]', params: { softwareId: item.assignmentId } })
+                  }
+                />
               ))}
               {items.length === 0 ? (
                 <View style={styles.emptyCard}>
@@ -244,11 +200,13 @@ export function MySoftwareScreen() {
                   <Text style={styles.emptyTitle}>
                     {filter === 'expiring'
                       ? t('licenses.live.noExpiringPage')
-                      : page === 1
-                        ? t('licenses.live.empty')
-                        : t('licenses.live.emptyPage')}
+                      : view === 'ended'
+                        ? t('licenses.live.endedEmpty')
+                        : page === 1
+                          ? t('licenses.live.empty')
+                          : t('licenses.live.emptyPage')}
                   </Text>
-                  {filter === 'all' && page === 1 ? (
+                  {view === 'current' && filter === 'all' && page === 1 ? (
                     <Text style={styles.emptyHint}>{t('licenses.live.emptyHint')}</Text>
                   ) : null}
                 </View>
@@ -279,42 +237,6 @@ export function MySoftwareScreen() {
             </View>
           ) : null}
         </ScrollView>
-        <MobileTabBar
-          accessibilityLabel={t('navigation.tabs')}
-          tabs={[
-            {
-              id: 'software',
-              label: t('navigation.software'),
-              icon: 'grid',
-              selected: true,
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') })
-            },
-            {
-              id: 'create',
-              label: t('navigation.createRequest'),
-              icon: 'plus-circle',
-              selected: false,
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
-              onPress: () => router.push('/live-request-create')
-            },
-            {
-              id: 'requests',
-              label: t('navigation.requests'),
-              icon: 'clock',
-              selected: false,
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') }),
-              onPress: () => router.push('/live-requests')
-            },
-            {
-              id: 'inbox',
-              label: t('navigation.inbox'),
-              icon: 'bell',
-              selected: false,
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') }),
-              onPress: () => router.push('/live-inbox')
-            }
-          ]}
-        />
       </View>
     </SafeAreaView>
   )
@@ -338,6 +260,8 @@ const createStyles = (mobileColors: MobileColors) =>
       alignItems: 'center',
       justifyContent: 'center'
     },
+    titleBlock: { gap: 4 },
+    pageTitle: { color: mobileColors.foreground, fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
     heading: { gap: 8, padding: 20, borderRadius: 22, backgroundColor: mobileColors.primarySoft },
     headingMain: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
     headingCopy: { flex: 1, minWidth: 0, gap: 7 },

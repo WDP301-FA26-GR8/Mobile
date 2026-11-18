@@ -11,6 +11,5 @@ export type KeyPageResponseDtoDataItemsItemStatus =
 
 export const KeyPageResponseDtoDataItemsItemStatus = {
   IN_STORE: 'IN_STORE',
-  ASSIGNED: 'ASSIGNED',
-  RETIRED: 'RETIRED'
+  ASSIGNED: 'ASSIGNED'
 } as const

@@ -1,2 +1,2 @@
 export { MySoftwareScreen } from './screens/my-software-screen'
-export { SoftwareDetailsScreen } from './screens/software-details-screen'
+export { LiveSoftwareDetailsScreen } from './screens/live-software-details-screen'

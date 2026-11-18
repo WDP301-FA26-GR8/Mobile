@@ -6,6 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 
+/**
+ * The reserve as an amount; not with reservePercent. An amount that is not the default share of the base asks a reason when the version is sent.
+ */
 export type VersionPatchDtoReserve = {
   /** @maxLength 40 */
   amount: string

@@ -6,21 +6,31 @@
  * OpenAPI spec version: 1.0
  */
 import type { VersionPatchDtoBase } from './versionPatchDtoBase'
-import type { VersionPatchDtoQuarters } from './versionPatchDtoQuarters'
 import type { VersionPatchDtoReserve } from './versionPatchDtoReserve'
 
 /**
  * Give at least one field.
  */
 export interface VersionPatchDto {
+  /** The base of the year. Left out, it is filled in with what the Cost Center carries into the year (carriedOverNextYear). */
   base?: VersionPatchDtoBase
+  /**
+   * @minLength 1
+   * @maxLength 1000
+   */
+  baseReason?: string
+  /** The reserve as an amount; not with reservePercent. An amount that is not the default share of the base asks a reason when the version is sent. */
   reserve?: VersionPatchDtoReserve
+  /**
+   * The reserve as a share of the base, in whole percent; not with reserve. The default share when neither is given. A share that is not the default asks reserveReason when the version is sent.
+   * @minimum 0
+   * @maximum 100
+   */
+  reservePercent?: number
   /**
    * @minLength 1
    * @maxLength 1000
    * @nullable
    */
   reserveReason?: string | null
-  /** @nullable */
-  quarters?: VersionPatchDtoQuarters
 }

@@ -1,6 +1,5 @@
-import { Feather } from '@expo/vector-icons'
 import { type NavigationAction, useNavigation, usePreventRemove } from '@react-navigation/native'
-import { Redirect, useFocusEffect, useRouter } from 'expo-router'
+import { type Href, Redirect, useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BackHandler, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
@@ -8,20 +7,16 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { SoftwareIcon } from '@/entities/software'
 import type { RequestablePlanPageResponseDtoDataItemsItem } from '@/shared/api/generated/contracts/requestable-software'
+import { mayCreateRequest } from '@/shared/api/request-eligibility'
 import { useSession } from '@/shared/api/session-context'
+import { useAccountProfile } from '@/shared/api/use-account-profile'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
-import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
+import { goBackOr } from '@/shared/lib/go-back-or'
 
+import { RequestCatalog } from '../components/request-catalog'
+import { RequestPreview } from '../components/request-preview'
 import { useLiveRequestCreate } from '../hooks/use-live-request-create'
-
-type Destination = '/my-software' | '/live-requests' | '/live-inbox'
-
-function validDate(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || value.startsWith('0000')) return false
-  const date = new Date(`${value}T00:00:00.000Z`)
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value
-}
 
 function previewErrorKey(error: unknown) {
   if (typeof error !== 'object' || error === null || !('info' in error)) return 'previewError'
@@ -48,61 +43,164 @@ function previewErrorKey(error: unknown) {
   }
 }
 
-export function LiveRequestCreateScreen() {
+function submitRejection(error: unknown) {
+  if (typeof error !== 'object' || error === null || !('status' in error) || !('info' in error)) return undefined
+  const info = error.info
+  if (typeof info !== 'object' || info === null || !('error' in info)) return undefined
+  const detail = info.error
+  if (typeof detail !== 'object' || detail === null || !('code' in detail)) return undefined
+  if (error.status === 409) {
+    switch (detail.code) {
+      case 'ACCESS_REQUEST.ALREADY_HOLDS_ACCESS':
+        return 'existingAccess'
+      case 'ACCESS_REQUEST.OPEN_REQUEST_EXISTS':
+        return 'openRequest'
+      case 'FINANCE.SETUP_INCOMPLETE':
+        return 'costCenter'
+      case 'ACCESS_REQUEST.APPLICATION_RETIRED':
+      case 'ACCESS_REQUEST.NO_DEPARTMENT':
+        return detail.code === 'ACCESS_REQUEST.NO_DEPARTMENT' ? 'department' : 'plan'
+    }
+  }
+  if (error.status === 404 && detail.code === 'ACCESS_REQUEST.PLAN_NOT_FOUND') return 'plan'
+  if (error.status === 403 && detail.code === 'ACCESS_REQUEST.SUPER_ADMIN_CANNOT_REQUEST') return 'ineligible'
+  if (error.status === 422) {
+    switch (detail.code) {
+      case 'ACCESS_REQUEST.OPEN_LIMIT_REACHED':
+        return 'limit'
+      case 'REQUEST_PARTY.INELIGIBLE':
+        return 'ineligible'
+      case 'ACCESS_REQUEST.TERM_REQUIRED':
+      case 'ACCESS_REQUEST.TERM_MONTHS_OUT_OF_RANGE':
+      case 'ACCESS_REQUEST.TERM_NOT_ASKED':
+      case 'ACCESS_REQUEST.TERM_LONG_TERM_NOT_ALLOWED':
+      case 'ACCESS_REQUEST.TERM_CONTRACT_ENDED':
+        return 'term'
+      case 'VALIDATION_ERROR':
+        return 'invalid'
+    }
+  }
+  return undefined
+}
+
+function submitConflictId(error: unknown, rejection: string | undefined) {
+  if (rejection !== 'openRequest' && rejection !== 'existingAccess') return undefined
+  if (typeof error !== 'object' || error === null || !('info' in error)) return undefined
+  const info = error.info
+  if (typeof info !== 'object' || info === null || !('error' in info)) return undefined
+  const detail = info.error
+  if (typeof detail !== 'object' || detail === null || !('details' in detail)) return undefined
+  const fields = detail.details
+  if (typeof fields !== 'object' || fields === null) return undefined
+  let id: unknown
+  if (rejection === 'openRequest' && 'requestId' in fields) id = fields.requestId
+  if (rejection === 'existingAccess' && 'assignment' in fields) {
+    const assignment = fields.assignment
+    if (typeof assignment === 'object' && assignment !== null && 'assignmentId' in assignment)
+      id = assignment.assignmentId
+  }
+  return typeof id === 'string' && /^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(id)
+    ? id
+    : undefined
+}
+
+export function LiveRequestCreateScreen({ initialApplication }: { initialApplication?: { id: string; name: string } }) {
   const { colors: mobileColors } = useMobileTheme()
   const styles = createStyles(mobileColors)
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const router = useRouter()
   const navigation = useNavigation()
   const session = useSession()
-  const [search, setSearch] = useState('')
-  const [page, setPage] = useState(1)
+  const profile = useAccountProfile()
+  const [hasSearch, setHasSearch] = useState(false)
   const [selected, setSelected] = useState<RequestablePlanPageResponseDtoDataItemsItem>()
-  const [endDate, setEndDate] = useState('')
+  const [term, setTerm] = useState('')
   const [reason, setReason] = useState('')
-  const [manyPaidReason, setManyPaidReason] = useState('')
   const [validation, setValidation] = useState(false)
-  const [destination, setDestination] = useState<Destination>()
+  const [destination, setDestination] = useState<Href | 'back'>()
   const [pendingAction, setPendingAction] = useState<NavigationAction>()
   const [exitApp, setExitApp] = useState(false)
   const [choosing, setChoosing] = useState(true)
   const sent = useRef(false)
   const allowRemoval = useRef(false)
   const scroll = useRef<ScrollView>(null)
-  const { plans, preview, submit } = useLiveRequestCreate(search.trim(), page)
-  const dirty = !!selected || !!search || !!reason || !!endDate || !!manyPaidReason
-  usePreventRemove(session.state === 'authenticated' && (dirty || submit.isPending), ({ data }) => {
+  const scrollY = useRef(0)
+  const permitted = !profile.isError && mayCreateRequest(profile.data)
+  const { preview, submit } = useLiveRequestCreate()
+  const dirty = !!selected || hasSearch || !!reason || !!term
+  const inFlight = submit.isPending || (sent.current && !submit.isError && !submit.isSuccess)
+  usePreventRemove(session.state === 'authenticated' && (dirty || inFlight), ({ data }) => {
     if (allowRemoval.current) navigation.dispatch(data.action)
-    else if (!submit.isPending) setPendingAction(data.action)
+    else if (!inFlight && !(sent.current && !submit.isError && !submit.isSuccess)) setPendingAction(data.action)
   })
   useFocusEffect(
     useCallback(() => {
       if (Platform.OS !== 'android') return
       const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-        if (router.canGoBack() || (!dirty && !submit.isPending)) return false
-        if (!submit.isPending) setExitApp(true)
+        if (session.state !== 'authenticated') return false
+        if (inFlight || (sent.current && !submit.isError && !submit.isSuccess)) return true
+        if (router.canGoBack() || !dirty) return false
+        setExitApp(true)
         return true
       })
       return () => subscription.remove()
-    }, [dirty, router, submit.isPending])
+    }, [dirty, inFlight, router, session.state, submit.isError, submit.isSuccess])
   )
-  const valid = (!endDate || validDate(endDate)) && reason.trim().length > 0 && reason.trim().length <= 1000
+  const type = selected?.provisioningType
+  const asksTerm = type === 'K1' || type === 'K2' || type === 'K5'
+  const termMonths = term ? Number(term) : undefined
+  const validTerm =
+    type === 'K4' ||
+    (asksTerm &&
+      ((!term && type !== 'K1') ||
+        (termMonths !== undefined &&
+          /^\d+$/.test(term) &&
+          Number.isSafeInteger(termMonths) &&
+          termMonths >= 1 &&
+          termMonths <= (type === 'K1' ? 9 : 12))))
+  const valid = validTerm && reason.trim().length > 0 && reason.trim().length <= 1000
   const currentPreview =
     preview.data &&
     selected &&
     preview.data.input.planId === selected.id &&
-    (preview.data.input.expectedEndDate ?? '') === endDate &&
+    (preview.data.input.termMonths ?? undefined) === termMonths &&
     preview.data.reason === reason.trim()
       ? preview.data.preview
       : undefined
   const canSend =
     !!currentPreview?.canSubmit &&
-    (!currentPreview.termRequired || !!endDate) &&
-    (!endDate || endDate <= currentPreview.maxEndDate) &&
-    (!currentPreview.limits.reasonRequired || !!manyPaidReason.trim())
+    !currentPreview.termRefusal &&
+    !currentPreview.existingAccess &&
+    !currentPreview.blockedBy &&
+    !currentPreview.limits.refusal
 
   if (session.state === 'anonymous') return <Redirect href='/' />
-  const locked = submit.isPending || submit.isError || submit.isSuccess
+  if (!permitted) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.content}>
+          <Text accessibilityRole={profile.isError || profile.data ? 'alert' : 'progressbar'} style={styles.error}>
+            {profile.isError
+              ? t('account.error')
+              : profile.data
+                ? t('requests.createLive.ineligible')
+                : t('account.loading')}
+          </Text>
+          {profile.isError ? (
+            <Pressable accessibilityRole='button' onPress={() => void profile.refetch()} style={styles.action}>
+              <Text style={styles.actionText}>{t('account.retry')}</Text>
+            </Pressable>
+          ) : null}
+          <Pressable accessibilityRole='button' onPress={() => router.replace('/home')} style={styles.action}>
+            <Text style={styles.actionText}>{t('navigation.home')}</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    )
+  }
+  const locked = inFlight || submit.isError || submit.isSuccess
+  const rejection = submit.isError ? submitRejection(submit.error) : undefined
+  const conflictId = submit.isError ? submitConflictId(submit.error, rejection) : undefined
   function review() {
     if (!selected || !valid) {
       setValidation(true)
@@ -110,7 +208,7 @@ export function LiveRequestCreateScreen() {
     }
     setValidation(false)
     preview.mutate({
-      body: { planId: selected.id, ...(endDate ? { expectedEndDate: endDate } : {}) },
+      body: { planId: selected.id, ...(termMonths === undefined ? {} : { termMonths }) },
       reason: reason.trim()
     })
   }
@@ -121,8 +219,7 @@ export function LiveRequestCreateScreen() {
       {
         planId: selected.id,
         businessReason: reason.trim(),
-        ...(endDate ? { expectedEndDate: endDate } : {}),
-        ...(currentPreview?.limits.reasonRequired ? { manyPaidSoftwareReason: manyPaidReason.trim() } : {})
+        ...(termMonths === undefined ? {} : { termMonths })
       },
       {
         onSuccess: (id) => {
@@ -132,291 +229,246 @@ export function LiveRequestCreateScreen() {
       }
     )
   }
-  function navigateTo(target: Destination) {
-    if (submit.isPending) return
+  function navigateTo(target: Href | 'back') {
+    if (inFlight || (sent.current && !submit.isError && !submit.isSuccess)) return
     if (dirty) {
       setDestination(target)
       return
     }
-    router.replace(target)
+    if (target === 'back') goBackOr(router, '/live-requests')
+    else router.replace(target)
   }
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView ref={scroll} keyboardShouldPersistTaps='handled' contentContainerStyle={styles.content}>
+      <ScrollView
+        ref={scroll}
+        keyboardShouldPersistTaps='handled'
+        contentContainerStyle={styles.content}
+        onScroll={(event) => {
+          scrollY.current = event.nativeEvent.contentOffset.y
+        }}
+        scrollEventThrottle={32}
+      >
         <Pressable
           accessibilityRole='button'
-          accessibilityState={{ disabled: submit.isPending }}
-          disabled={submit.isPending}
-          onPress={() => navigateTo('/live-requests')}
+          accessibilityState={{ disabled: inFlight }}
+          disabled={inFlight}
+          onPress={() => navigateTo('back')}
           style={styles.action}
         >
           <Text style={styles.actionText}>{t('requests.live.back')}</Text>
         </Pressable>
-        <View style={styles.header}>
-          <View style={styles.headerCopy}>
-            <Text style={styles.kicker}>{t('licenses.live.kicker')}</Text>
-            <Text accessibilityRole='header' style={styles.title}>
-              {t('requests.createLive.title')}
-            </Text>
-            <Text style={styles.headerSubtitle}>{t('requests.createLive.intro')}</Text>
-          </View>
-          <View style={styles.headerIcon}>
-            <Feather
-              accessibilityElementsHidden
-              importantForAccessibility='no'
-              name='plus-circle'
-              size={22}
-              color={mobileColors.primaryInk}
-            />
-          </View>
-        </View>
+        <Text accessibilityRole='header' style={styles.pageTitle}>
+          {t('requests.createLive.title')}
+        </Text>
+        <Text style={styles.muted}>{t('requests.createLive.intro')}</Text>
         {locked ? (
-          <Text accessibilityRole='alert' style={styles.error}>
-            {submit.isError ? t('requests.createLive.submitUncertain') : t('requests.createLive.sending')}
-          </Text>
+          <View>
+            <Text accessibilityRole='alert' style={styles.error}>
+              {submit.isError
+                ? rejection
+                  ? t(`requests.createLive.submitRejected.${rejection}`)
+                  : t('requests.createLive.submitUncertain')
+                : t('requests.createLive.sending')}
+            </Text>
+            {conflictId && rejection === 'openRequest' ? (
+              <Pressable
+                accessibilityRole='button'
+                onPress={() =>
+                  navigateTo({ pathname: '/live-requests/[requestId]', params: { requestId: conflictId } })
+                }
+                style={styles.action}
+              >
+                <Text style={styles.actionText}>{t('requests.createLive.reviewDetails.openRequest')}</Text>
+              </Pressable>
+            ) : null}
+            {conflictId && rejection === 'existingAccess' ? (
+              <Pressable
+                accessibilityRole='button'
+                onPress={() =>
+                  navigateTo({ pathname: '/my-software/[softwareId]', params: { softwareId: conflictId } })
+                }
+                style={styles.action}
+              >
+                <Text style={styles.actionText}>{t('requests.createLive.reviewDetails.openAccess')}</Text>
+              </Pressable>
+            ) : null}
+            {rejection ? (
+              <Pressable
+                accessibilityRole='button'
+                onPress={() => {
+                  sent.current = false
+                  submit.reset()
+                  preview.reset()
+                }}
+                style={styles.action}
+              >
+                <Text style={styles.actionText}>{t('requests.createLive.recheckRejected')}</Text>
+              </Pressable>
+            ) : null}
+          </View>
         ) : null}
         {!selected || choosing ? (
           <>
-            <Text style={styles.sectionTitle}>{t('requests.createLive.search')}</Text>
-            <View style={styles.searchBox}>
-              <Feather
-                accessibilityElementsHidden
-                importantForAccessibility='no'
-                name='search'
-                size={19}
-                color={mobileColors.primaryInk}
-              />
-              <TextInput
-                accessibilityLabel={t('requests.createLive.search')}
-                value={search}
-                maxLength={100}
-                editable={!locked}
-                placeholder={t('requests.createLive.searchPlaceholder')}
-                placeholderTextColor={mobileColors.muted}
-                onChangeText={(text) => {
-                  setSearch(text)
-                  setPage(1)
-                }}
-                style={styles.searchInput}
-              />
-            </View>
             {selected ? (
               <Pressable accessibilityRole='button' onPress={() => setChoosing(false)} style={styles.action}>
                 <Text style={styles.actionText}>{t('requests.createLive.keepPlan')}</Text>
               </Pressable>
             ) : null}
-            {session.state === 'loading' || plans.isLoading ? (
-              <Text accessibilityRole='progressbar' style={styles.muted}>
-                {t('requests.createLive.loading')}
-              </Text>
-            ) : null}
-            {plans.isError ? (
-              <View style={styles.card}>
-                <Text accessibilityRole='alert' style={styles.error}>
-                  {t('requests.createLive.catalogError')}
-                </Text>
-                <Pressable accessibilityRole='button' onPress={() => void plans.refetch()} style={styles.action}>
-                  <Text style={styles.actionText}>{t('licenses.live.retry')}</Text>
-                </Pressable>
-                {page > 1 ? (
-                  <Pressable accessibilityRole='button' onPress={() => setPage(page - 1)} style={styles.action}>
-                    <Text style={styles.actionText}>{t('licenses.live.previous')}</Text>
-                  </Pressable>
-                ) : null}
-              </View>
-            ) : null}
-            {plans.data?.items.length === 0 ? <Text style={styles.muted}>{t('requests.createLive.empty')}</Text> : null}
-            {plans.data?.items.map((plan) => (
-              <Pressable
-                key={plan.id}
-                accessibilityRole='button'
-                accessibilityLabel={t('requests.createLive.choosePlan', {
-                  app: plan.application.name,
-                  plan: plan.name
-                })}
-                accessibilityState={{ selected: selected?.id === plan.id, disabled: locked }}
-                disabled={locked}
-                onPress={() => {
-                  setSelected(plan)
-                  setChoosing(false)
-                  scroll.current?.scrollTo({ y: 0, animated: true })
-                  preview.reset()
-                }}
-                style={[styles.card, selected?.id === plan.id && styles.selected]}
-              >
-                <View style={styles.planRow}>
-                  <SoftwareIcon name={plan.application.name} />
-                  <View style={styles.headerCopy}>
-                    <Text style={styles.name}>{plan.application.name}</Text>
-                    <Text style={styles.muted}>{t('licenses.live.plan', { plan: plan.name })}</Text>
-                  </View>
-                  <Feather
-                    accessibilityElementsHidden
-                    importantForAccessibility='no'
-                    name={selected?.id === plan.id ? 'check-circle' : 'circle'}
-                    size={22}
-                    color={selected?.id === plan.id ? mobileColors.primary : mobileColors.muted}
-                  />
-                </View>
-                {!plan.canSubmit ? <Text style={styles.error}>{t('requests.createLive.planBlocked')}</Text> : null}
-              </Pressable>
-            ))}
-            {plans.data && plans.data.pagination.totalPages > 1 ? (
-              <View style={styles.row}>
-                <Pressable
-                  accessibilityRole='button'
-                  accessibilityState={{ disabled: page <= 1 }}
-                  disabled={page <= 1}
-                  onPress={() => setPage(page - 1)}
-                  style={[styles.action, page <= 1 && styles.disabled]}
-                >
-                  <Text style={styles.actionText}>{t('licenses.live.previous')}</Text>
-                </Pressable>
-                <Text style={styles.muted}>
-                  {t('licenses.live.page', { page: new Intl.NumberFormat(i18n.language).format(page) })}
-                </Text>
-                <Pressable
-                  accessibilityRole='button'
-                  accessibilityState={{ disabled: page >= plans.data.pagination.totalPages }}
-                  disabled={page >= plans.data.pagination.totalPages}
-                  onPress={() => setPage(page + 1)}
-                  style={[styles.action, page >= plans.data.pagination.totalPages && styles.disabled]}
-                >
-                  <Text style={styles.actionText}>{t('licenses.live.next')}</Text>
-                </Pressable>
-              </View>
-            ) : null}
+            <RequestCatalog
+              getScrollY={() => scrollY.current}
+              scrollTo={(y, animated) => scroll.current?.scrollTo({ y, animated })}
+              initialApplication={initialApplication}
+              onSearchChange={setHasSearch}
+              onSelect={(plan) => {
+                if (locked) return
+                setHasSearch(false)
+                setSelected(plan)
+                setTerm('')
+                setChoosing(false)
+                scroll.current?.scrollTo({ y: 0, animated: true })
+                preview.reset()
+              }}
+            />
           </>
         ) : null}
         {selected && !choosing ? (
           <View style={styles.card}>
-            <Text accessibilityRole='header' style={styles.sectionTitle}>
-              {t('requests.createLive.selectedHeading')}
-            </Text>
-            <View style={styles.planRow}>
-              <SoftwareIcon name={selected.application.name} />
-              <View style={styles.headerCopy}>
-                <Text style={styles.name}>{selected.application.name}</Text>
-                <Text style={styles.muted}>{t('licenses.live.plan', { plan: selected.name })}</Text>
-              </View>
-            </View>
-            {!selected.canSubmit ? <Text style={styles.error}>{t('requests.createLive.planBlocked')}</Text> : null}
-            <Pressable
-              accessibilityRole='button'
-              disabled={locked}
-              accessibilityState={{ disabled: locked }}
-              onPress={() => setChoosing(true)}
-              style={styles.action}
-            >
-              <Text style={styles.actionText}>{t('requests.createLive.changePlan')}</Text>
-            </Pressable>
-            <View style={styles.divider} />
-            <Text style={styles.label}>{t('requests.createLive.endDate')}</Text>
-            <TextInput
-              accessibilityLabel={t('requests.createLive.endDate')}
-              placeholder={t('requests.createLive.endDatePlaceholder')}
-              placeholderTextColor={mobileColors.muted}
-              keyboardType='numbers-and-punctuation'
-              value={endDate}
-              maxLength={10}
-              editable={!locked}
-              onChangeText={(value) => {
-                setEndDate(value)
-                preview.reset()
-              }}
-              style={styles.input}
-            />
-            <Text style={styles.label}>{t('requests.createLive.reason')}</Text>
-            <TextInput
-              accessibilityLabel={t('requests.createLive.reason')}
-              multiline
-              value={reason}
-              maxLength={1000}
-              editable={!locked}
-              onChangeText={(value) => {
-                setReason(value)
-                preview.reset()
-              }}
-              style={[styles.input, styles.reason]}
-            />
-            {validation ? (
-              <Text accessibilityRole='alert' style={styles.error}>
-                {t('requests.createLive.validation')}
-              </Text>
-            ) : null}
-            <Pressable
-              accessibilityRole='button'
-              accessibilityState={{ disabled: locked || preview.isPending }}
-              disabled={locked || preview.isPending}
-              onPress={review}
-              style={styles.primary}
-            >
-              <Text style={styles.primaryText}>{t('requests.createLive.preview')}</Text>
-            </Pressable>
-            {preview.isPending ? (
-              <Text accessibilityRole='progressbar' style={styles.muted}>
-                {t('requests.createLive.previewLoading')}
-              </Text>
-            ) : null}
-            {preview.isError ? (
-              <Text accessibilityRole='alert' style={styles.error}>
-                {t(`requests.createLive.${previewErrorKey(preview.error)}`)}
-              </Text>
+            {!currentPreview ? (
+              <>
+                <Text accessibilityRole='header' style={styles.sectionTitle}>
+                  {t('requests.createLive.selectedHeading')}
+                </Text>
+                <View style={styles.planRow}>
+                  <SoftwareIcon name={selected.application.name} logoUrl={selected.application.logoUrl} />
+                  <View style={styles.headerCopy}>
+                    <Text style={styles.name}>{selected.application.name}</Text>
+                    <Text style={styles.muted}>{t('licenses.live.plan', { plan: selected.name })}</Text>
+                  </View>
+                </View>
+                {!selected.canSubmit ? <Text style={styles.error}>{t('requests.createLive.planBlocked')}</Text> : null}
+                <Pressable
+                  accessibilityRole='button'
+                  disabled={locked}
+                  accessibilityState={{ disabled: locked }}
+                  onPress={() => setChoosing(true)}
+                  style={styles.action}
+                >
+                  <Text style={styles.actionText}>{t('requests.createLive.changePlan')}</Text>
+                </Pressable>
+                <View style={styles.divider} />
+                {asksTerm ? (
+                  <>
+                    <Text style={styles.label}>
+                      {t(type === 'K1' ? 'requests.createLive.termRequired' : 'requests.createLive.termOptional')}
+                    </Text>
+                    <TextInput
+                      accessibilityLabel={t(
+                        type === 'K1' ? 'requests.createLive.termRequired' : 'requests.createLive.termOptional'
+                      )}
+                      keyboardType='number-pad'
+                      value={term}
+                      maxLength={2}
+                      editable={!locked}
+                      onChangeText={(value) => {
+                        setTerm(value)
+                        preview.reset()
+                      }}
+                      style={styles.input}
+                    />
+                  </>
+                ) : type !== 'K4' ? (
+                  <Text accessibilityRole='alert' style={styles.error}>
+                    {t('requests.createLive.unsupportedType')}
+                  </Text>
+                ) : null}
+                <Text style={styles.label}>{t('requests.createLive.reason')}</Text>
+                <TextInput
+                  accessibilityLabel={t('requests.createLive.reason')}
+                  multiline
+                  value={reason}
+                  maxLength={1000}
+                  editable={!locked}
+                  onChangeText={(value) => {
+                    setReason(value)
+                    preview.reset()
+                  }}
+                  style={[styles.input, styles.reason]}
+                />
+                {validation ? (
+                  <Text accessibilityRole='alert' style={styles.error}>
+                    {t('requests.createLive.validation')}
+                  </Text>
+                ) : null}
+                <Pressable
+                  accessibilityRole='button'
+                  accessibilityState={{ disabled: locked || preview.isPending }}
+                  disabled={locked || preview.isPending}
+                  onPress={review}
+                  style={styles.primary}
+                >
+                  <Text style={styles.primaryText}>{t('requests.createLive.preview')}</Text>
+                </Pressable>
+                {preview.isPending ? (
+                  <Text accessibilityRole='progressbar' style={styles.muted}>
+                    {t('requests.createLive.previewLoading')}
+                  </Text>
+                ) : null}
+                {preview.isError ? (
+                  <Text accessibilityRole='alert' style={styles.error}>
+                    {t(`requests.createLive.${previewErrorKey(preview.error)}`)}
+                  </Text>
+                ) : null}
+              </>
             ) : null}
             {currentPreview ? (
               <View style={styles.review}>
-                <Text style={styles.name}>{t('requests.createLive.review')}</Text>
+                <RequestPreview
+                  preview={currentPreview}
+                  reason={reason.trim()}
+                  isOneTime={type === 'K4'}
+                  onOpenAccess={(id) =>
+                    navigateTo({ pathname: '/my-software/[softwareId]', params: { softwareId: id } })
+                  }
+                  onOpenRequest={(id) =>
+                    navigateTo({ pathname: '/live-requests/[requestId]', params: { requestId: id } })
+                  }
+                />
                 <Text style={styles.muted}>
                   {canSend ? t('requests.createLive.canSubmit') : t('requests.createLive.cannotSubmit')}
                 </Text>
                 {currentPreview.blockedBy ? (
                   <Text style={styles.error}>
-                    {t('requests.createLive.blockedCode', { reason: currentPreview.blockedBy.reason })}
+                    {currentPreview.blockedBy.reason === 'SPENDING_APPROVER'
+                      ? t('requests.createLive.reviewDetails.blockedSpending')
+                      : currentPreview.blockedBy.reason === 'UNPLACED'
+                        ? t('requests.createLive.reviewDetails.blockedUnplaced')
+                        : t('requests.createLive.blockedCode', { reason: currentPreview.blockedBy.reason })}
                   </Text>
                 ) : null}
                 {currentPreview.existingAccess ? (
                   <Text style={styles.error}>{t('requests.createLive.existingAccess')}</Text>
                 ) : null}
-                <Text style={styles.muted}>
-                  {t('requests.createLive.maxEndDate', {
-                    date: validDate(currentPreview.maxEndDate)
-                      ? new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeZone: 'UTC' }).format(
-                          new Date(`${currentPreview.maxEndDate}T00:00:00.000Z`)
-                        )
-                      : t('licenses.live.dateUnavailable')
-                  })}
-                </Text>
-                {currentPreview.termRequired && !endDate ? (
-                  <Text style={styles.error}>{t('requests.createLive.endDateRequired')}</Text>
-                ) : null}
-                {endDate && endDate > currentPreview.maxEndDate ? (
-                  <Text style={styles.error}>{t('requests.createLive.endDateTooLate')}</Text>
+                {currentPreview.termRefusal ? (
+                  <Text style={styles.error}>
+                    {t(`requests.createLive.termRefusals.${currentPreview.termRefusal}`)}
+                  </Text>
                 ) : null}
                 {currentPreview.limits.refusal ? (
                   <Text style={styles.error}>{t(`requests.createLive.refusals.${currentPreview.limits.refusal}`)}</Text>
                 ) : null}
-                {currentPreview.limits.reasonRequired ? (
-                  <>
-                    <Text style={styles.label}>{t('requests.createLive.manyPaidReason')}</Text>
-                    <TextInput
-                      accessibilityLabel={t('requests.createLive.manyPaidReason')}
-                      multiline
-                      value={manyPaidReason}
-                      maxLength={1000}
-                      editable={!locked}
-                      onChangeText={setManyPaidReason}
-                      style={[styles.input, styles.reason]}
-                    />
-                  </>
-                ) : null}
                 {currentPreview.spendSubmission === 'BLOCKED_UNTIL_PRICED' ? (
                   <Text style={styles.error}>{t('requests.createLive.pricingBlocked')}</Text>
                 ) : null}
-                <Text style={styles.muted}>
-                  {t('requests.createLive.expectedDays', {
-                    days: new Intl.NumberFormat(i18n.language).format(currentPreview.totalExpectedWorkingDays)
-                  })}
-                </Text>
+                <Pressable
+                  accessibilityRole='button'
+                  disabled={locked}
+                  accessibilityState={{ disabled: locked }}
+                  onPress={() => preview.reset()}
+                  style={styles.action}
+                >
+                  <Text style={styles.actionText}>{t('requests.createLive.reviewDetails.edit')}</Text>
+                </Pressable>
                 <Pressable
                   accessibilityRole='button'
                   accessibilityState={{ disabled: !canSend || locked }}
@@ -431,46 +483,6 @@ export function LiveRequestCreateScreen() {
           </View>
         ) : null}
       </ScrollView>
-      <MobileTabBar
-        accessibilityLabel={t('navigation.tabs')}
-        tabs={[
-          {
-            id: 'software',
-            label: t('navigation.software'),
-            icon: 'grid',
-            selected: false,
-            disabled: submit.isPending,
-            accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') }),
-            onPress: () => navigateTo('/my-software')
-          },
-          {
-            id: 'create',
-            label: t('navigation.createRequest'),
-            icon: 'plus-circle',
-            selected: true,
-            disabled: submit.isPending,
-            accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') })
-          },
-          {
-            id: 'requests',
-            label: t('navigation.requests'),
-            icon: 'clock',
-            selected: false,
-            disabled: submit.isPending,
-            accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') }),
-            onPress: () => navigateTo('/live-requests')
-          },
-          {
-            id: 'inbox',
-            label: t('navigation.inbox'),
-            icon: 'bell',
-            selected: false,
-            disabled: submit.isPending,
-            accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') }),
-            onPress: () => navigateTo('/live-inbox')
-          }
-        ]}
-      />
       <Modal
         transparent
         animationType='fade'
@@ -504,7 +516,8 @@ export function LiveRequestCreateScreen() {
                 if (destination) {
                   allowRemoval.current = true
                   setDestination(undefined)
-                  router.replace(destination)
+                  if (destination === 'back') goBackOr(router, '/live-requests')
+                  else router.replace(destination)
                 } else if (pendingAction) {
                   navigation.dispatch(pendingAction)
                   setPendingAction(undefined)
@@ -526,6 +539,7 @@ export function LiveRequestCreateScreen() {
 
 const createStyles = (mobileColors: MobileColors) =>
   StyleSheet.create({
+    pageTitle: { color: mobileColors.foreground, fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
     safe: { flex: 1, backgroundColor: mobileColors.background },
     content: { padding: 20, gap: 12, paddingBottom: 30 },
     header: {

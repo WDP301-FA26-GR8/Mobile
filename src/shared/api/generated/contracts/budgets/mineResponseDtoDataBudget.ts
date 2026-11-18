@@ -5,9 +5,18 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { MineResponseDtoDataBudgetBase } from './mineResponseDtoDataBudgetBase'
+import type { MineResponseDtoDataBudgetCommitted } from './mineResponseDtoDataBudgetCommitted'
 import type { MineResponseDtoDataBudgetCostCenter } from './mineResponseDtoDataBudgetCostCenter'
+import type { MineResponseDtoDataBudgetCycle } from './mineResponseDtoDataBudgetCycle'
+import type { MineResponseDtoDataBudgetEffectiveBudget } from './mineResponseDtoDataBudgetEffectiveBudget'
 import type { MineResponseDtoDataBudgetLatestRefusal } from './mineResponseDtoDataBudgetLatestRefusal'
+import type { MineResponseDtoDataBudgetPendingSpend } from './mineResponseDtoDataBudgetPendingSpend'
 import type { MineResponseDtoDataBudgetProposal } from './mineResponseDtoDataBudgetProposal'
+import type { MineResponseDtoDataBudgetRemainingBase } from './mineResponseDtoDataBudgetRemainingBase'
+import type { MineResponseDtoDataBudgetRemainingWithReserve } from './mineResponseDtoDataBudgetRemainingWithReserve'
+import type { MineResponseDtoDataBudgetReserve } from './mineResponseDtoDataBudgetReserve'
+import type { MineResponseDtoDataBudgetSpent } from './mineResponseDtoDataBudgetSpent'
 import type { MineResponseDtoDataBudgetStatus } from './mineResponseDtoDataBudgetStatus'
 import type { MineResponseDtoDataBudgetTotal } from './mineResponseDtoDataBudgetTotal'
 import type { MineResponseDtoDataBudgetVersion } from './mineResponseDtoDataBudgetVersion'
@@ -20,8 +29,33 @@ export type MineResponseDtoDataBudget = {
    */
   year: number
   status: MineResponseDtoDataBudgetStatus
+  /**
+   * The base of the approved version, before the adjustments (the base with them is effectiveBudget.base; the check of a request names that one `base`).
+   * @nullable
+   */
+  base: MineResponseDtoDataBudgetBase
   /** @nullable */
+  reserve: MineResponseDtoDataBudgetReserve
+  /**
+   * The base and the reserve of the approved version, before the adjustments.
+   * @nullable
+   */
   total: MineResponseDtoDataBudgetTotal
+  /**
+   * Null when the Cost Center has no budget of the year. What is left below is worked out on this.
+   * @nullable
+   */
+  effectiveBudget: MineResponseDtoDataBudgetEffectiveBudget
+  committed: MineResponseDtoDataBudgetCommitted
+  spent: MineResponseDtoDataBudgetSpent
+  pendingSpend: MineResponseDtoDataBudgetPendingSpend
+  /** @nullable */
+  remainingBase: MineResponseDtoDataBudgetRemainingBase
+  /** @nullable */
+  remainingWithReserve: MineResponseDtoDataBudgetRemainingWithReserve
+  overBudget: boolean
+  /** @nullable */
+  cycle: MineResponseDtoDataBudgetCycle
   /** @nullable */
   version: MineResponseDtoDataBudgetVersion
   /** @nullable */

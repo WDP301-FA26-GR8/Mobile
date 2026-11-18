@@ -13,9 +13,13 @@ export type RequestableApplicationPageResponseDtoDataItemsItem = {
   id: string
   name: string
   kind: RequestableApplicationPageResponseDtoDataItemsItemKind
+  /**
+   * The https link to the logo image, or null. It may be broken: show the first letter of the name when the image does not load.
+   * @nullable
+   */
+  logoUrl: string | null
   /** @nullable */
   vendorName: string | null
-  /** @nullable */
   functionalGroup: RequestableApplicationPageResponseDtoDataItemsItemFunctionalGroup
   /**
    * @maximum 9007199254740991

@@ -6,6 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 
+/**
+ * The amount asked for: the same as requestedAmount.
+ */
 export type ProposalResponseDtoDataProposalTotal = {
   amount: string
   currency: string

@@ -6,6 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 
+/**
+ * What one person costs for one billing cycle, in dong: a decimal string in major units, currency VND. Another currency is refused (ASSESSMENT.QUOTE_PRICE_NOT_VND).
+ */
 export type InternalRegistrationBodyDtoSpendQuoteUnitPrice = {
   /** @maxLength 40 */
   amount: string

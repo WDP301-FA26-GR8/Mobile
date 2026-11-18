@@ -1,16 +1,25 @@
 {
   "expo": {
-    "name": "software-license-management-mobile",
+    "name": "SaaS-Sentry",
     "slug": "software-license-management-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "softwarelicensemanagementmobile",
     "userInterfaceStyle": "automatic",
+    "locales": {
+      "en": "./locales/en.json",
+      "vi": "./locales/vi.json"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "vn.saassentry.mobile",
+      "infoPlist": {
+        "CFBundleLocalizations": ["en", "vi"]
+      }
     },
     "android": {
+      "package": "vn.saassentry.mobile",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -52,6 +61,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b11209f4-b5a3-45f7-b816-3fbc41413e4e"
+      }
+    },
+    "owner": "ngtheson224"
   }
 }

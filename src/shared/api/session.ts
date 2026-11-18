@@ -192,6 +192,14 @@ export class Session {
     return result
   }
 
+  // The server already ended every session (for example after a password change); only local state remains.
+  async endLocally(): Promise<void> {
+    ++this.revision
+    this.tokens = null
+    this.onExpired('logout')
+    await this.storage.remove()
+  }
+
   async logout(): Promise<void> {
     if (this.loggingOut) throw new Error('Logout already in progress')
     this.loggingOut = true

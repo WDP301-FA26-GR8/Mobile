@@ -9,4 +9,9 @@
 export type MySoftwarePageResponseDtoDataItemsItemApplication = {
   id: string
   name: string
+  /**
+   * The https link to the logo image that the IT Admin pasted, or null. The server never checks it: it may be broken, so show the first letter of the name when the image does not load.
+   * @nullable
+   */
+  logoUrl: string | null
 }

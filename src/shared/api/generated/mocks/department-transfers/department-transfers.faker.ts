@@ -10,9 +10,9 @@ import { faker } from '@faker-js/faker'
 import type {
   DepartmentTransferCancel200,
   DepartmentTransferChangeList200,
-  DepartmentTransferClose200,
   DepartmentTransferGet200,
   DepartmentTransferList200,
+  DepartmentTransferPreview200,
   DepartmentTransferRecord201,
   DepartmentTransferReschedule200
 } from '../../contracts'
@@ -21,6 +21,7 @@ import {
   getTransferChangePageResponseDtoResponseMock,
   getTransferDetailResponseDtoResponseMock,
   getTransferPageResponseDtoResponseMock,
+  getTransferPreviewResponseDtoResponseMock,
   getTransferRecordedResponseDtoResponseMock
 } from '../../contracts/index.faker'
 
@@ -54,7 +55,7 @@ export const getDepartmentTransferCancelResponseMock = (): DepartmentTransferCan
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 
-export const getDepartmentTransferCloseResponseMock = (): DepartmentTransferClose200 => ({
-  ...{ ...getTransferDetailResponseDtoResponseMock() },
+export const getDepartmentTransferPreviewResponseMock = (): DepartmentTransferPreview200 => ({
+  ...{ ...getTransferPreviewResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })

@@ -17,10 +17,14 @@ export type SubscriptionRenewalResponseDtoDataRenewalProposal = {
   quantity: number | null
   /** @nullable */
   note: string | null
-  /** @nullable */
-  businessOwnerOpinion: string | null
   proposedByEmployeeId: string
   proposedAt: string
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   * @nullable
+   */
+  seatsNeeded: number | null
   /**
    * @minimum 0
    * @maximum 9007199254740991

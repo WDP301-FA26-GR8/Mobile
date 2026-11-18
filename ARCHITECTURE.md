@@ -1,10 +1,11 @@
 # SaaS-Sentry Mobile architecture
 
-Status: Expo foundation updated for BRD 3.53 mobile scope, 2026-10-24.
+Status: Expo foundation aligned with the mobile scope of BRD v4.13 (QĐ-61b, EP-16) and
+`mobile-api-map.md`, 2026-11-18.
 
 ## Context and scope boundary
 
-BRD 3.53 includes a native iOS/Android companion for four tasks: employees view
+The mobile scope (BRD 3.1, QĐ-61b, EP-16) is a native iOS/Android companion for four tasks: employees view
 their software and requests and submit or withdraw simple requests for software
 already in the catalog; managers approve the need step for their department;
 spending approvers decide individual items against a read-only budget snapshot;
@@ -15,29 +16,72 @@ Push notifications, offline mode, biometrics, file downloads, phone usage
 collection, and IT Admin/Finance/Super Admin workflows are outside mobile scope.
 The committed OpenAPI snapshot contains the backend's business operations. Login,
 the signed-in account, personal software, inbox and employee requests use the backend.
-The live need-approval workspace supports assigned individual grants; spending-approval
-and the original manager demo screens remain prototypes. Prototype decisions are stored only in the current app session
-and are not submitted to a backend. Contract availability alone does not resolve
+The live need-approval workspace supports assigned individual grants. The
+`/spending-approvals` workspace is API-backed and restricted to an account whose
+only role is `SPENDING_APPROVER`; its queue is server-assigned and paginated. It
+shows the read-only budget snapshot and policy 1.7 checklist, submits individual
+decisions, and decides only the people currently awaiting a group spending decision.
+Group `RETURN` is sent for every waiting person or none; batch decisions remain web-only.
+The detail's null beneficiary identifies a group even when only one person remains.
+Return closes the step without requiring a spend decision record and follows the
+server's one-step or head routing. Mutation responses must match the request, step,
+and expected outcome; inconsistent responses are treated as uncertain. Navigation
+and Android system back on the last route are blocked while a decision is in flight.
+On an explicit policy-version conflict, the user may reload the policy, request and
+group lines; a different version and the same pending step are required before
+answering again. Neither this recovery nor uncertain writes automatically retry.
+The former prototype request, Manager-demo, Spending-demo, inbox-demo and password-recovery screens
+and the in-memory `demo-requests` store were removed. Contract availability alone does not resolve
 the differences between the current backend and newer proposed business decisions.
-Manager and spending demos have separate direct route entry points; there is no
-in-session role switcher. The authenticated landing loads `/me` before routing:
-accounts with the MANAGER role enter the live Manager workspace, while others enter
-personal software. If the account cannot be loaded, the user can retry or sign out;
-the app does not guess the role. The personal software screen links Manager accounts
+The authenticated landing loads `/me` and opens `/home`, which shows self-service
+shortcuts and the live Manager or Spending Approver queue only to the matching role.
+If the account cannot be loaded, the user can retry or sign out; the app does not guess the role.
+The personal software screen links Manager accounts
 back to the workspace but does not show that entry for employees. The live
 screen links to live request flows instead of opening the demo, to
 avoid presenting demo data as the signed-in user's data. The live inbox at `/live-inbox`
-uses the authenticated notification API; the prototype inbox remains separate. Live
+uses the authenticated notification API. It requests server-rendered titles and
+messages in the active language, with a legacy code-label fallback when an older
+server omits them. Opening
+an unread notification marks it read once and opens a supported destination even if
+the update fails; a dismissible warning survives navigation. Request notifications
+open real request detail. Assigned Manager need notifications search the caller's
+current assigned queue across pages (up to 100 pages; exceeding that limit is an
+explicit error) and open an individual GRANT only when found;
+unavailable or group work is not sent to the individual decision route. A need
+reminder not in that queue opens request detail, where the backend checks visibility.
+Assigned and reminder Spending Approver notifications open the spending workspace only after
+the request is found in the caller's assigned queue; an unavailable item stays
+explicitly unavailable rather than opening an unverified decision detail.
+Personal expiry
+notices open the matching software access, and access revocation notices open the
+software list. Unsupported, malformed, and web-only
+notification destinations stay in the inbox with an explicit web guidance message.
+Live
 request list and detail routes are `/live-requests` and `/live-requests/[requestId]`.
-The list contains requests sent by the caller, while notification detail access is
-authorized by the backend. Individual catalog requests use `/live-request-create`:
+The list contains requests sent by or made for the caller, while notification detail
+access is authorized by the backend. Individual catalog requests use `/live-request-create`:
 the caller chooses a requestable plan and must receive a current successful preview
-before submitting. The preview determines whether an end date or an additional
-reason for paid software is required; submission uses the same optional end date.
+before submitting. The review is a separate step showing server pricing, cost
+estimates, limits and the anticipated approval route. Editing the form discards the
+preview; opening an existing request or right confirms before discarding the form.
+The catalog starts with department suggestions, allows searching all requestable
+applications, then lists that application's requestable plans. Department suggestions
+are guidance, not a restriction. The request uses `termMonths`: K1 requires 1–9 months, K2/K5
+allow 1–12 months or an unspecified long-term duration, and K4 has no duration.
+The preview remains authoritative, including restrictions on long-term use. K3 is
+not submitted from this screen until its mobile request behavior is specified.
 Request detail displays the expected end date rather than interpreting the legacy
-`termMonths` field.
+`termMonths` field, shows the approval route (need review, spending, IT provisioning) from the
+routing mode, step state and holder, and loads the paginated server event history separately.
+The requester can withdraw from the detail (confirmation first) while the state allows it, a
+request returned for revision shows that revising and resubmitting is web-only, and a closed
+individual request offers "Request again", which opens the catalog on the same application.
 The list offers withdrawal only when the server indicates it is
 available, and displays the returned status rather than assuming immediate withdrawal.
+The withdrawal response must identify the same request; a missing or inconsistent
+response is treated as uncertain. Navigation and Android Back are blocked while
+withdrawal is in flight, but forced termination cannot be intercepted.
 The create screen includes the employee tabs and asks for confirmation before its
 back button, tabs, or navigation actions that remove the route discard entered details.
 On Android, system back also asks before exiting when this is the last route. Navigation
@@ -46,6 +90,9 @@ tab and parent unmounts outside navigation cannot be intercepted.
 Writes are never automatically retried; an uncertain result requires checking the list
 before trying again. The backend has no client-provided idempotency key in this contract,
 so this cannot guarantee prevention of duplicate submissions across navigation/restarts.
+Explicit, recognized validation/conflict responses are shown as rejections; a new
+submission requires the user to request a fresh preview first. Unknown or inconsistent
+failures remain uncertain and locked.
 The Manager landing is `/live-need-approvals`; it shows the authenticated account,
 department, assigned-work count, and a Manager-specific queue/team/inbox tab bar.
 The inbox uses the live notification feature; the team tab explains that department
@@ -53,56 +100,61 @@ management is web-only, and the header links to personal self-service. A Manager
 `managerScope` sees an explicit unavailable state rather than a fabricated queue.
 The queue is filtered by the backend to the caller's assigned GRANT steps; it is not an
 authorization check or a department-wide request list. This workspace is currently
-restricted to MANAGER accounts; Spending Approver and fallback-decider workflows have
-not yet been connected to role-specific navigation. The request detail queries the
+restricted to MANAGER accounts; Spending Approver work is handled by the separate
+`/spending-approvals` workspace, and fallback-decider workflows remain unconnected.
+The request detail queries the
 assignee-only similar seats endpoint separately, with pagination and explicit
 loading/error states. The contract supplies a due date but no exact deadline or
 all-queue urgent count; the UI does not invent an hourly SLA countdown.
-Group, renewal, service-account and department-wide views are not implemented. Decisions
-are confirmed explicitly, rejection requires a reason, and approvals for terms over
-12 months are blocked because the documented confirmation is absent from the payload.
+Group and renewal requests are decided on mobile (Owner decision, 2026-11-18): the queue
+lists every type the server assigns, a single GRANT or RENEWAL uses the individual decision
+route, and a GROUP_GRANT is decided person by person through `accessRequestLineNeedDecide`
+with one shared step 1.2 checklist; `RETURN` applies to every waiting person or none, and the
+similar-seats lookup is not shown for groups. Old SERVICE_ACCOUNT records have no mobile
+decision. Decisions
+are confirmed explicitly and include the current policy step 1.2 checklist.
+An answer of No blocks approval; rejection or return requires a reason unless the
+server can derive it from a No answer.
 Backend authorization and stale-state checks remain authoritative. Failed or uncertain
 decisions are never retried automatically and require checking the refreshed queue.
+Navigation and Android system back on the last route are blocked while a Manager
+decision is in flight.
+An explicit `POLICY.VERSION_CHANGED` rejection instead lets the Manager reload the
+request and a different checklist version, then answer again before deciding manually.
 Manager group request creation and spend-batch submission remain web-only; a GH-3 flag
 is not shown because the current detail contract does not expose it. The mobile app
 does not assume the newer proposed one-step manager-self-request routing has been
 implemented by the backend.
-Password recovery on the login screen directs the
-user to web until the real reset-link flow is implemented.
-The authenticated account header opens `/profile`, a read-only account information
-screen for the signed-in user using the shared `/me` query. It shows the department
-managed when the account is a Manager; profile editing and password changes remain
-web-only. This account-information screen is an additional UX convenience not explicitly
-listed in the four mobile MVP tasks and requires Owner confirmation of its scope.
+Sibling tabs (software, create request, requests, inbox) switch with `router.replace`, so
+Back from any tab returns to the screen that opened it (normally Home) instead of walking
+through previously visited tabs. Header and card shortcuts still use `push`. The login and
+authenticated headers share `PreferenceSwitches` (language VI/EN toggle persisted in
+AsyncStorage plus theme); the login password field has a show/hide control.
+Password recovery, activation and password change run on mobile (Owner decision, 2026-11-18).
+`/forgot-password` requests a reset link and always shows the same notice. `/activate` and
+`/reset-password` read the one-time token from the URL fragment (`#token=…`, query accepted as a
+fallback) of a link opened through the app scheme; the web links `https://<host>/activate#token=…`
+open in the app only after Android App Links / iOS Universal Links are configured for the web
+domain, which still needs a domain-verification decision. `/change-password` calls `meChangePassword`
+and, because the server ends every session, clears the local session without a second logout call.
+The authenticated account header opens `/profile`, which shows the signed-in user's account details
+using the shared `/me` query, including the department managed by a Manager. The user can change the
+work phone (`meProfilePatch`) and the profile photo (`meAvatarPut` / `meAvatarDelete`); the photo is
+chosen with the system picker, resized and redrawn as JPEG (removing EXIF/GPS) until it is at most
+1 MiB before upload. Failed calls show the server `requestId` as a reference for support.
 Employee self-service opens a confirmation before signing out from the account
 screen; the profile remains reachable when account loading fails. The software list
 uses local brand icons where available, with a generic fallback for other names.
-The manager demo uses bottom tabs for assigned approvals, department-visible context,
-and the shared in-app inbox. The spending demo uses assigned decisions, session-only
-decision history, and the shared in-app inbox; budget snapshots remain inside the
-relevant request detail and are not a separate tab.
-Approver inbox tabs stay within their respective demo screens and do not display the
-employee's notifications. Prototype events produce role-specific in-app notices.
-Detail screens use a route fallback when opened without navigation history.
-Shared demo request state is owned by `src/entities/demo-requests` and attached at the
-root route layout. Navigation between the separate demo routes shares request status,
-decisions, timelines, and role-scoped notification/read state; reloading or restarting
-resets it. This is not authentication or backend authorization.
-
-The demo advances an approved employee need to awaiting web submission and an approved
-Slack spending decision to awaiting IT. It does not simulate web batch submission,
-Finance review, or IT actions. The manager's DataDog self-request has its need step
-decided by the spending approver, with the result visible in department context;
-subsequent steps are not simulated. Notifications describe historical events, while
-request details show current status. All transitions are prototype assumptions to be
-replaced with the backend contract and enforced authorization.
-The authenticated software list is paginated and displays the backend's seven-day
-expiring flag. The dashboard supplies the overall expiring count; the filter explicitly
-applies only to the current page. The old mock details route redirects to the list; it must not expose
-invented accounts or keys as real data. Historical access, an all-pages expiring
-filter, and return workflows are not provided in this first live slice.
-The canonical employee request list URL is `/my-requests`; unknown request IDs
-redirect there rather than to `/my-requests/index`, which matches a dynamic ID.
+The Manager and Spending Approver workspaces, inbox and software screens are all API-backed;
+no demo or session-only request state remains. Detail screens use a route fallback when opened
+without navigation history.
+The authenticated software list is paginated, supports current and ended access, and
+displays the backend's seven-day expiring flag. The dashboard supplies the overall
+expiring count; the filter explicitly applies only to the current page. Software
+details search the authenticated current and ended rights pages for the assignment;
+no separate detail endpoint exists. They do not expose invented accounts or keys.
+An all-pages expiring filter and return workflows are not provided.
+The former `/my-requests`, `/inbox` and `/manager` prototype redirects were removed.
 
 ## Runtime view
 
@@ -125,30 +177,32 @@ persistence, jobs, and financial/access decisions.
 app/
   _layout.tsx              root route/provider attachment
   index.tsx                thin route entry
-  inbox.tsx                prototype inbox handoff
+  home.tsx                 authenticated Home handoff
+  forgot-password.tsx      password reset request handoff
+  activate.tsx             invitation activation (token from URL fragment)
+  reset-password.tsx       password reset (token from URL fragment)
+  change-password.tsx      signed-in password change handoff
   live-inbox.tsx           authenticated inbox handoff
   live-requests.tsx        authenticated request list handoff
-  live-request-create.tsx  authenticated individual request handoff
+  live-request-create.tsx  authenticated individual request handoff (optional application preselection)
   live-need-approvals.tsx  authenticated need approval handoff
   live-requests/           authenticated request detail handoff
   my-software.tsx          employee software handoff
-  profile.tsx              read-only signed-in account handoff
-  manager.tsx              manager need-approval demo handoff
-  spending-approvals.tsx   spending-approver demo handoff
-  my-requests/             employee request routes
+  profile.tsx              signed-in account and profile editing handoff
+  spending-approvals.tsx   authenticated Spending Approver handoff
 src/
   providers/               application-wide framework providers
   features/
     account/                read-only signed-in account information
-    auth/                   backend login and prototype password recovery
-    inbox/                  authenticated and prototype in-app notifications
+    auth/                   backend login
+    inbox/                  authenticated in-app notifications
     licenses/               employee software screens and models
-    manager/                department need-approval demo presentation
+    manager/                live need-approval workspace
+    policy/                 pending policy acknowledgement gate
     spending-approval/      per-item spending queue and budget snapshots
     requests/               employee request screens and session mocks
     <capability>/           screens, components, hooks, feature-local tests/models
   entities/
-    demo-requests/          in-memory request, decision, and inbox state
     <domain-concept>/       reusable domain presentation logic, only when needed
   shared/
     api/
@@ -209,6 +263,16 @@ boundary retries a 401 only for reads, not business mutations. Authenticated wri
 refresh an already expired token before sending, but never retry a sent operation.
 Inbox read updates invalidate both list and count even after an uncertain failure.
 
+The root layout keeps the navigator mounted behind a policy gate. While `/me` is
+unavailable or lists pending acknowledgements, the gate blocks touch, accessibility
+and Android Back interactions with the underlying screens, including direct route
+entry. The underlying screens can still mount and issue reads; this client-side
+gate is not backend authorization. Acknowledgement uses the displayed policy and
+reloads `/me`; if the returned version differs, the gate requires the current text
+to be read again. The API does not accept a version precondition, so a version
+change between reading and acknowledgement cannot be prevented atomically by the
+client, including across a process restart.
+
 Use an HTTPS API origin without credentials or a path in release builds. HTTP is
 allowed only in development for local emulators/devices; traffic and credentials
 on such connections are not protected. Do not use real credentials over HTTP. A
@@ -257,8 +321,24 @@ on 2026-11-09 (SHA-256
 On 2026-11-14, the `PreviewBodyDto`, `SubmitBodyDto`, and `PreviewResponseDto`
 schemas alone were updated from the deployed server's public `/api/docs-json`
 (SHA-256 `912512d998bec5651bc8abbe2a5f33398bf82d132c58b459d300eee531b27f92`)
-to match its individual request preview and submit contract. The rest of the
-snapshot retains the earlier provenance and may differ from the deployed server.
+to match its individual request preview and submit contract. On 2026-11-17 the
+entire snapshot was imported from the deployed public `/api/docs-json` (SHA-256
+`c4191d0c0bffe69eea79617e2c07497720c76753c950de02eb891ec676e2f39d`).
+That hash differs from the mobile API guide's documented export; recheck the deployed
+contract before further integration. The live request list includes both requests
+sent by the caller and requests made for the caller.
+On 2026-11-18 the notification list and mark-read response schemas and language
+headers were updated from the local backend export (SHA-256
+`6d0d216b619da6aaaf094f73bb58bed7273fe0ced88634e3fccc39843ea4e200`);
+the corresponding response schemas matched the public `/api/docs-json` (SHA-256
+`9de2b7d504cadb306ee7881f4bb507a8f5f96fa85dae51db6972ed89e98b7a90`).
+The rest of the snapshot was not reimported at that time. On 2026-11-18 (evening) the
+whole snapshot was reimported from the same backend export
+(`BE/openapi.json`, SHA-256 `6d0d216b619da6aaaf094f73bb58bed7273fe0ced88634e3fccc39843ea4e200`),
+which adds the profile operations (`meProfilePatch`, `meAvatarPut`, `meAvatarDelete`,
+`employeeProfileLookup`). Contract shape alone does not prove
+On 2026-11-18 (late evening) the snapshot was reimported again from BE `origin/main` (QĐ-113): for the operations mobile uses, the only contract changes are the required `priceSource` on the request preview (`PLAN_REFERENCE` shows a reference-price notice) and the 409 `ACCESS_REQUEST.WITHDRAWAL_AFTER_DECISION` on withdrawal. Export file SHA-256 `8B0F4F7BA42D7F864A975853411050410A8A80F273533B9D2DBA87AA3E61D101` (as written by PowerShell, with BOM).
+the deployed backend's behavior.
 The import adds missing top-level tag declarations and request/response aliases
 to satisfy the mobile naming conventions without renaming the backend DTOs. It also
 adds the already-inherited string type to example-only `message` overlays, and

@@ -5,7 +5,6 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
-import type { RequestTimingsResponseDtoDataTimingsSegmentsFINANCEREVIEW } from './requestTimingsResponseDtoDataTimingsSegmentsFINANCEREVIEW'
 import type { RequestTimingsResponseDtoDataTimingsSegmentsGRANT } from './requestTimingsResponseDtoDataTimingsSegmentsGRANT'
 import type { RequestTimingsResponseDtoDataTimingsSegmentsITASSESSMENT } from './requestTimingsResponseDtoDataTimingsSegmentsITASSESSMENT'
 import type { RequestTimingsResponseDtoDataTimingsSegmentsNEED } from './requestTimingsResponseDtoDataTimingsSegmentsNEED'
@@ -19,8 +18,6 @@ export type RequestTimingsResponseDtoDataTimingsSegments = {
   IT_ASSESSMENT: RequestTimingsResponseDtoDataTimingsSegmentsITASSESSMENT
   /** @nullable */
   QUEUE_WAIT: RequestTimingsResponseDtoDataTimingsSegmentsQUEUEWAIT
-  /** @nullable */
-  FINANCE_REVIEW: RequestTimingsResponseDtoDataTimingsSegmentsFINANCEREVIEW
   /** @nullable */
   SPEND_DECISION: RequestTimingsResponseDtoDataTimingsSegmentsSPENDDECISION
   /** @nullable */

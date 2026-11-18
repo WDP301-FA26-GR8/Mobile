@@ -5,10 +5,11 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { BatchDecisionBodyDtoChecklist } from './batchDecisionBodyDtoChecklist'
 import type { BatchDecisionBodyDtoDecision } from './batchDecisionBodyDtoDecision'
 
 /**
- * A refusal (REJECT) gives its reason; an approval (APPROVE) gives none. A request is decided once.
+ * One checklist for the whole batch, written for each request decided. A refusal (REJECT) names the requests; a return (RETURN) takes every request of the batch the caller holds and names none; each gives its reason or leaves it to the answers No. An approval gives none and is locked while an answer is No. A request is decided once.
  */
 export interface BatchDecisionBodyDto {
   decision: BatchDecisionBodyDtoDecision
@@ -16,10 +17,12 @@ export interface BatchDecisionBodyDto {
    * @minItems 1
    * @maxItems 50
    */
-  requestIds: string[]
+  requestIds?: string[]
   /**
    * @minLength 1
    * @maxLength 1000
    */
   reason?: string
+  /** The answers to the questions of the policy in force at this step. Every question the person answers needs an answer; a question the system answers is Yes by itself. */
+  checklist: BatchDecisionBodyDtoChecklist
 }

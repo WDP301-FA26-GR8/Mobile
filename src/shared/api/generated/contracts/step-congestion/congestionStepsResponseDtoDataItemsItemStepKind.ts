@@ -12,6 +12,5 @@ export type CongestionStepsResponseDtoDataItemsItemStepKind =
 export const CongestionStepsResponseDtoDataItemsItemStepKind = {
   NEED: 'NEED',
   IT_ASSESSMENT: 'IT_ASSESSMENT',
-  FINANCE_REVIEW: 'FINANCE_REVIEW',
   SPEND_APPROVAL: 'SPEND_APPROVAL'
 } as const

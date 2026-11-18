@@ -7,15 +7,21 @@
  */
 import type { SubscriptionResponseDtoDataAlerts } from './subscriptionResponseDtoDataAlerts'
 import type { SubscriptionResponseDtoDataBillingCycle } from './subscriptionResponseDtoDataBillingCycle'
+import type { SubscriptionResponseDtoDataCommitmentTermMonths } from './subscriptionResponseDtoDataCommitmentTermMonths'
+import type { SubscriptionResponseDtoDataDeadlineKind } from './subscriptionResponseDtoDataDeadlineKind'
+import type { SubscriptionResponseDtoDataExpiry } from './subscriptionResponseDtoDataExpiry'
 import type { SubscriptionResponseDtoDataKind } from './subscriptionResponseDtoDataKind'
 import type { SubscriptionResponseDtoDataMissingItem } from './subscriptionResponseDtoDataMissingItem'
 import type { SubscriptionResponseDtoDataNoticeDeadline } from './subscriptionResponseDtoDataNoticeDeadline'
-import type { SubscriptionResponseDtoDataPriceSnapshot } from './subscriptionResponseDtoDataPriceSnapshot'
+import type { SubscriptionResponseDtoDataOriginalPrice } from './subscriptionResponseDtoDataOriginalPrice'
+import type { SubscriptionResponseDtoDataResponsibleItAdmin } from './subscriptionResponseDtoDataResponsibleItAdmin'
+import type { SubscriptionResponseDtoDataSeats } from './subscriptionResponseDtoDataSeats'
 import type { SubscriptionResponseDtoDataStatus } from './subscriptionResponseDtoDataStatus'
 import type { SubscriptionResponseDtoDataTaxEstimate } from './subscriptionResponseDtoDataTaxEstimate'
 import type { SubscriptionResponseDtoDataTaxProfile } from './subscriptionResponseDtoDataTaxProfile'
 import type { SubscriptionResponseDtoDataUnitPrice } from './subscriptionResponseDtoDataUnitPrice'
 import type { SubscriptionResponseDtoDataVendor } from './subscriptionResponseDtoDataVendor'
+import type { SubscriptionResponseDtoDataVendorAdminsItem } from './subscriptionResponseDtoDataVendorAdminsItem'
 import type { SubscriptionResponseDtoDataWarningsItem } from './subscriptionResponseDtoDataWarningsItem'
 
 /**
@@ -25,9 +31,13 @@ export type SubscriptionResponseDtoData = {
   id: string
   planId: string
   planName: string
-  ownerDepartmentId: string
   applicationId: string
   applicationName: string
+  /**
+   * The https link to the logo image of the application that the IT Admin pasted, or null. The server never checks it: it may be broken, so show the first letter of the name when the image does not load.
+   * @nullable
+   */
+  logoUrl: string | null
   vendor: SubscriptionResponseDtoDataVendor
   kind: SubscriptionResponseDtoDataKind
   status: SubscriptionResponseDtoDataStatus
@@ -42,9 +52,12 @@ export type SubscriptionResponseDtoData = {
   /** @nullable */
   unitPrice: SubscriptionResponseDtoDataUnitPrice
   /** @nullable */
-  priceSnapshot: SubscriptionResponseDtoDataPriceSnapshot
+  originalPrice: SubscriptionResponseDtoDataOriginalPrice
   /** @nullable */
   billingCycle: SubscriptionResponseDtoDataBillingCycle
+  commitmentTermMonths:
+    | (typeof SubscriptionResponseDtoDataCommitmentTermMonths)[keyof typeof SubscriptionResponseDtoDataCommitmentTermMonths]
+    | null
   /** @nullable */
   startDate: string | null
   /** @nullable */
@@ -59,9 +72,54 @@ export type SubscriptionResponseDtoData = {
   noticePeriodDays: number | null
   autoRenew: boolean
   allowsMidTermReduction: boolean
+  /** @nullable */
+  responsibleItAdminEmployeeId: string | null
+  /**
+   * The IT Admin who answers for the subscription, by name; null when none is named.
+   * @nullable
+   */
+  responsibleItAdmin: SubscriptionResponseDtoDataResponsibleItAdmin
+  /**
+   * @minimum -9007199254740991
+   * @maximum 9007199254740991
+   * @nullable
+   */
+  vendorMinimumSeats: number | null
+  isPrimaryForPlan: boolean
+  /**
+   * SOON from the point of adjustment to the last day of the period (a plan by the year stays SOON past its deadline to cancel); EXPIRED the day after the last day of the period (the renewal day, else the end day; for a plan by the month that does not renew itself, its end day) while seats are still held; null before the point, for a purchase made once and when no date is known to count from.
+   * @nullable
+   */
+  expiry: SubscriptionResponseDtoDataExpiry
+  /**
+   * The days from today to the deadline the point counts to; negative once it is past while the period still runs (a plan by the year after its deadline to cancel); once EXPIRED it counts from the last day of the period instead, and deadlineKind says which; null when there is no point.
+   * @minimum -9007199254740991
+   * @maximum 9007199254740991
+   * @nullable
+   */
+  daysLeft: number | null
+  /**
+   * What daysLeft counts to: the next payment day of a plan by the month; by the year, the deadline to cancel, else the renewal day, else the end day; once EXPIRED, the last day of the period it counts from (the renewal day or the end day; the payment day of a plan by the month that ends; the deadline itself when no later day is known).
+   * @nullable
+   */
+  deadlineKind: SubscriptionResponseDtoDataDeadlineKind
+  /**
+   * The seats of the shared pool of a K2 plan: bought, taken by an assignment from today on, free to grant, and held by a right being taken back. Null for any other kind of plan.
+   * @nullable
+   */
+  seats: SubscriptionResponseDtoDataSeats
   noticeDeadline: SubscriptionResponseDtoDataNoticeDeadline
   alerts: SubscriptionResponseDtoDataAlerts
   warnings: SubscriptionResponseDtoDataWarningsItem[]
+  mergeCandidateIds: string[]
+  /** @maxItems 20 */
+  vendorAdmins: SubscriptionResponseDtoDataVendorAdminsItem[]
+  /** @nullable */
+  ownerAccountEmail: string | null
+  /** @nullable */
+  adminNote: string | null
+  vendorAdminsBelowMinimum: boolean
+  ownerAccountEmailMissing: boolean
   taxProfile: SubscriptionResponseDtoDataTaxProfile
   /** @nullable */
   taxEstimate: SubscriptionResponseDtoDataTaxEstimate

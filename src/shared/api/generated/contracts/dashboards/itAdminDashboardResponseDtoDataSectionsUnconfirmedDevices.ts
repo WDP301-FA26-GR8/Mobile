@@ -9,7 +9,7 @@ import type { ItAdminDashboardResponseDtoDataSectionsUnconfirmedDevicesReason } 
 import type { ItAdminDashboardResponseDtoDataSectionsUnconfirmedDevicesState } from './itAdminDashboardResponseDtoDataSectionsUnconfirmedDevicesState'
 
 /**
- * The company machines without a confirmation of the monitoring policy; the device registry is not delivered yet.
+ * The company machines whose holder has not yet acknowledged the monitoring notice: the same number the machine list (`deviceList`) answers for the awaiting-acknowledgement state.
  */
 export type ItAdminDashboardResponseDtoDataSectionsUnconfirmedDevices = {
   /** COUNTED: count is how many, in the scope of the caller. AT_SOURCE: the rows are listed by sourceOperationId in the same scope and are not counted here. NOT_AVAILABLE: the data has no source yet; reason says why. A section that is not counted is never shown as zero. */

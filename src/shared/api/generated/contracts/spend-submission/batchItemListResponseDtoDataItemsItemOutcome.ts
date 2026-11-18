@@ -6,11 +6,15 @@
  * OpenAPI spec version: 1.0
  */
 
+/**
+ * SENT_TO_FINANCE is on batches of the earlier releases only; it is not given any more.
+ */
 export type BatchItemListResponseDtoDataItemsItemOutcome =
   (typeof BatchItemListResponseDtoDataItemsItemOutcome)[keyof typeof BatchItemListResponseDtoDataItemsItemOutcome]
 
 export const BatchItemListResponseDtoDataItemsItemOutcome = {
   SENT_TO_APPROVER: 'SENT_TO_APPROVER',
-  SENT_TO_FINANCE: 'SENT_TO_FINANCE',
-  STOPPED: 'STOPPED'
+  AWAITING_RESERVE_CONFIRMATION: 'AWAITING_RESERVE_CONFIRMATION',
+  STOPPED: 'STOPPED',
+  SENT_TO_FINANCE: 'SENT_TO_FINANCE'
 } as const

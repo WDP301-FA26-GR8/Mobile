@@ -12,20 +12,13 @@ import type {
   BudgetVersionDecide200,
   BudgetVersionGet200,
   BudgetVersionHistoryList200,
-  BudgetVersionImport201,
-  BudgetVersionLineAdd201,
-  BudgetVersionLineList200,
-  BudgetVersionLineUpdate200,
   BudgetVersionList200,
   BudgetVersionSend200,
   BudgetVersionUpdate200
 } from '../../contracts'
 
 import {
-  getBudgetLineImportResponseDtoResponseMock,
   getBudgetVersionHistoryPageResponseDtoResponseMock,
-  getLineResponseDtoResponseMock,
-  getVersionLinePageResponseDtoResponseMock,
   getVersionPageResponseDtoResponseMock,
   getVersionResponseDtoResponseMock
 } from '../../contracts/index.faker'
@@ -62,25 +55,5 @@ export const getBudgetVersionSendResponseMock = (): BudgetVersionSend200 => ({
 
 export const getBudgetVersionDecideResponseMock = (): BudgetVersionDecide200 => ({
   ...{ ...getVersionResponseDtoResponseMock() },
-  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
-})
-
-export const getBudgetVersionLineListResponseMock = (): BudgetVersionLineList200 => ({
-  ...{ ...getVersionLinePageResponseDtoResponseMock() },
-  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
-})
-
-export const getBudgetVersionLineAddResponseMock = (): BudgetVersionLineAdd201 => ({
-  ...{ ...getVersionResponseDtoResponseMock() },
-  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
-})
-
-export const getBudgetVersionLineUpdateResponseMock = (): BudgetVersionLineUpdate200 => ({
-  ...{ ...getLineResponseDtoResponseMock() },
-  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
-})
-
-export const getBudgetVersionImportResponseMock = (): BudgetVersionImport201 => ({
-  ...{ ...getBudgetLineImportResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })

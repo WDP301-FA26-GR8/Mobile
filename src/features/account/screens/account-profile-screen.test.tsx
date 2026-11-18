@@ -60,26 +60,29 @@ beforeEach(async () => {
           jobTitle: null
         },
         roles: ['EMPLOYEE'],
-        managerScope: null
+        managerScope: null,
+        upcomingUnits: [],
+        pendingPolicyAcknowledgements: [],
+        avatar: null,
+        workPhone: null
       }
     }
   })
 })
 
-test('shows only the signed-in account details and returns to the previous screen', async () => {
+test('shows only the signed-in account details', async () => {
   const screen = await renderScreen()
   await screen.findByText('person@example.test')
   screen.getByText('E1')
   screen.getByText('Phòng IT')
   expect(screen.getAllByText('Chưa cập nhật')).toHaveLength(2)
   expect(screen.queryByText('Phòng ban phụ trách')).toBeNull()
-  expect(screen.queryByRole('button', { name: /chỉnh sửa|đổi mật khẩu/i })).toBeNull()
+  expect(screen.getByRole('button', { name: 'Đổi mật khẩu' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: 'Đổi ảnh' })).toBeTruthy()
   expect(meGet).toHaveBeenCalledWith(expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } }))
-  await fireEvent.press(screen.getByRole('button', { name: 'Quay lại' }))
-  expect(mockRouter.back).toHaveBeenCalledTimes(1)
 })
 
-test('shows the manager scope only when provided and uses the landing fallback without history', async () => {
+test('shows the manager scope only when provided', async () => {
   const response = await jest.mocked(meGet)()
   if (!response.data.data) throw new Error('Expected account')
   jest.mocked(meGet).mockResolvedValue({
@@ -97,8 +100,6 @@ test('shows the manager scope only when provided and uses the landing fallback w
   const screen = await renderScreen()
   await screen.findByText('Vận hành')
   screen.getByText('Phòng ban phụ trách')
-  await fireEvent.press(screen.getByRole('button', { name: 'Quay lại' }))
-  expect(mockRouter.replace).toHaveBeenCalledWith('/')
 })
 
 test('shows missing department and manager scope without inventing account data', async () => {

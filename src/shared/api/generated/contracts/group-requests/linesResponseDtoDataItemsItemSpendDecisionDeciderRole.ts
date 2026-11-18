@@ -11,7 +11,5 @@ export type LinesResponseDtoDataItemsItemSpendDecisionDeciderRole =
 
 export const LinesResponseDtoDataItemsItemSpendDecisionDeciderRole = {
   MANAGER: 'MANAGER',
-  SPENDING_APPROVER: 'SPENDING_APPROVER',
-  FALLBACK_APPROVER: 'FALLBACK_APPROVER',
-  CONFLICT_SUBSTITUTE: 'CONFLICT_SUBSTITUTE'
+  SPENDING_APPROVER: 'SPENDING_APPROVER'
 } as const

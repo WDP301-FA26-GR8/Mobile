@@ -6,12 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 import type { ApplicationPageResponseDtoDataEmptyStateNextStepKey } from './applicationPageResponseDtoDataEmptyStateNextStepKey'
+import type { ApplicationPageResponseDtoDataEmptyStateNextStepStep } from './applicationPageResponseDtoDataEmptyStateNextStepStep'
 
 export type ApplicationPageResponseDtoDataEmptyStateNextStep = {
-  /**
-   * @minimum 2
-   * @maximum 3
-   */
-  step: number
+  step: ApplicationPageResponseDtoDataEmptyStateNextStepStep
   key: ApplicationPageResponseDtoDataEmptyStateNextStepKey
 }

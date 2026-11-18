@@ -46,4 +46,11 @@ export type TaskResponseDtoDataTaskRevocation = {
   accessEvidence: string | null
   /** @nullable */
   firstReason: TaskResponseDtoDataTaskRevocationFirstReason
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  withdrawnReasonCount: number
+  /** @nullable */
+  lastWithdrawnAt: string | null
 } | null

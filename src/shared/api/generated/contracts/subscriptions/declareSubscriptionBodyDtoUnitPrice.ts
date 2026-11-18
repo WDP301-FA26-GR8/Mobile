@@ -6,6 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 
+/**
+ * The unit price in dong: a decimal string in major units, currency VND. Another currency is refused (SUBSCRIPTION.PRICE_NOT_VND).
+ */
 export type DeclareSubscriptionBodyDtoUnitPrice = {
   /** @maxLength 40 */
   amount: string

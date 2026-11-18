@@ -1,32 +1,20 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { accessRequestPreview, accessRequestSubmit } from '@/shared/api/generated/api/access-requests/access-requests'
-import { requestablePlanList } from '@/shared/api/generated/api/requestable-software/requestable-software'
 import type { PreviewBodyDto, SubmitBodyDto } from '@/shared/api/generated/contracts/access-requests'
 import { useSession } from '@/shared/api/session-context'
 
-export function useLiveRequestCreate(search: string, page: number) {
+export function useLiveRequestCreate() {
   const session = useSession()
   const client = useQueryClient()
-  const plans = useQuery({
-    queryKey: ['session', 'requestable-plans', search, page],
-    enabled: session.state === 'authenticated',
-    queryFn: ({ signal }) =>
-      session.read(async (token) => {
-        const result = await requestablePlanList(
-          { search: search || undefined, page, pageSize: 20 },
-          { signal, headers: { Authorization: `Bearer ${token}` } }
-        )
-        if (!result.data.data) throw new Error('Missing requestable plans')
-        return result.data.data
-      })
-  })
   const preview = useMutation({
     retry: false,
     mutationFn: ({ body, reason }: { body: PreviewBodyDto; reason: string }) =>
       session.write(async (token) => {
         const result = await accessRequestPreview(body, { headers: { Authorization: `Bearer ${token}` } })
-        if (!result.data.data) throw new Error('Missing preview')
+        if (!result.data.data || result.data.data.preview?.plan?.planId !== body.planId) {
+          throw new Error('Missing or inconsistent preview')
+        }
         return { input: body, reason, preview: result.data.data.preview }
       })
   })
@@ -47,5 +35,5 @@ export function useLiveRequestCreate(search: string, page: number) {
       await client.invalidateQueries({ queryKey: ['session', 'requests'] })
     }
   })
-  return { plans, preview, submit }
+  return { preview, submit }
 }

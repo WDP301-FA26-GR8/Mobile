@@ -28,6 +28,8 @@ import type {
   DeviceHolderChange201,
   DeviceList200,
   DeviceListParams,
+  DeviceRegistrationList200,
+  DeviceRegistrationListParams,
   DeviceRetire201,
   DeviceSignatureRecordCreate201,
   ErrorEnvelopeDto,
@@ -379,6 +381,206 @@ export function useDeviceList<
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getDeviceListQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+export type deviceRegistrationListResponse200 = {
+  data: DeviceRegistrationList200
+  status: 200
+}
+
+export type deviceRegistrationListResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type deviceRegistrationListResponse403 = {
+  data: ErrorEnvelopeDto
+  status: 403
+}
+
+export type deviceRegistrationListResponse404 = {
+  data: ErrorEnvelopeDto
+  status: 404
+}
+
+export type deviceRegistrationListResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type deviceRegistrationListResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type deviceRegistrationListResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type deviceRegistrationListResponseSuccess = deviceRegistrationListResponse200 & {
+  headers: Headers
+}
+export type deviceRegistrationListResponseError = (
+  | deviceRegistrationListResponse401
+  | deviceRegistrationListResponse403
+  | deviceRegistrationListResponse404
+  | deviceRegistrationListResponse422
+  | deviceRegistrationListResponse429
+  | deviceRegistrationListResponse503
+) & {
+  headers: Headers
+}
+
+export const getDeviceRegistrationListUrl = (id: string, params?: DeviceRegistrationListParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `${env.API_BASE_URL}/api/v1/devices/${id}/registrations?${stringifiedParams}`
+    : `${env.API_BASE_URL}/api/v1/devices/${id}/registrations`
+}
+
+/**
+ * @summary List who held a company machine
+ */
+export const deviceRegistrationList = async (
+  id: string,
+  params?: DeviceRegistrationListParams,
+  options?: RequestInit
+): Promise<deviceRegistrationListResponseSuccess> => {
+  const res = await fetch(getDeviceRegistrationListUrl(id, params), {
+    ...options,
+    method: 'GET'
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: deviceRegistrationListResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: deviceRegistrationListResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: deviceRegistrationListResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as deviceRegistrationListResponseSuccess
+}
+
+export const getDeviceRegistrationListQueryKey = (id: string, params?: DeviceRegistrationListParams) => {
+  return [`${env.API_BASE_URL}/api/v1/devices/${id}/registrations`, ...(params ? [params] : [])] as const
+}
+
+export const getDeviceRegistrationListQueryOptions = <
+  TData = Awaited<ReturnType<typeof deviceRegistrationList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  id: string,
+  params?: DeviceRegistrationListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof deviceRegistrationList>>, TError, TData>>
+    fetch?: RequestInit
+  }
+) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getDeviceRegistrationListQueryKey(id, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof deviceRegistrationList>>> = ({ signal }) =>
+    deviceRegistrationList(id, params, { signal, ...fetchOptions })
+
+  return { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof deviceRegistrationList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DeviceRegistrationListQueryResult = NonNullable<Awaited<ReturnType<typeof deviceRegistrationList>>>
+export type DeviceRegistrationListQueryError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+export function useDeviceRegistrationList<
+  TData = Awaited<ReturnType<typeof deviceRegistrationList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  id: string,
+  params: undefined | DeviceRegistrationListParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof deviceRegistrationList>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deviceRegistrationList>>,
+          TError,
+          Awaited<ReturnType<typeof deviceRegistrationList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDeviceRegistrationList<
+  TData = Awaited<ReturnType<typeof deviceRegistrationList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  id: string,
+  params?: DeviceRegistrationListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof deviceRegistrationList>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof deviceRegistrationList>>,
+          TError,
+          Awaited<ReturnType<typeof deviceRegistrationList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDeviceRegistrationList<
+  TData = Awaited<ReturnType<typeof deviceRegistrationList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  id: string,
+  params?: DeviceRegistrationListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof deviceRegistrationList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List who held a company machine
+ */
+
+export function useDeviceRegistrationList<
+  TData = Awaited<ReturnType<typeof deviceRegistrationList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  id: string,
+  params?: DeviceRegistrationListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof deviceRegistrationList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getDeviceRegistrationListQueryOptions(id, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>

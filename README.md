@@ -1,15 +1,15 @@
 # SaaS-Sentry Mobile
 
-React Native app built with Expo SDK 54 and Expo Router. BRD 3.53 defines a
-native iOS/Android companion for four workflows: an employee's software and
-simple requests, manager need approval, individual spending approval, and an
+React Native app built with Expo SDK 54 and Expo Router. The mobile scope (BRD v4.13,
+QĐ-61b, EP-16) is a native iOS/Android companion for four workflows: an employee's
+software and simple requests, manager need approval, spending approval, and an
 in-app inbox. Web remains the full capability surface.
 
 The current source includes navigation/provider boundaries, typed Vietnamese
 and English copy, TanStack Query setup, and an Orval-generated API client.
-Login, the signed-in account and the current personal software-rights list use
-the backend. Requests, approvals and inbox remain demo workflows and are not
-connected to the signed-in account.
+Login, password recovery and change, the signed-in account and profile, personal software,
+employee requests, Manager need approvals (individual, group and renewal), Spending Approver
+decisions, the policy gate and the inbox all use the backend; no demo workflow remains.
 
 ## Setup
 

@@ -6,11 +6,17 @@
  * OpenAPI spec version: 1.0
  */
 import type { FunctionalGroupPageResponseDtoDataItemsItemStatus } from './functionalGroupPageResponseDtoDataItemsItemStatus'
+import type { FunctionalGroupPageResponseDtoDataItemsItemSystemKey } from './functionalGroupPageResponseDtoDataItemsItemSystemKey'
 
 export type FunctionalGroupPageResponseDtoDataItemsItem = {
   id: string
   name: string
   status: FunctionalGroupPageResponseDtoDataItemsItemStatus
+  /**
+   * COMMUNICATION (Liên lạc) or OTHER (Khác) for the two fixed groups, which are never renamed or switched off; null for every other group.
+   * @nullable
+   */
+  systemKey: FunctionalGroupPageResponseDtoDataItemsItemSystemKey
   createdAt: string
   updatedAt: string
 }

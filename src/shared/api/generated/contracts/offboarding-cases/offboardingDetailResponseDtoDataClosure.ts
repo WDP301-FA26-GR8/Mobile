@@ -11,5 +11,7 @@
  */
 export type OffboardingDetailResponseDtoDataClosure = {
   closedAt: string
-  closedByAppUserId: string
+  /** @nullable */
+  closedByAppUserId: string | null
+  closedBySystem: boolean
 } | null

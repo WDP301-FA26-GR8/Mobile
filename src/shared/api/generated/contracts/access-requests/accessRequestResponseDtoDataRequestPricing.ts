@@ -7,7 +7,10 @@
  */
 import type { AccessRequestResponseDtoDataRequestPricingAmount } from './accessRequestResponseDtoDataRequestPricingAmount'
 import type { AccessRequestResponseDtoDataRequestPricingBillingCycle } from './accessRequestResponseDtoDataRequestPricingBillingCycle'
+import type { AccessRequestResponseDtoDataRequestPricingKind } from './accessRequestResponseDtoDataRequestPricingKind'
 import type { AccessRequestResponseDtoDataRequestPricingMissingReason } from './accessRequestResponseDtoDataRequestPricingMissingReason'
+import type { AccessRequestResponseDtoDataRequestPricingMonthlyPrice } from './accessRequestResponseDtoDataRequestPricingMonthlyPrice'
+import type { AccessRequestResponseDtoDataRequestPricingNextYearAmount } from './accessRequestResponseDtoDataRequestPricingNextYearAmount'
 import type { AccessRequestResponseDtoDataRequestPricingStatus } from './accessRequestResponseDtoDataRequestPricingStatus'
 import type { AccessRequestResponseDtoDataRequestPricingUnitPrice } from './accessRequestResponseDtoDataRequestPricingUnitPrice'
 
@@ -21,20 +24,16 @@ export type AccessRequestResponseDtoDataRequestPricing = {
   unitPrice: AccessRequestResponseDtoDataRequestPricingUnitPrice
   /** @nullable */
   billingCycle: AccessRequestResponseDtoDataRequestPricingBillingCycle
-  /**
-   * @maximum 9007199254740991
-   * @exclusiveMinimum 0
-   * @nullable
-   */
-  periodCount: number | null
+  /** @nullable */
+  kind: AccessRequestResponseDtoDataRequestPricingKind
   /**
    * @minimum 0
-   * @maximum 9007199254740991
+   * @maximum 12
    * @nullable
    */
-  bindingPeriodCount: number | null
+  months: number | null
   /** @nullable */
-  firstDueOn: string | null
+  monthlyPrice: AccessRequestResponseDtoDataRequestPricingMonthlyPrice
   /** @nullable */
-  lastDueOn: string | null
+  nextYearAmount: AccessRequestResponseDtoDataRequestPricingNextYearAmount
 }

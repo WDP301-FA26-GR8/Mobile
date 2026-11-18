@@ -7,7 +7,11 @@
  */
 import type { BudgetSummaryResponseDtoDataTotalsBase } from './budgetSummaryResponseDtoDataTotalsBase'
 import type { BudgetSummaryResponseDtoDataTotalsCommitted } from './budgetSummaryResponseDtoDataTotalsCommitted'
+import type { BudgetSummaryResponseDtoDataTotalsEffectiveBudget } from './budgetSummaryResponseDtoDataTotalsEffectiveBudget'
+import type { BudgetSummaryResponseDtoDataTotalsPendingSpend } from './budgetSummaryResponseDtoDataTotalsPendingSpend'
 import type { BudgetSummaryResponseDtoDataTotalsRemaining } from './budgetSummaryResponseDtoDataTotalsRemaining'
+import type { BudgetSummaryResponseDtoDataTotalsRemainingBase } from './budgetSummaryResponseDtoDataTotalsRemainingBase'
+import type { BudgetSummaryResponseDtoDataTotalsRemainingWithReserve } from './budgetSummaryResponseDtoDataTotalsRemainingWithReserve'
 import type { BudgetSummaryResponseDtoDataTotalsReserve } from './budgetSummaryResponseDtoDataTotalsReserve'
 import type { BudgetSummaryResponseDtoDataTotalsSpent } from './budgetSummaryResponseDtoDataTotalsSpent'
 import type { BudgetSummaryResponseDtoDataTotalsTotal } from './budgetSummaryResponseDtoDataTotalsTotal'
@@ -18,9 +22,13 @@ export type BudgetSummaryResponseDtoDataTotals = {
     base: BudgetSummaryResponseDtoDataTotalsBase
     reserve: BudgetSummaryResponseDtoDataTotalsReserve
     total: BudgetSummaryResponseDtoDataTotalsTotal
+    effectiveBudget: BudgetSummaryResponseDtoDataTotalsEffectiveBudget
     committed: BudgetSummaryResponseDtoDataTotalsCommitted
     spent: BudgetSummaryResponseDtoDataTotalsSpent
     remaining: BudgetSummaryResponseDtoDataTotalsRemaining
+    pendingSpend: BudgetSummaryResponseDtoDataTotalsPendingSpend
+    remainingBase: BudgetSummaryResponseDtoDataTotalsRemainingBase
+    remainingWithReserve: BudgetSummaryResponseDtoDataTotalsRemainingWithReserve
     /**
      * @minimum 0
      * @maximum 9007199254740991

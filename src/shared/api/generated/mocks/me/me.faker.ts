@@ -10,6 +10,7 @@ import { faker } from '@faker-js/faker'
 import type {
   MeAccessRequestList200,
   MeChangePassword200,
+  MeDepartmentTransferGet200,
   MeDepartureNoticeGet200,
   MeGet200,
   MeSoftwareRightList200
@@ -20,11 +21,17 @@ import {
   getMeResponseDtoResponseMock,
   getMyRequestsPageResponseDtoResponseMock,
   getMySoftwarePageResponseDtoResponseMock,
+  getMyTransferResponseDtoResponseMock,
   getPasswordChangedResponseDtoResponseMock
 } from '../../contracts/index.faker'
 
 export const getMeDepartureNoticeGetResponseMock = (): MeDepartureNoticeGet200 => ({
   ...{ ...getDepartureNoticeResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
+export const getMeDepartmentTransferGetResponseMock = (): MeDepartmentTransferGet200 => ({
+  ...{ ...getMyTransferResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 

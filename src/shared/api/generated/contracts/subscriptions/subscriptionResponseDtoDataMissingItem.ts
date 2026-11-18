@@ -13,6 +13,5 @@ export const SubscriptionResponseDtoDataMissingItem = {
   QUANTITY: 'QUANTITY',
   START_DATE: 'START_DATE',
   BILLING_CYCLE: 'BILLING_CYCLE',
-  UNIT_PRICE: 'UNIT_PRICE',
-  EXCHANGE_RATE: 'EXCHANGE_RATE'
+  UNIT_PRICE: 'UNIT_PRICE'
 } as const

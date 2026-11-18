@@ -17,6 +17,5 @@ export type ManagerDashboardResponseDtoDataSectionsApprovedBudgetLinesReason =
 export const ManagerDashboardResponseDtoDataSectionsApprovedBudgetLinesReason = {
   FINANCE_FIGURES_NOT_DELIVERED: 'FINANCE_FIGURES_NOT_DELIVERED',
   USAGE_DATA_NOT_DELIVERED: 'USAGE_DATA_NOT_DELIVERED',
-  DEVICE_REGISTRY_NOT_DELIVERED: 'DEVICE_REGISTRY_NOT_DELIVERED',
   NO_DATA_SOURCE: 'NO_DATA_SOURCE'
 } as const

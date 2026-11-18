@@ -13,4 +13,10 @@ export type KeyPageResponseDtoDataItemsItem = {
   masked: string
   status: KeyPageResponseDtoDataItemsItemStatus
   importedAt: string
+  /** @nullable */
+  assignmentId: string | null
+  /** @nullable */
+  withdrawnAt: string | null
+  /** @nullable */
+  withdrawalReason: string | null
 }

@@ -23,10 +23,10 @@ import type {
 
 import type {
   ErrorEnvelopeDto,
-  LicenseAssignmentChangeResponsible200,
   LicenseAssignmentList200,
   LicenseAssignmentListParams,
-  ResponsibleChangeBodyDto
+  LicenseAssignmentSetMachineAccount200,
+  MachineAccountBodyDto
 } from '../../contracts'
 
 import { env } from '@/shared/config/env'
@@ -234,129 +234,129 @@ export function useLicenseAssignmentList<
   return withQueryKey(query, queryOptions.queryKey)
 }
 
-export type licenseAssignmentChangeResponsibleResponse200 = {
-  data: LicenseAssignmentChangeResponsible200
+export type licenseAssignmentSetMachineAccountResponse200 = {
+  data: LicenseAssignmentSetMachineAccount200
   status: 200
 }
 
-export type licenseAssignmentChangeResponsibleResponse400 = {
+export type licenseAssignmentSetMachineAccountResponse400 = {
   data: ErrorEnvelopeDto
   status: 400
 }
 
-export type licenseAssignmentChangeResponsibleResponse401 = {
+export type licenseAssignmentSetMachineAccountResponse401 = {
   data: ErrorEnvelopeDto
   status: 401
 }
 
-export type licenseAssignmentChangeResponsibleResponse403 = {
+export type licenseAssignmentSetMachineAccountResponse403 = {
   data: ErrorEnvelopeDto
   status: 403
 }
 
-export type licenseAssignmentChangeResponsibleResponse404 = {
+export type licenseAssignmentSetMachineAccountResponse404 = {
   data: ErrorEnvelopeDto
   status: 404
 }
 
-export type licenseAssignmentChangeResponsibleResponse409 = {
+export type licenseAssignmentSetMachineAccountResponse409 = {
   data: ErrorEnvelopeDto
   status: 409
 }
 
-export type licenseAssignmentChangeResponsibleResponse413 = {
+export type licenseAssignmentSetMachineAccountResponse413 = {
   data: ErrorEnvelopeDto
   status: 413
 }
 
-export type licenseAssignmentChangeResponsibleResponse415 = {
+export type licenseAssignmentSetMachineAccountResponse415 = {
   data: ErrorEnvelopeDto
   status: 415
 }
 
-export type licenseAssignmentChangeResponsibleResponse422 = {
+export type licenseAssignmentSetMachineAccountResponse422 = {
   data: ErrorEnvelopeDto
   status: 422
 }
 
-export type licenseAssignmentChangeResponsibleResponse429 = {
+export type licenseAssignmentSetMachineAccountResponse429 = {
   data: ErrorEnvelopeDto
   status: 429
 }
 
-export type licenseAssignmentChangeResponsibleResponse503 = {
+export type licenseAssignmentSetMachineAccountResponse503 = {
   data: ErrorEnvelopeDto
   status: 503
 }
 
-export type licenseAssignmentChangeResponsibleResponseSuccess = licenseAssignmentChangeResponsibleResponse200 & {
+export type licenseAssignmentSetMachineAccountResponseSuccess = licenseAssignmentSetMachineAccountResponse200 & {
   headers: Headers
 }
-export type licenseAssignmentChangeResponsibleResponseError = (
-  | licenseAssignmentChangeResponsibleResponse400
-  | licenseAssignmentChangeResponsibleResponse401
-  | licenseAssignmentChangeResponsibleResponse403
-  | licenseAssignmentChangeResponsibleResponse404
-  | licenseAssignmentChangeResponsibleResponse409
-  | licenseAssignmentChangeResponsibleResponse413
-  | licenseAssignmentChangeResponsibleResponse415
-  | licenseAssignmentChangeResponsibleResponse422
-  | licenseAssignmentChangeResponsibleResponse429
-  | licenseAssignmentChangeResponsibleResponse503
+export type licenseAssignmentSetMachineAccountResponseError = (
+  | licenseAssignmentSetMachineAccountResponse400
+  | licenseAssignmentSetMachineAccountResponse401
+  | licenseAssignmentSetMachineAccountResponse403
+  | licenseAssignmentSetMachineAccountResponse404
+  | licenseAssignmentSetMachineAccountResponse409
+  | licenseAssignmentSetMachineAccountResponse413
+  | licenseAssignmentSetMachineAccountResponse415
+  | licenseAssignmentSetMachineAccountResponse422
+  | licenseAssignmentSetMachineAccountResponse429
+  | licenseAssignmentSetMachineAccountResponse503
 ) & {
   headers: Headers
 }
 
-export const getLicenseAssignmentChangeResponsibleUrl = (id: string) => {
-  return `${env.API_BASE_URL}/api/v1/license-assignments/${id}/responsible-changes`
+export const getLicenseAssignmentSetMachineAccountUrl = (id: string) => {
+  return `${env.API_BASE_URL}/api/v1/license-assignments/${id}/machine-account`
 }
 
 /**
- * @summary Change the person responsible for a service account
+ * @summary Turn the flag "used for a machine account" of a seat on or off
  */
-export const licenseAssignmentChangeResponsible = async (
+export const licenseAssignmentSetMachineAccount = async (
   id: string,
-  responsibleChangeBodyDto: ResponsibleChangeBodyDto,
+  machineAccountBodyDto: MachineAccountBodyDto,
   options?: RequestInit
-): Promise<licenseAssignmentChangeResponsibleResponseSuccess> => {
-  const res = await fetch(getLicenseAssignmentChangeResponsibleUrl(id), {
+): Promise<licenseAssignmentSetMachineAccountResponseSuccess> => {
+  const res = await fetch(getLicenseAssignmentSetMachineAccountUrl(id), {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(responsibleChangeBodyDto)
+    body: JSON.stringify(machineAccountBodyDto)
   })
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text()
   if (!res.ok) {
-    const err: globalThis.Error & { info?: licenseAssignmentChangeResponsibleResponseError['data']; status?: number } =
+    const err: globalThis.Error & { info?: licenseAssignmentSetMachineAccountResponseError['data']; status?: number } =
       new globalThis.Error()
-    const data: licenseAssignmentChangeResponsibleResponseError['data'] = body ? JSON.parse(body) : {}
+    const data: licenseAssignmentSetMachineAccountResponseError['data'] = body ? JSON.parse(body) : {}
     err.info = data
     err.status = res.status
     throw err
   }
-  const data: licenseAssignmentChangeResponsibleResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as licenseAssignmentChangeResponsibleResponseSuccess
+  const data: licenseAssignmentSetMachineAccountResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as licenseAssignmentSetMachineAccountResponseSuccess
 }
 
-export const getLicenseAssignmentChangeResponsibleMutationOptions = <
+export const getLicenseAssignmentSetMachineAccountMutationOptions = <
   TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
   TContext = unknown
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof licenseAssignmentChangeResponsible>>,
+    Awaited<ReturnType<typeof licenseAssignmentSetMachineAccount>>,
     TError,
-    { id: string; data: ResponsibleChangeBodyDto },
+    { id: string; data: MachineAccountBodyDto },
     TContext
   >
   fetch?: RequestInit
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof licenseAssignmentChangeResponsible>>,
+  Awaited<ReturnType<typeof licenseAssignmentSetMachineAccount>>,
   TError,
-  { id: string; data: ResponsibleChangeBodyDto },
+  { id: string; data: MachineAccountBodyDto },
   TContext
 > => {
-  const mutationKey = ['licenseAssignmentChangeResponsible']
+  const mutationKey = ['licenseAssignmentSetMachineAccount']
   const { mutation: mutationOptions, fetch: fetchOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -364,48 +364,48 @@ export const getLicenseAssignmentChangeResponsibleMutationOptions = <
     : { mutation: { mutationKey }, fetch: undefined }
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof licenseAssignmentChangeResponsible>>,
-    { id: string; data: ResponsibleChangeBodyDto }
+    Awaited<ReturnType<typeof licenseAssignmentSetMachineAccount>>,
+    { id: string; data: MachineAccountBodyDto }
   > = (props) => {
     const { id, data } = props ?? {}
 
-    return licenseAssignmentChangeResponsible(id, data, fetchOptions)
+    return licenseAssignmentSetMachineAccount(id, data, fetchOptions)
   }
 
   return { mutationFn, ...mutationOptions }
 }
 
-export type LicenseAssignmentChangeResponsibleMutationResult = NonNullable<
-  Awaited<ReturnType<typeof licenseAssignmentChangeResponsible>>
+export type LicenseAssignmentSetMachineAccountMutationResult = NonNullable<
+  Awaited<ReturnType<typeof licenseAssignmentSetMachineAccount>>
 >
-export type LicenseAssignmentChangeResponsibleMutationBody = ResponsibleChangeBodyDto
-export type LicenseAssignmentChangeResponsibleMutationError = globalThis.Error & {
+export type LicenseAssignmentSetMachineAccountMutationBody = MachineAccountBodyDto
+export type LicenseAssignmentSetMachineAccountMutationError = globalThis.Error & {
   info?: ErrorEnvelopeDto
   status?: number
 }
 
 /**
- * @summary Change the person responsible for a service account
+ * @summary Turn the flag "used for a machine account" of a seat on or off
  */
-export const useLicenseAssignmentChangeResponsible = <
+export const useLicenseAssignmentSetMachineAccount = <
   TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
   TContext = unknown
 >(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof licenseAssignmentChangeResponsible>>,
+      Awaited<ReturnType<typeof licenseAssignmentSetMachineAccount>>,
       TError,
-      { id: string; data: ResponsibleChangeBodyDto },
+      { id: string; data: MachineAccountBodyDto },
       TContext
     >
     fetch?: RequestInit
   },
   queryClient?: QueryClient
 ): UseMutationResult<
-  Awaited<ReturnType<typeof licenseAssignmentChangeResponsible>>,
+  Awaited<ReturnType<typeof licenseAssignmentSetMachineAccount>>,
   TError,
-  { id: string; data: ResponsibleChangeBodyDto },
+  { id: string; data: MachineAccountBodyDto },
   TContext
 > => {
-  return useMutation(getLicenseAssignmentChangeResponsibleMutationOptions(options), queryClient)
+  return useMutation(getLicenseAssignmentSetMachineAccountMutationOptions(options), queryClient)
 }

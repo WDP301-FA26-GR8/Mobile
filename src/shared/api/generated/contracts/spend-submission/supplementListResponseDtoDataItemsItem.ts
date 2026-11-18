@@ -8,6 +8,7 @@
 import type { SupplementListResponseDtoDataItemsItemAmount } from './supplementListResponseDtoDataItemsItemAmount'
 import type { SupplementListResponseDtoDataItemsItemBudgetYear } from './supplementListResponseDtoDataItemsItemBudgetYear'
 import type { SupplementListResponseDtoDataItemsItemChangedBy } from './supplementListResponseDtoDataItemsItemChangedBy'
+import type { SupplementListResponseDtoDataItemsItemExpectedEndDate } from './supplementListResponseDtoDataItemsItemExpectedEndDate'
 
 export type SupplementListResponseDtoDataItemsItem = {
   /**
@@ -19,6 +20,7 @@ export type SupplementListResponseDtoDataItemsItem = {
   changedBy: SupplementListResponseDtoDataItemsItemChangedBy
   createdAt: string
   budgetYear: SupplementListResponseDtoDataItemsItemBudgetYear
+  expectedEndDate: SupplementListResponseDtoDataItemsItemExpectedEndDate
   amount: SupplementListResponseDtoDataItemsItemAmount
   /**
    * @minimum 0

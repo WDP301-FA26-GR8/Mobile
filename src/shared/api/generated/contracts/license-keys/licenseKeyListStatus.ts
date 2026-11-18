@@ -10,6 +10,5 @@ export type LicenseKeyListStatus = (typeof LicenseKeyListStatus)[keyof typeof Li
 
 export const LicenseKeyListStatus = {
   IN_STORE: 'IN_STORE',
-  ASSIGNED: 'ASSIGNED',
-  RETIRED: 'RETIRED'
+  ASSIGNED: 'ASSIGNED'
 } as const

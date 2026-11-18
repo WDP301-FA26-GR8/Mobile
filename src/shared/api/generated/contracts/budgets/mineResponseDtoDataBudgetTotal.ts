@@ -7,6 +7,7 @@
  */
 
 /**
+ * The base and the reserve of the approved version, before the adjustments.
  * @nullable
  */
 export type MineResponseDtoDataBudgetTotal = {

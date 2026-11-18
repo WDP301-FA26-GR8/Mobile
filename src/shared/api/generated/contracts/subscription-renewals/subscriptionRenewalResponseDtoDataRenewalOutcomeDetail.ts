@@ -22,4 +22,5 @@ export type SubscriptionRenewalResponseDtoDataRenewalOutcomeDetail = {
   nextSubscriptionId: string | null
   /** @nullable */
   realisedSavings: SubscriptionRenewalResponseDtoDataRenewalOutcomeDetailRealisedSavings
+  lateRenewal: boolean
 } | null

@@ -10,6 +10,5 @@ export type ApplicationPageResponseDtoDataEmptyStateReason =
   (typeof ApplicationPageResponseDtoDataEmptyStateReason)[keyof typeof ApplicationPageResponseDtoDataEmptyStateReason]
 
 export const ApplicationPageResponseDtoDataEmptyStateReason = {
-  NO_APPLICATIONS: 'NO_APPLICATIONS',
-  NO_SUBSCRIPTIONS: 'NO_SUBSCRIPTIONS'
+  NO_APPLICATIONS: 'NO_APPLICATIONS'
 } as const

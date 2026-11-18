@@ -1,1 +1,1 @@
-export { SpendingApprovalsScreen } from './screens/spending-approvals-screen'
+export { LiveSpendingApprovalsScreen } from './screens/live-spending-approvals-screen'

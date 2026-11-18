@@ -8,15 +8,13 @@
 import { faker } from '@faker-js/faker'
 
 import type {
-  ApplicationBusinessOwnerHistory200,
   ApplicationCreate201,
   ApplicationGet200,
   ApplicationList200,
+  ApplicationResponsibilityTransfer200,
   ApplicationRetire200,
-  ApplicationRetirementConfirm201,
   ApplicationRetirementGet200,
-  ApplicationUpdate200,
-  BusinessOwnerWarningList200
+  ApplicationUpdate200
 } from '../../contracts'
 
 import {
@@ -24,10 +22,8 @@ import {
   getApplicationPageResponseDtoResponseMock,
   getApplicationResponseDtoResponseMock,
   getCreatedApplicationResponseDtoResponseMock,
-  getOwnerHistoryResponseDtoResponseMock,
-  getOwnerWarningPageResponseDtoResponseMock,
+  getResponsibilityTransferResponseDtoResponseMock,
   getRetiredResponseDtoResponseMock,
-  getRetirementConfirmationResponseDtoResponseMock,
   getRetirementResponseDtoResponseMock
 } from '../../contracts/index.faker'
 
@@ -51,21 +47,6 @@ export const getApplicationUpdateResponseMock = (): ApplicationUpdate200 => ({
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 
-export const getBusinessOwnerWarningListResponseMock = (): BusinessOwnerWarningList200 => ({
-  ...{ ...getOwnerWarningPageResponseDtoResponseMock() },
-  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
-})
-
-export const getApplicationBusinessOwnerHistoryResponseMock = (): ApplicationBusinessOwnerHistory200 => ({
-  ...{ ...getOwnerHistoryResponseDtoResponseMock() },
-  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
-})
-
-export const getApplicationRetirementConfirmResponseMock = (): ApplicationRetirementConfirm201 => ({
-  ...{ ...getRetirementConfirmationResponseDtoResponseMock() },
-  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
-})
-
 export const getApplicationRetirementGetResponseMock = (): ApplicationRetirementGet200 => ({
   ...{ ...getRetirementResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
@@ -73,5 +54,10 @@ export const getApplicationRetirementGetResponseMock = (): ApplicationRetirement
 
 export const getApplicationRetireResponseMock = (): ApplicationRetire200 => ({
   ...{ ...getRetiredResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
+export const getApplicationResponsibilityTransferResponseMock = (): ApplicationResponsibilityTransfer200 => ({
+  ...{ ...getResponsibilityTransferResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })

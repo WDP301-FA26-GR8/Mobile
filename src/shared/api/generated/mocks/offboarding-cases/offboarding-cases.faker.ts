@@ -11,19 +11,21 @@ import type {
   OffboardingCaseCancel200,
   OffboardingCaseChangeLastDay200,
   OffboardingCaseChangeList200,
-  OffboardingCaseClose200,
   OffboardingCaseGet200,
   OffboardingCaseList200,
   OffboardingCaseMarkLeft200,
   OffboardingCaseOpenGrantTaskList200,
   OffboardingCaseOpenRequestList200,
   OffboardingCaseOpenRevocations200,
+  OffboardingCasePreview200,
   OffboardingCaseRecord201,
   OffboardingCaseRecordAccountLock200,
+  OffboardingCaseRecordMailboxLock200,
   OffboardingCaseRightList200
 } from '../../contracts'
 
 import {
+  getDeparturePreviewResponseDtoResponseMock,
   getOffboardingChangePageResponseDtoResponseMock,
   getOffboardingDetailResponseDtoResponseMock,
   getOffboardingPageResponseDtoResponseMock,
@@ -73,6 +75,11 @@ export const getOffboardingCaseMarkLeftResponseMock = (): OffboardingCaseMarkLef
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 
+export const getOffboardingCasePreviewResponseMock = (): OffboardingCasePreview200 => ({
+  ...{ ...getDeparturePreviewResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
 export const getOffboardingCaseRecordAccountLockResponseMock = (): OffboardingCaseRecordAccountLock200 => ({
   ...{ ...getOffboardingDetailResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
@@ -83,7 +90,7 @@ export const getOffboardingCaseOpenRevocationsResponseMock = (): OffboardingCase
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 
-export const getOffboardingCaseCloseResponseMock = (): OffboardingCaseClose200 => ({
+export const getOffboardingCaseRecordMailboxLockResponseMock = (): OffboardingCaseRecordMailboxLock200 => ({
   ...{ ...getOffboardingDetailResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })

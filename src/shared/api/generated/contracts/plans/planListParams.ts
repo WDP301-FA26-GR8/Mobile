@@ -6,10 +6,24 @@
  * OpenAPI spec version: 1.0
  */
 import type { PlanListProvisioningType } from './planListProvisioningType'
+import type { PlanListStatus } from './planListStatus'
 
 export type PlanListParams = {
   applicationId?: string
   provisioningType?: PlanListProvisioningType
+  /**
+   * Only the plans of the applications in this functional group.
+   */
+  functionalGroupId?: string
+  /**
+   * Only the plans of the applications in this catalog status.
+   */
+  status?: PlanListStatus
+  /**
+   * Text in the name of the plan or of its application, ignoring case and accents.
+   * @maxLength 100
+   */
+  search?: string
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0

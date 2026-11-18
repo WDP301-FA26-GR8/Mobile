@@ -5,15 +5,20 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { ApprovalDetailResponseDtoDataSpendApprovalAnnualVendorAmount } from './approvalDetailResponseDtoDataSpendApprovalAnnualVendorAmount'
 import type { ApprovalDetailResponseDtoDataSpendApprovalAssessment } from './approvalDetailResponseDtoDataSpendApprovalAssessment'
+import type { ApprovalDetailResponseDtoDataSpendApprovalBudgetSnapshot } from './approvalDetailResponseDtoDataSpendApprovalBudgetSnapshot'
 import type { ApprovalDetailResponseDtoDataSpendApprovalCost } from './approvalDetailResponseDtoDataSpendApprovalCost'
 import type { ApprovalDetailResponseDtoDataSpendApprovalDecision } from './approvalDetailResponseDtoDataSpendApprovalDecision'
-import type { ApprovalDetailResponseDtoDataSpendApprovalLatestBudgetInformation } from './approvalDetailResponseDtoDataSpendApprovalLatestBudgetInformation'
 import type { ApprovalDetailResponseDtoDataSpendApprovalNeed } from './approvalDetailResponseDtoDataSpendApprovalNeed'
+import type { ApprovalDetailResponseDtoDataSpendApprovalNextYearBudget } from './approvalDetailResponseDtoDataSpendApprovalNextYearBudget'
 import type { ApprovalDetailResponseDtoDataSpendApprovalRequest } from './approvalDetailResponseDtoDataSpendApprovalRequest'
+import type { ApprovalDetailResponseDtoDataSpendApprovalRouting } from './approvalDetailResponseDtoDataSpendApprovalRouting'
 import type { ApprovalDetailResponseDtoDataSpendApprovalStep } from './approvalDetailResponseDtoDataSpendApprovalStep'
+import type { ApprovalDetailResponseDtoDataSpendApprovalTermCost } from './approvalDetailResponseDtoDataSpendApprovalTermCost'
 
 export type ApprovalDetailResponseDtoDataSpendApproval = {
+  routing: ApprovalDetailResponseDtoDataSpendApprovalRouting
   requestId: string
   step: ApprovalDetailResponseDtoDataSpendApprovalStep
   request: ApprovalDetailResponseDtoDataSpendApprovalRequest
@@ -22,9 +27,15 @@ export type ApprovalDetailResponseDtoDataSpendApproval = {
   /** @nullable */
   cost: ApprovalDetailResponseDtoDataSpendApprovalCost
   /** @nullable */
+  termCost: ApprovalDetailResponseDtoDataSpendApprovalTermCost
+  /** @nullable */
   assessment: ApprovalDetailResponseDtoDataSpendApprovalAssessment
   /** @nullable */
   decision: ApprovalDetailResponseDtoDataSpendApprovalDecision
   /** @nullable */
-  latestBudgetInformation: ApprovalDetailResponseDtoDataSpendApprovalLatestBudgetInformation
+  budgetSnapshot: ApprovalDetailResponseDtoDataSpendApprovalBudgetSnapshot
+  /** @nullable */
+  nextYearBudget: ApprovalDetailResponseDtoDataSpendApprovalNextYearBudget
+  /** @nullable */
+  annualVendorAmount: ApprovalDetailResponseDtoDataSpendApprovalAnnualVendorAmount
 }

@@ -7,6 +7,8 @@
  */
 import type { TransferPageResponseDtoDataItemsItemEmployee } from './transferPageResponseDtoDataItemsItemEmployee'
 import type { TransferPageResponseDtoDataItemsItemFrom } from './transferPageResponseDtoDataItemsItemFrom'
+import type { TransferPageResponseDtoDataItemsItemGrace } from './transferPageResponseDtoDataItemsItemGrace'
+import type { TransferPageResponseDtoDataItemsItemPhase } from './transferPageResponseDtoDataItemsItemPhase'
 import type { TransferPageResponseDtoDataItemsItemStatus } from './transferPageResponseDtoDataItemsItemStatus'
 import type { TransferPageResponseDtoDataItemsItemTo } from './transferPageResponseDtoDataItemsItemTo'
 
@@ -17,4 +19,7 @@ export type TransferPageResponseDtoDataItemsItem = {
   to: TransferPageResponseDtoDataItemsItemTo
   effectiveOn: string
   status: TransferPageResponseDtoDataItemsItemStatus
+  phase: TransferPageResponseDtoDataItemsItemPhase
+  /** @nullable */
+  grace: TransferPageResponseDtoDataItemsItemGrace
 }

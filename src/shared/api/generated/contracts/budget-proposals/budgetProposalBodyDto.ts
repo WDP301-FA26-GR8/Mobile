@@ -5,7 +5,7 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
-import type { BudgetProposalBodyDtoLinesItem } from './budgetProposalBodyDtoLinesItem'
+import type { BudgetProposalBodyDtoRequestedAmount } from './budgetProposalBodyDtoRequestedAmount'
 
 export interface BudgetProposalBodyDto {
   /**
@@ -13,11 +13,20 @@ export interface BudgetProposalBodyDto {
    * @maximum 2200
    */
   year: number
+  /** The Cost Center the work is for, when the person answers for more than one that year (a department they head and one that starts on 1 January). */
+  costCenterId?: string
+  /** The amount the head asks for the whole year, in the reporting currency. */
+  requestedAmount: BudgetProposalBodyDtoRequestedAmount
   /**
-   * @minItems 1
-   * @maxItems 200
+   * What the head says beside the amount, if anything.
+   * @minLength 1
+   * @maxLength 1000
    */
-  lines: BudgetProposalBodyDtoLinesItem[]
-  /** @maxItems 20 */
-  attachmentIds?: string[]
+  note?: string
+  /**
+   * The files of the proposal (the template of BM-10 filled in, and anything that explains it), uploaded first: one to ten.
+   * @minItems 1
+   * @maxItems 10
+   */
+  attachmentIds: string[]
 }

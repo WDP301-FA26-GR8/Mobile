@@ -24,12 +24,16 @@ export type DepartmentPageResponseDtoDataItemsItem = {
   itAdmin: DepartmentPageResponseDtoDataItemsItemItAdmin
   /** @nullable */
   head: DepartmentPageResponseDtoDataItemsItemHead
+  /** @nullable */
+  avatarUrl: string | null
   /**
    * @minimum 0
    * @maximum 9007199254740991
    */
   memberCount: number
   warnings: DepartmentPageResponseDtoDataItemsItemWarningsItem[]
+  /** A calendar date as YYYY-MM-DD. */
+  effectiveFrom: string
   createdAt: string
   updatedAt: string
   /** @nullable */

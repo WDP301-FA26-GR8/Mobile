@@ -16,5 +16,6 @@ export type SubscriptionRenewalPageResponseDtoDataItemsItemDecidedChoice =
 export const SubscriptionRenewalPageResponseDtoDataItemsItemDecidedChoice = {
   RENEW: 'RENEW',
   REDUCE: 'REDUCE',
-  CANCEL: 'CANCEL'
+  CANCEL: 'CANCEL',
+  INCREASE: 'INCREASE'
 } as const

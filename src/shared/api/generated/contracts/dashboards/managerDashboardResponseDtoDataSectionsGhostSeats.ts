@@ -9,7 +9,7 @@ import type { ManagerDashboardResponseDtoDataSectionsGhostSeatsReason } from './
 import type { ManagerDashboardResponseDtoDataSectionsGhostSeatsState } from './managerDashboardResponseDtoDataSectionsGhostSeatsState'
 
 /**
- * The ghost seats waiting for a decision; they need usage data, which is not delivered yet.
+ * The recommendations about the seats of the department that wait for the head to decide, or were returned to them.
  */
 export type ManagerDashboardResponseDtoDataSectionsGhostSeats = {
   /** COUNTED: count is how many, in the scope of the caller. AT_SOURCE: the rows are listed by sourceOperationId in the same scope and are not counted here. NOT_AVAILABLE: the data has no source yet; reason says why. A section that is not counted is never shown as zero. */

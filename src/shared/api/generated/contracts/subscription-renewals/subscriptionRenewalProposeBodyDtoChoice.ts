@@ -12,5 +12,6 @@ export type SubscriptionRenewalProposeBodyDtoChoice =
 export const SubscriptionRenewalProposeBodyDtoChoice = {
   RENEW: 'RENEW',
   REDUCE: 'REDUCE',
-  CANCEL: 'CANCEL'
+  CANCEL: 'CANCEL',
+  INCREASE: 'INCREASE'
 } as const

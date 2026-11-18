@@ -5,7 +5,8 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
-import type { RenewalResponseDtoDataRequestSpendBlockedReason } from './renewalResponseDtoDataRequestSpendBlockedReason'
+import type { RenewalResponseDtoDataRequestSpendBlockedReasonsItem } from './renewalResponseDtoDataRequestSpendBlockedReasonsItem'
+import type { RenewalResponseDtoDataRequestSpendOverBy } from './renewalResponseDtoDataRequestSpendOverBy'
 import type { RenewalResponseDtoDataRequestSpendStage } from './renewalResponseDtoDataRequestSpendStage'
 
 /**
@@ -13,10 +14,10 @@ import type { RenewalResponseDtoDataRequestSpendStage } from './renewalResponseD
  */
 export type RenewalResponseDtoDataRequestSpend = {
   stage: RenewalResponseDtoDataRequestSpendStage
+  /** @maxItems 3 */
+  blockedReasons: RenewalResponseDtoDataRequestSpendBlockedReasonsItem[]
   /** @nullable */
-  blockedReason: RenewalResponseDtoDataRequestSpendBlockedReason
-  /** @nullable */
-  financeReturnReason: string | null
+  overBy: RenewalResponseDtoDataRequestSpendOverBy
   /** @nullable */
   refusalReason: string | null
 } | null

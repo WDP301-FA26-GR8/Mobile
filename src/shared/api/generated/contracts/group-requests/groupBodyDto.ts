@@ -20,8 +20,10 @@ export interface GroupBodyDto {
    */
   businessReason: string
   /**
-   * @minimum 1
-   * @maximum 12
+   * The time of use in whole months: required for a plan bought by the month (1 to 9); 1 to 12, or null for a right with no end, for a plan of seats or internal software (not for a contractor, a freelancer or an intern); none for a plan bought once.
+   * @minimum -9007199254740991
+   * @maximum 9007199254740991
+   * @nullable
    */
-  termMonths: number
+  termMonths?: number | null
 }

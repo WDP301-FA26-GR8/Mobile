@@ -30,7 +30,6 @@ import type {
   OffboardingCaseChangeLastDay200,
   OffboardingCaseChangeList200,
   OffboardingCaseChangeListParams,
-  OffboardingCaseClose200,
   OffboardingCaseGet200,
   OffboardingCaseList200,
   OffboardingCaseListParams,
@@ -40,12 +39,15 @@ import type {
   OffboardingCaseOpenRequestList200,
   OffboardingCaseOpenRequestListParams,
   OffboardingCaseOpenRevocations200,
+  OffboardingCasePreview200,
   OffboardingCaseRecord201,
   OffboardingCaseRecordAccountLock200,
+  OffboardingCaseRecordMailboxLock200,
   OffboardingCaseRightList200,
   OffboardingCaseRightListParams,
   OpenRevocationsBodyDto,
   RecordAccountLockBodyDto,
+  RecordMailboxLockBodyDto,
   RecordOffboardingBodyDto
 } from '../../contracts'
 
@@ -1517,6 +1519,175 @@ export const useOffboardingCaseMarkLeft = <
 > => {
   return useMutation(getOffboardingCaseMarkLeftMutationOptions(options), queryClient)
 }
+export type offboardingCasePreviewResponse200 = {
+  data: OffboardingCasePreview200
+  status: 200
+}
+
+export type offboardingCasePreviewResponse400 = {
+  data: ErrorEnvelopeDto
+  status: 400
+}
+
+export type offboardingCasePreviewResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type offboardingCasePreviewResponse403 = {
+  data: ErrorEnvelopeDto
+  status: 403
+}
+
+export type offboardingCasePreviewResponse404 = {
+  data: ErrorEnvelopeDto
+  status: 404
+}
+
+export type offboardingCasePreviewResponse409 = {
+  data: ErrorEnvelopeDto
+  status: 409
+}
+
+export type offboardingCasePreviewResponse413 = {
+  data: ErrorEnvelopeDto
+  status: 413
+}
+
+export type offboardingCasePreviewResponse415 = {
+  data: ErrorEnvelopeDto
+  status: 415
+}
+
+export type offboardingCasePreviewResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type offboardingCasePreviewResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type offboardingCasePreviewResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type offboardingCasePreviewResponseSuccess = offboardingCasePreviewResponse200 & {
+  headers: Headers
+}
+export type offboardingCasePreviewResponseError = (
+  | offboardingCasePreviewResponse400
+  | offboardingCasePreviewResponse401
+  | offboardingCasePreviewResponse403
+  | offboardingCasePreviewResponse404
+  | offboardingCasePreviewResponse409
+  | offboardingCasePreviewResponse413
+  | offboardingCasePreviewResponse415
+  | offboardingCasePreviewResponse422
+  | offboardingCasePreviewResponse429
+  | offboardingCasePreviewResponse503
+) & {
+  headers: Headers
+}
+
+export const getOffboardingCasePreviewUrl = () => {
+  return `${env.API_BASE_URL}/api/v1/offboarding-cases/preview`
+}
+
+/**
+ * @summary Preview what recording a departure would do
+ */
+export const offboardingCasePreview = async (
+  recordOffboardingBodyDto: RecordOffboardingBodyDto,
+  options?: RequestInit
+): Promise<offboardingCasePreviewResponseSuccess> => {
+  const res = await fetch(getOffboardingCasePreviewUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(recordOffboardingBodyDto)
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: offboardingCasePreviewResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: offboardingCasePreviewResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: offboardingCasePreviewResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as offboardingCasePreviewResponseSuccess
+}
+
+export const getOffboardingCasePreviewMutationOptions = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof offboardingCasePreview>>,
+    TError,
+    { data: RecordOffboardingBodyDto },
+    TContext
+  >
+  fetch?: RequestInit
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof offboardingCasePreview>>,
+  TError,
+  { data: RecordOffboardingBodyDto },
+  TContext
+> => {
+  const mutationKey = ['offboardingCasePreview']
+  const { mutation: mutationOptions, fetch: fetchOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, fetch: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof offboardingCasePreview>>,
+    { data: RecordOffboardingBodyDto }
+  > = (props) => {
+    const { data } = props ?? {}
+
+    return offboardingCasePreview(data, fetchOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type OffboardingCasePreviewMutationResult = NonNullable<Awaited<ReturnType<typeof offboardingCasePreview>>>
+export type OffboardingCasePreviewMutationBody = RecordOffboardingBodyDto
+export type OffboardingCasePreviewMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+/**
+ * @summary Preview what recording a departure would do
+ */
+export const useOffboardingCasePreview = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof offboardingCasePreview>>,
+      TError,
+      { data: RecordOffboardingBodyDto },
+      TContext
+    >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof offboardingCasePreview>>,
+  TError,
+  { data: RecordOffboardingBodyDto },
+  TContext
+> => {
+  return useMutation(getOffboardingCasePreviewMutationOptions(options), queryClient)
+}
 export type offboardingCaseRecordAccountLockResponse200 = {
   data: OffboardingCaseRecordAccountLock200
   status: 200
@@ -1595,7 +1766,7 @@ export const getOffboardingCaseRecordAccountLockUrl = (id: string) => {
 }
 
 /**
- * @summary Record the lock of the company account
+ * @summary Record the block of the company account (item 1a)
  */
 export const offboardingCaseRecordAccountLock = async (
   id: string,
@@ -1668,7 +1839,7 @@ export type OffboardingCaseRecordAccountLockMutationError = globalThis.Error & {
 }
 
 /**
- * @summary Record the lock of the company account
+ * @summary Record the block of the company account (item 1a)
  */
 export const useOffboardingCaseRecordAccountLock = <
   TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
@@ -1867,131 +2038,180 @@ export const useOffboardingCaseOpenRevocations = <
 > => {
   return useMutation(getOffboardingCaseOpenRevocationsMutationOptions(options), queryClient)
 }
-export type offboardingCaseCloseResponse200 = {
-  data: OffboardingCaseClose200
+export type offboardingCaseRecordMailboxLockResponse200 = {
+  data: OffboardingCaseRecordMailboxLock200
   status: 200
 }
 
-export type offboardingCaseCloseResponse401 = {
+export type offboardingCaseRecordMailboxLockResponse400 = {
+  data: ErrorEnvelopeDto
+  status: 400
+}
+
+export type offboardingCaseRecordMailboxLockResponse401 = {
   data: ErrorEnvelopeDto
   status: 401
 }
 
-export type offboardingCaseCloseResponse403 = {
+export type offboardingCaseRecordMailboxLockResponse403 = {
   data: ErrorEnvelopeDto
   status: 403
 }
 
-export type offboardingCaseCloseResponse404 = {
+export type offboardingCaseRecordMailboxLockResponse404 = {
   data: ErrorEnvelopeDto
   status: 404
 }
 
-export type offboardingCaseCloseResponse409 = {
+export type offboardingCaseRecordMailboxLockResponse409 = {
   data: ErrorEnvelopeDto
   status: 409
 }
 
-export type offboardingCaseCloseResponse422 = {
+export type offboardingCaseRecordMailboxLockResponse413 = {
+  data: ErrorEnvelopeDto
+  status: 413
+}
+
+export type offboardingCaseRecordMailboxLockResponse415 = {
+  data: ErrorEnvelopeDto
+  status: 415
+}
+
+export type offboardingCaseRecordMailboxLockResponse422 = {
   data: ErrorEnvelopeDto
   status: 422
 }
 
-export type offboardingCaseCloseResponse429 = {
+export type offboardingCaseRecordMailboxLockResponse429 = {
   data: ErrorEnvelopeDto
   status: 429
 }
 
-export type offboardingCaseCloseResponse503 = {
+export type offboardingCaseRecordMailboxLockResponse503 = {
   data: ErrorEnvelopeDto
   status: 503
 }
 
-export type offboardingCaseCloseResponseSuccess = offboardingCaseCloseResponse200 & {
+export type offboardingCaseRecordMailboxLockResponseSuccess = offboardingCaseRecordMailboxLockResponse200 & {
   headers: Headers
 }
-export type offboardingCaseCloseResponseError = (
-  | offboardingCaseCloseResponse401
-  | offboardingCaseCloseResponse403
-  | offboardingCaseCloseResponse404
-  | offboardingCaseCloseResponse409
-  | offboardingCaseCloseResponse422
-  | offboardingCaseCloseResponse429
-  | offboardingCaseCloseResponse503
+export type offboardingCaseRecordMailboxLockResponseError = (
+  | offboardingCaseRecordMailboxLockResponse400
+  | offboardingCaseRecordMailboxLockResponse401
+  | offboardingCaseRecordMailboxLockResponse403
+  | offboardingCaseRecordMailboxLockResponse404
+  | offboardingCaseRecordMailboxLockResponse409
+  | offboardingCaseRecordMailboxLockResponse413
+  | offboardingCaseRecordMailboxLockResponse415
+  | offboardingCaseRecordMailboxLockResponse422
+  | offboardingCaseRecordMailboxLockResponse429
+  | offboardingCaseRecordMailboxLockResponse503
 ) & {
   headers: Headers
 }
 
-export const getOffboardingCaseCloseUrl = (id: string) => {
-  return `${env.API_BASE_URL}/api/v1/offboarding-cases/${id}/closure`
+export const getOffboardingCaseRecordMailboxLockUrl = (id: string) => {
+  return `${env.API_BASE_URL}/api/v1/offboarding-cases/${id}/mailbox-lock`
 }
 
 /**
- * @summary Close a departure
+ * @summary Record the lock of the mailbox for good (item 1b)
  */
-export const offboardingCaseClose = async (
+export const offboardingCaseRecordMailboxLock = async (
   id: string,
+  recordMailboxLockBodyDto: RecordMailboxLockBodyDto,
   options?: RequestInit
-): Promise<offboardingCaseCloseResponseSuccess> => {
-  const res = await fetch(getOffboardingCaseCloseUrl(id), {
+): Promise<offboardingCaseRecordMailboxLockResponseSuccess> => {
+  const res = await fetch(getOffboardingCaseRecordMailboxLockUrl(id), {
     ...options,
-    method: 'POST'
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(recordMailboxLockBodyDto)
   })
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text()
   if (!res.ok) {
-    const err: globalThis.Error & { info?: offboardingCaseCloseResponseError['data']; status?: number } =
+    const err: globalThis.Error & { info?: offboardingCaseRecordMailboxLockResponseError['data']; status?: number } =
       new globalThis.Error()
-    const data: offboardingCaseCloseResponseError['data'] = body ? JSON.parse(body) : {}
+    const data: offboardingCaseRecordMailboxLockResponseError['data'] = body ? JSON.parse(body) : {}
     err.info = data
     err.status = res.status
     throw err
   }
-  const data: offboardingCaseCloseResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as offboardingCaseCloseResponseSuccess
+  const data: offboardingCaseRecordMailboxLockResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as offboardingCaseRecordMailboxLockResponseSuccess
 }
 
-export const getOffboardingCaseCloseMutationOptions = <
+export const getOffboardingCaseRecordMailboxLockMutationOptions = <
   TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
   TContext = unknown
 >(options?: {
-  mutation?: UseMutationOptions<Awaited<ReturnType<typeof offboardingCaseClose>>, TError, { id: string }, TContext>
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof offboardingCaseRecordMailboxLock>>,
+    TError,
+    { id: string; data: RecordMailboxLockBodyDto },
+    TContext
+  >
   fetch?: RequestInit
-}): UseMutationOptions<Awaited<ReturnType<typeof offboardingCaseClose>>, TError, { id: string }, TContext> => {
-  const mutationKey = ['offboardingCaseClose']
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof offboardingCaseRecordMailboxLock>>,
+  TError,
+  { id: string; data: RecordMailboxLockBodyDto },
+  TContext
+> => {
+  const mutationKey = ['offboardingCaseRecordMailboxLock']
   const { mutation: mutationOptions, fetch: fetchOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, fetch: undefined }
 
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof offboardingCaseClose>>, { id: string }> = (props) => {
-    const { id } = props ?? {}
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof offboardingCaseRecordMailboxLock>>,
+    { id: string; data: RecordMailboxLockBodyDto }
+  > = (props) => {
+    const { id, data } = props ?? {}
 
-    return offboardingCaseClose(id, fetchOptions)
+    return offboardingCaseRecordMailboxLock(id, data, fetchOptions)
   }
 
   return { mutationFn, ...mutationOptions }
 }
 
-export type OffboardingCaseCloseMutationResult = NonNullable<Awaited<ReturnType<typeof offboardingCaseClose>>>
-
-export type OffboardingCaseCloseMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+export type OffboardingCaseRecordMailboxLockMutationResult = NonNullable<
+  Awaited<ReturnType<typeof offboardingCaseRecordMailboxLock>>
+>
+export type OffboardingCaseRecordMailboxLockMutationBody = RecordMailboxLockBodyDto
+export type OffboardingCaseRecordMailboxLockMutationError = globalThis.Error & {
+  info?: ErrorEnvelopeDto
+  status?: number
+}
 
 /**
- * @summary Close a departure
+ * @summary Record the lock of the mailbox for good (item 1b)
  */
-export const useOffboardingCaseClose = <
+export const useOffboardingCaseRecordMailboxLock = <
   TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
   TContext = unknown
 >(
   options?: {
-    mutation?: UseMutationOptions<Awaited<ReturnType<typeof offboardingCaseClose>>, TError, { id: string }, TContext>
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof offboardingCaseRecordMailboxLock>>,
+      TError,
+      { id: string; data: RecordMailboxLockBodyDto },
+      TContext
+    >
     fetch?: RequestInit
   },
   queryClient?: QueryClient
-): UseMutationResult<Awaited<ReturnType<typeof offboardingCaseClose>>, TError, { id: string }, TContext> => {
-  return useMutation(getOffboardingCaseCloseMutationOptions(options), queryClient)
+): UseMutationResult<
+  Awaited<ReturnType<typeof offboardingCaseRecordMailboxLock>>,
+  TError,
+  { id: string; data: RecordMailboxLockBodyDto },
+  TContext
+> => {
+  return useMutation(getOffboardingCaseRecordMailboxLockMutationOptions(options), queryClient)
 }
 export type offboardingCaseOpenRequestListResponse200 = {
   data: OffboardingCaseOpenRequestList200

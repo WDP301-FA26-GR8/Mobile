@@ -1586,7 +1586,7 @@ export const getProvisioningTaskCancelUrl = (id: string) => {
 }
 
 /**
- * @summary Close the failed task of a withdrawn request as cancelled
+ * @summary Cancel the failed task of a withdrawn request, or a revocation
  */
 export const provisioningTaskCancel = async (
   id: string,
@@ -1638,7 +1638,7 @@ export type ProvisioningTaskCancelMutationResult = NonNullable<Awaited<ReturnTyp
 export type ProvisioningTaskCancelMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
 
 /**
- * @summary Close the failed task of a withdrawn request as cancelled
+ * @summary Cancel the failed task of a withdrawn request, or a revocation
  */
 export const useProvisioningTaskCancel = <
   TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },

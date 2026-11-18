@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 
 import {
   notificationList,
@@ -11,15 +12,17 @@ import { useSession } from '@/shared/api/session-context'
 export function useLiveInbox(page: number) {
   const session = useSession()
   const client = useQueryClient()
+  const { i18n } = useTranslation()
+  const language = i18n.resolvedLanguage === 'en' ? 'en' : 'vi'
   const enabled = session.state === 'authenticated'
   const list = useQuery({
-    queryKey: ['session', 'notifications', 'list', page],
+    queryKey: ['session', 'notifications', 'list', page, language],
     enabled,
     queryFn: ({ signal }) =>
       session.read(async (token) => {
         const result = await notificationList(
           { page, pageSize: 20 },
-          { signal, headers: { Authorization: `Bearer ${token}` } }
+          { signal, headers: { Authorization: `Bearer ${token}`, 'Accept-Language': language } }
         )
         if (!result.data.data) throw new Error('Missing notification list')
         return result.data.data

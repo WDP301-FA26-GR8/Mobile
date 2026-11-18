@@ -10,6 +10,5 @@ export type ApplicationPageResponseDtoDataEmptyStateNextStepKey =
   (typeof ApplicationPageResponseDtoDataEmptyStateNextStepKey)[keyof typeof ApplicationPageResponseDtoDataEmptyStateNextStepKey]
 
 export const ApplicationPageResponseDtoDataEmptyStateNextStepKey = {
-  APPLICATIONS: 'APPLICATIONS',
-  CONTRACTS_AND_SUBSCRIPTIONS: 'CONTRACTS_AND_SUBSCRIPTIONS'
+  APPLICATIONS: 'APPLICATIONS'
 } as const

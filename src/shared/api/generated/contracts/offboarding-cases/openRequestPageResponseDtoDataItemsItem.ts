@@ -11,6 +11,7 @@ import type { OpenRequestPageResponseDtoDataItemsItemType } from './openRequestP
 
 export type OpenRequestPageResponseDtoDataItemsItem = {
   requestId: string
+  /** SERVICE_ACCOUNT is on records of the earlier releases only: no request for a service account is made any more. */
   type: OpenRequestPageResponseDtoDataItemsItemType
   state: string
   /** @nullable */

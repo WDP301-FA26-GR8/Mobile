@@ -29,8 +29,11 @@ export type ApprovalDetailResponseDtoDataSpendApprovalRequest = {
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0
+   * @nullable
    */
-  termMonths: number
+  termMonths: number | null
+  /** @nullable */
+  expectedEndDate: string | null
   /**
    * @minimum -9007199254740991
    * @maximum 9007199254740991

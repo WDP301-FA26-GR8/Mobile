@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons'
 import { useTranslation } from 'react-i18next'
-import { StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { SoftwareIcon } from '@/entities/software'
 import type { MySoftwarePageResponseDtoDataItemsItem } from '@/shared/api/generated/contracts/me'
@@ -8,7 +8,13 @@ import { MySoftwarePageResponseDtoDataItemsItemStatus } from '@/shared/api/gener
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
 
-export function LiveSoftwareCard({ item }: { item: MySoftwarePageResponseDtoDataItemsItem }) {
+export function LiveSoftwareCard({
+  item,
+  onPress
+}: {
+  item: MySoftwarePageResponseDtoDataItemsItem
+  onPress?: () => void
+}) {
   const { colors: mobileColors } = useMobileTheme()
   const styles = createStyles(mobileColors)
   const { t, i18n } = useTranslation()
@@ -22,10 +28,10 @@ export function LiveSoftwareCard({ item }: { item: MySoftwarePageResponseDtoData
       : new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeZone: 'UTC' }).format(date)
   }
 
-  return (
+  const content = (
     <View style={styles.card}>
       <View style={styles.row}>
-        <SoftwareIcon name={item.application.name} />
+        <SoftwareIcon name={item.application.name} logoUrl={item.application.logoUrl} />
         <View style={styles.copy}>
           <Text style={styles.name}>{item.application.name}</Text>
           <Text style={styles.secondary}>{t('licenses.live.plan', { plan: item.plan.name })}</Text>
@@ -84,6 +90,17 @@ export function LiveSoftwareCard({ item }: { item: MySoftwarePageResponseDtoData
         ) : null}
       </View>
     </View>
+  )
+  return onPress ? (
+    <Pressable
+      accessibilityRole='button'
+      accessibilityLabel={t('licenses.live.openNamed', { name: item.application.name, plan: item.plan.name })}
+      onPress={onPress}
+    >
+      {content}
+    </Pressable>
+  ) : (
+    content
   )
 }
 

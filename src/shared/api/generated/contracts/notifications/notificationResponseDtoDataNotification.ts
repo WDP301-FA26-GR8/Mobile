@@ -7,6 +7,7 @@
  */
 import type { NotificationResponseDtoDataNotificationParams } from './notificationResponseDtoDataNotificationParams'
 import type { NotificationResponseDtoDataNotificationSubject } from './notificationResponseDtoDataNotificationSubject'
+import type { NotificationResponseDtoDataNotificationTarget } from './notificationResponseDtoDataNotificationTarget'
 
 export type NotificationResponseDtoDataNotification = {
   id: string
@@ -14,6 +15,18 @@ export type NotificationResponseDtoDataNotification = {
   /** @nullable */
   subject: NotificationResponseDtoDataNotificationSubject
   params: NotificationResponseDtoDataNotificationParams
+  /**
+   * Plain text, never empty; the language of Accept-Language (vi by default).
+   * @minLength 1
+   */
+  title: string
+  /** Plain text; may carry text a person typed, so show it as text. Empty only for an unknown code. */
+  message: string
+  /**
+   * The read route to open; null means open the list of notifications.
+   * @nullable
+   */
+  target: NotificationResponseDtoDataNotificationTarget
   createdAt: string
   /** @nullable */
   readAt: string | null

@@ -5,7 +5,9 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { SubscriptionListExpiry } from './subscriptionListExpiry'
 import type { SubscriptionListKind } from './subscriptionListKind'
+import type { SubscriptionListMine } from './subscriptionListMine'
 import type { SubscriptionListStatus } from './subscriptionListStatus'
 import type { SubscriptionListWarning } from './subscriptionListWarning'
 
@@ -15,6 +17,14 @@ export type SubscriptionListParams = {
   status?: SubscriptionListStatus
   kind?: SubscriptionListKind
   warning?: SubscriptionListWarning
+  /**
+   * true lists only the subscriptions the caller answers for as their IT Admin; false or absent lists them all.
+   */
+  mine?: SubscriptionListMine
+  /**
+   * SOON lists the subscriptions from the point of adjustment to the last day of their period (a plan by the year stays SOON after its deadline to cancel, up to its renewal day, else its end day); EXPIRED those past that last day while seats are still held. A plan by the month goes on from one payment day to the next, so only one that does not renew itself is EXPIRED, after its end day. A purchase made once is never listed.
+   */
+  expiry?: SubscriptionListExpiry
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0

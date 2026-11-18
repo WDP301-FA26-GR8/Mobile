@@ -5,6 +5,7 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { LicenseAssignmentListActiveOnly } from './licenseAssignmentListActiveOnly'
 import type { LicenseAssignmentListKind } from './licenseAssignmentListKind'
 import type { LicenseAssignmentListSource } from './licenseAssignmentListSource'
 
@@ -14,6 +15,10 @@ export type LicenseAssignmentListParams = {
   employeeId?: string
   source?: LicenseAssignmentListSource
   kind?: LicenseAssignmentListKind
+  /**
+   * true lists only the rights in force today: not ended, not failed and not cancelled, one that begins later included. False or absent lists every assignment, the ended ones too.
+   */
+  activeOnly?: LicenseAssignmentListActiveOnly
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0

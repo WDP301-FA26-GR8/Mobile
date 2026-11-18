@@ -11,11 +11,6 @@ import type { OffboardingDetailResponseDtoDataWarningsWorkspaces } from './offbo
 export type OffboardingDetailResponseDtoDataWarnings = {
   /** @nullable */
   departmentWithoutHeadFrom: string | null
-  /**
-   * @minimum 0
-   * @maximum 9007199254740991
-   */
-  businessOwnerApplications: number
   accountLockNotRecorded: boolean
   workspaces: OffboardingDetailResponseDtoDataWarningsWorkspaces
   registered: OffboardingDetailResponseDtoDataWarningsRegistered

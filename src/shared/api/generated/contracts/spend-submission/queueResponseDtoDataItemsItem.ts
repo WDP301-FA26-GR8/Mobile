@@ -7,7 +7,9 @@
  */
 import type { QueueResponseDtoDataItemsItemAmount } from './queueResponseDtoDataItemsItemAmount'
 import type { QueueResponseDtoDataItemsItemBeneficiary } from './queueResponseDtoDataItemsItemBeneficiary'
-import type { QueueResponseDtoDataItemsItemBlockedReason } from './queueResponseDtoDataItemsItemBlockedReason'
+import type { QueueResponseDtoDataItemsItemBlockedReasonsItem } from './queueResponseDtoDataItemsItemBlockedReasonsItem'
+import type { QueueResponseDtoDataItemsItemBudgetOutcome } from './queueResponseDtoDataItemsItemBudgetOutcome'
+import type { QueueResponseDtoDataItemsItemOverBy } from './queueResponseDtoDataItemsItemOverBy'
 import type { QueueResponseDtoDataItemsItemPlan } from './queueResponseDtoDataItemsItemPlan'
 import type { QueueResponseDtoDataItemsItemRequester } from './queueResponseDtoDataItemsItemRequester'
 import type { QueueResponseDtoDataItemsItemStage } from './queueResponseDtoDataItemsItemStage'
@@ -36,9 +38,11 @@ export type QueueResponseDtoDataItemsItem = {
   budgetYear: number | null
   stage: QueueResponseDtoDataItemsItemStage
   /** @nullable */
-  blockedReason: QueueResponseDtoDataItemsItemBlockedReason
+  budgetOutcome: QueueResponseDtoDataItemsItemBudgetOutcome
+  /** @maxItems 3 */
+  blockedReasons: QueueResponseDtoDataItemsItemBlockedReasonsItem[]
   /** @nullable */
-  financeReturnReason: string | null
+  overBy: QueueResponseDtoDataItemsItemOverBy
   readyToSubmit: boolean
   updatedAt: string
   /** @nullable */

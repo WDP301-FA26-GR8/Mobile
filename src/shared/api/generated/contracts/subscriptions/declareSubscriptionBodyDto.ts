@@ -6,20 +6,25 @@
  * OpenAPI spec version: 1.0
  */
 import type { DeclareSubscriptionBodyDtoBillingCycle } from './declareSubscriptionBodyDtoBillingCycle'
+import type { DeclareSubscriptionBodyDtoCommitmentTermMonths } from './declareSubscriptionBodyDtoCommitmentTermMonths'
 import type { DeclareSubscriptionBodyDtoKind } from './declareSubscriptionBodyDtoKind'
+import type { DeclareSubscriptionBodyDtoOriginalPrice } from './declareSubscriptionBodyDtoOriginalPrice'
 import type { DeclareSubscriptionBodyDtoUnitPrice } from './declareSubscriptionBodyDtoUnitPrice'
 
 export interface DeclareSubscriptionBodyDto {
   planId: string
-  ownerDepartmentId: string
   kind: DeclareSubscriptionBodyDtoKind
   /**
    * @minimum 0
    * @maximum 1000000000
    */
   purchasedQuantity?: number
+  /** The unit price in dong: a decimal string in major units, currency VND. Another currency is refused (SUBSCRIPTION.PRICE_NOT_VND). */
   unitPrice?: DeclareSubscriptionBodyDtoUnitPrice
+  /** The price the vendor quoted in another currency, kept beside the price in dong so an invoice can be matched against it: a decimal string in major units of its currency. It is only kept, never converted. */
+  originalPrice?: DeclareSubscriptionBodyDtoOriginalPrice
   billingCycle?: DeclareSubscriptionBodyDtoBillingCycle
+  commitmentTermMonths?: (typeof DeclareSubscriptionBodyDtoCommitmentTermMonths)[keyof typeof DeclareSubscriptionBodyDtoCommitmentTermMonths]
   /** A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused). */
   startDate?: string
   /** A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused). */
@@ -35,4 +40,11 @@ export interface DeclareSubscriptionBodyDto {
   noticePeriodDays?: number
   autoRenew?: boolean
   allowsMidTermReduction?: boolean
+  /** The IT Admin who answers for the subscription. When it is not sent, the IT Admin responsible for the application of the plan is taken if they still work as an IT Admin; otherwise it stays empty and an active subscription refuses to be saved without one. */
+  responsibleItAdminEmployeeId?: string
+  /**
+   * @minimum 1
+   * @maximum 1000000000
+   */
+  vendorMinimumSeats?: number
 }

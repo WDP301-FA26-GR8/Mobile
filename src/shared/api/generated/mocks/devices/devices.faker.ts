@@ -12,6 +12,7 @@ import type {
   DeviceGet200,
   DeviceHolderChange201,
   DeviceList200,
+  DeviceRegistrationList200,
   DeviceRetire201,
   DeviceSignatureRecordCreate201
 } from '../../contracts'
@@ -19,6 +20,7 @@ import type {
 import {
   getDeviceDetailResponseDtoResponseMock,
   getDevicePageResponseDtoResponseMock,
+  getDeviceRegistrationPageResponseDtoResponseMock,
   getSignatureRecordResponseDtoResponseMock
 } from '../../contracts/index.faker'
 
@@ -29,6 +31,11 @@ export const getDeviceCreateResponseMock = (): DeviceCreate201 => ({
 
 export const getDeviceListResponseMock = (): DeviceList200 => ({
   ...{ ...getDevicePageResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
+export const getDeviceRegistrationListResponseMock = (): DeviceRegistrationList200 => ({
+  ...{ ...getDeviceRegistrationPageResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 

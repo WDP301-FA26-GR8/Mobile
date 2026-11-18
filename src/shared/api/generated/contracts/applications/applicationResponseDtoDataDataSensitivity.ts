@@ -6,8 +6,11 @@
  * OpenAPI spec version: 1.0
  */
 
+/**
+ * @nullable
+ */
 export type ApplicationResponseDtoDataDataSensitivity =
-  (typeof ApplicationResponseDtoDataDataSensitivity)[keyof typeof ApplicationResponseDtoDataDataSensitivity]
+  (typeof ApplicationResponseDtoDataDataSensitivity)[keyof typeof ApplicationResponseDtoDataDataSensitivity] | null
 
 export const ApplicationResponseDtoDataDataSensitivity = {
   LOW: 'LOW',

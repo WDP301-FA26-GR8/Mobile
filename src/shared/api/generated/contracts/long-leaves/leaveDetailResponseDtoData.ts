@@ -7,7 +7,6 @@
  */
 import type { LeaveDetailResponseDtoDataEmployee } from './leaveDetailResponseDtoDataEmployee'
 import type { LeaveDetailResponseDtoDataEndKind } from './leaveDetailResponseDtoDataEndKind'
-import type { LeaveDetailResponseDtoDataGrounds } from './leaveDetailResponseDtoDataGrounds'
 import type { LeaveDetailResponseDtoDataStatus } from './leaveDetailResponseDtoDataStatus'
 
 /**
@@ -23,7 +22,7 @@ export type LeaveDetailResponseDtoData = {
   endedOn: string | null
   overdueReturn: boolean
   /** @nullable */
-  grounds: LeaveDetailResponseDtoDataGrounds
+  groundsNote: string | null
   /** @nullable */
   endKind: LeaveDetailResponseDtoDataEndKind
   /** @nullable */

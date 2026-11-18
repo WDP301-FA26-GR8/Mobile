@@ -5,6 +5,7 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { AssessmentResponseDtoDataAssessmentProposalExistingApplication } from './assessmentResponseDtoDataAssessmentProposalExistingApplication'
 
 export type AssessmentResponseDtoDataAssessmentProposal = {
   softwareName: string
@@ -16,4 +17,8 @@ export type AssessmentResponseDtoDataAssessmentProposal = {
    * @exclusiveMinimum 0
    */
   expectedUsers: number
+  /** @nullable */
+  existingApplicationId: string | null
+  /** @nullable */
+  existingApplication: AssessmentResponseDtoDataAssessmentProposalExistingApplication
 }

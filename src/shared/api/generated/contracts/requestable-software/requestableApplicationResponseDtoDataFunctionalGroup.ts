@@ -6,10 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 
-/**
- * @nullable
- */
 export type RequestableApplicationResponseDtoDataFunctionalGroup = {
   id: string
   name: string
-} | null
+}

@@ -25,5 +25,6 @@ export type OffboardingChangePageResponseDtoDataItemsItem = {
   /** @nullable */
   changedByAppUserId: string | null
   changedByProcedure: boolean
+  changedBySystem: boolean
   changedAt: string
 }

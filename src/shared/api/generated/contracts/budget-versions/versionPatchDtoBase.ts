@@ -6,6 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 
+/**
+ * The base of the year. Left out, it is filled in with what the Cost Center carries into the year (carriedOverNextYear).
+ */
 export type VersionPatchDtoBase = {
   /** @maxLength 40 */
   amount: string

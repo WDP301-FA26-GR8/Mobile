@@ -11,6 +11,7 @@ import type { TaskPageResponseDtoDataItemsItemChannel } from './taskPageResponse
 import type { TaskPageResponseDtoDataItemsItemFailureKind } from './taskPageResponseDtoDataItemsItemFailureKind'
 import type { TaskPageResponseDtoDataItemsItemKind } from './taskPageResponseDtoDataItemsItemKind'
 import type { TaskPageResponseDtoDataItemsItemPlan } from './taskPageResponseDtoDataItemsItemPlan'
+import type { TaskPageResponseDtoDataItemsItemPurchase } from './taskPageResponseDtoDataItemsItemPurchase'
 import type { TaskPageResponseDtoDataItemsItemRevocation } from './taskPageResponseDtoDataItemsItemRevocation'
 import type { TaskPageResponseDtoDataItemsItemStatus } from './taskPageResponseDtoDataItemsItemStatus'
 
@@ -32,6 +33,17 @@ export type TaskPageResponseDtoDataItemsItem = {
   /** @nullable */
   defaultResponsibleEmployeeId: string | null
   inGeneralQueue: boolean
+  /**
+   * A calendar date as YYYY-MM-DD.
+   * @nullable
+   */
+  dueOn: string | null
+  /**
+   * A calendar date as YYYY-MM-DD.
+   * @nullable
+   */
+  notBefore: string | null
+  claimableNow: boolean
   createdAt: string
   /** @nullable */
   claimedBy: string | null
@@ -60,6 +72,13 @@ export type TaskPageResponseDtoDataItemsItem = {
   closedAt: string | null
   /** @nullable */
   revocation: TaskPageResponseDtoDataItemsItemRevocation
+  /** @nullable */
+  purchase: TaskPageResponseDtoDataItemsItemPurchase
+  /**
+   * A calendar date as YYYY-MM-DD.
+   * @nullable
+   */
+  termCutAt: string | null
   /**
    * @minimum 0
    * @maximum 9007199254740991

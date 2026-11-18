@@ -7,7 +7,10 @@
  */
 import type { GroupCheckResponseDtoDataPricingAmount } from './groupCheckResponseDtoDataPricingAmount'
 import type { GroupCheckResponseDtoDataPricingBillingCycle } from './groupCheckResponseDtoDataPricingBillingCycle'
+import type { GroupCheckResponseDtoDataPricingKind } from './groupCheckResponseDtoDataPricingKind'
 import type { GroupCheckResponseDtoDataPricingMissingReason } from './groupCheckResponseDtoDataPricingMissingReason'
+import type { GroupCheckResponseDtoDataPricingMonthlyPrice } from './groupCheckResponseDtoDataPricingMonthlyPrice'
+import type { GroupCheckResponseDtoDataPricingNextYearAmount } from './groupCheckResponseDtoDataPricingNextYearAmount'
 import type { GroupCheckResponseDtoDataPricingStatus } from './groupCheckResponseDtoDataPricingStatus'
 import type { GroupCheckResponseDtoDataPricingUnitPrice } from './groupCheckResponseDtoDataPricingUnitPrice'
 
@@ -21,20 +24,16 @@ export type GroupCheckResponseDtoDataPricing = {
   unitPrice: GroupCheckResponseDtoDataPricingUnitPrice
   /** @nullable */
   billingCycle: GroupCheckResponseDtoDataPricingBillingCycle
-  /**
-   * @maximum 9007199254740991
-   * @exclusiveMinimum 0
-   * @nullable
-   */
-  periodCount: number | null
+  /** @nullable */
+  kind: GroupCheckResponseDtoDataPricingKind
   /**
    * @minimum 0
-   * @maximum 9007199254740991
+   * @maximum 12
    * @nullable
    */
-  bindingPeriodCount: number | null
+  months: number | null
   /** @nullable */
-  firstDueOn: string | null
+  monthlyPrice: GroupCheckResponseDtoDataPricingMonthlyPrice
   /** @nullable */
-  lastDueOn: string | null
+  nextYearAmount: GroupCheckResponseDtoDataPricingNextYearAmount
 }

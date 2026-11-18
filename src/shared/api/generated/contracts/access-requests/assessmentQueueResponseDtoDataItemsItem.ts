@@ -12,6 +12,7 @@ import type { AssessmentQueueResponseDtoDataItemsItemHolder } from './assessment
 import type { AssessmentQueueResponseDtoDataItemsItemQuote } from './assessmentQueueResponseDtoDataItemsItemQuote'
 import type { AssessmentQueueResponseDtoDataItemsItemReadiness } from './assessmentQueueResponseDtoDataItemsItemReadiness'
 import type { AssessmentQueueResponseDtoDataItemsItemRequester } from './assessmentQueueResponseDtoDataItemsItemRequester'
+import type { AssessmentQueueResponseDtoDataItemsItemScope } from './assessmentQueueResponseDtoDataItemsItemScope'
 import type { AssessmentQueueResponseDtoDataItemsItemSoftware } from './assessmentQueueResponseDtoDataItemsItemSoftware'
 
 export type AssessmentQueueResponseDtoDataItemsItem = {
@@ -28,6 +29,7 @@ export type AssessmentQueueResponseDtoDataItemsItem = {
   started: boolean
   /** @nullable */
   classification: AssessmentQueueResponseDtoDataItemsItemClassification
+  scope: AssessmentQueueResponseDtoDataItemsItemScope
   readiness: AssessmentQueueResponseDtoDataItemsItemReadiness
   /**
    * @minimum 0

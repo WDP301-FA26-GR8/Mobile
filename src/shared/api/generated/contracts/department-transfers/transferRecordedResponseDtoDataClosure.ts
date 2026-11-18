@@ -11,5 +11,9 @@
  */
 export type TransferRecordedResponseDtoDataClosure = {
   closedAt: string
-  closedByAppUserId: string
+  /** @nullable */
+  closedByAppUserId: string | null
+  closedBySystem: boolean
+  /** @nullable */
+  supersededByCaseId: string | null
 } | null

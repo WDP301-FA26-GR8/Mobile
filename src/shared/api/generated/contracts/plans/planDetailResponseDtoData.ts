@@ -8,6 +8,7 @@
 import type { PlanDetailResponseDtoDataControlLevel } from './planDetailResponseDtoDataControlLevel'
 import type { PlanDetailResponseDtoDataPricingModel } from './planDetailResponseDtoDataPricingModel'
 import type { PlanDetailResponseDtoDataProvisioningType } from './planDetailResponseDtoDataProvisioningType'
+import type { PlanDetailResponseDtoDataReferencePrice } from './planDetailResponseDtoDataReferencePrice'
 import type { PlanDetailResponseDtoDataSeatTracking } from './planDetailResponseDtoDataSeatTracking'
 import type { PlanDetailResponseDtoDataSharingPolicy } from './planDetailResponseDtoDataSharingPolicy'
 import type { PlanDetailResponseDtoDataWorkspaceProfile } from './planDetailResponseDtoDataWorkspaceProfile'
@@ -19,6 +20,11 @@ export type PlanDetailResponseDtoData = {
   id: string
   applicationId: string
   applicationName: string
+  /**
+   * The https link to the logo image of the application, or null. It may be broken: show the first letter of the application name when the image does not load.
+   * @nullable
+   */
+  applicationLogoUrl: string | null
   name: string
   provisioningType: PlanDetailResponseDtoDataProvisioningType
   /** @nullable */
@@ -28,6 +34,12 @@ export type PlanDetailResponseDtoData = {
   dataLossOnRemoval: boolean
   /** @nullable */
   sharingPolicy: PlanDetailResponseDtoDataSharingPolicy
+  hasAdminConsole: boolean
+  /**
+   * The reference price in dong before tax, or null when none is entered.
+   * @nullable
+   */
+  referencePrice: PlanDetailResponseDtoDataReferencePrice
   seatTracking: PlanDetailResponseDtoDataSeatTracking
   createdAt: string
   updatedAt: string

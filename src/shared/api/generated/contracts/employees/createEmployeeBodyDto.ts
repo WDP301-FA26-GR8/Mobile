@@ -30,6 +30,11 @@ export interface CreateEmployeeBodyDto {
   /** A calendar date as YYYY-MM-DD; it must exist (2026-02-30 is refused). */
   hireDate: string
   /**
+   * A date that must exist, as YYYY-MM-DD: the last day of the contract of a contractor, a freelancer or an intern, not before the hire date; null or omitted for none. Staff has none (EMPLOYEE.ROW_INVALID, CONTRACT_END_NOT_APPLICABLE). A time of use that runs past it is cut there.
+   * @nullable
+   */
+  contractEndDate?: string | null
+  /**
    * 2 to 20 ASCII letters or digits in hyphen-separated groups; lowercase is accepted and converted to uppercase, e.g. p-eng becomes P-ENG; null or omitted for unplaced.
    * @minLength 2
    * @maxLength 20

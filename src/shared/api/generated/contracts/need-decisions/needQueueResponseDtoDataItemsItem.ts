@@ -19,6 +19,7 @@ export type NeedQueueResponseDtoDataItemsItem = {
   stepId: string
   stepKind: NeedQueueResponseDtoDataItemsItemStepKind
   deciderRole: NeedQueueResponseDtoDataItemsItemDeciderRole
+  /** SERVICE_ACCOUNT is on records of the earlier releases only: no request for a service account is made any more. */
   type: NeedQueueResponseDtoDataItemsItemType
   openedAt: string
   /** @nullable */
@@ -47,8 +48,10 @@ export type NeedQueueResponseDtoDataItemsItem = {
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0
+   * @nullable
    */
-  termMonths: number
+  termMonths: number | null
+  /** @nullable */
+  expectedEndDate: string | null
   pricing: NeedQueueResponseDtoDataItemsItemPricing
-  samePersonAsSpend: boolean
 }

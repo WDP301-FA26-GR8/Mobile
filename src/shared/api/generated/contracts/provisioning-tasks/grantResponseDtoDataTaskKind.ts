@@ -11,5 +11,6 @@ export type GrantResponseDtoDataTaskKind =
 
 export const GrantResponseDtoDataTaskKind = {
   GRANT: 'GRANT',
-  REVOKE: 'REVOKE'
+  REVOKE: 'REVOKE',
+  EXTEND: 'EXTEND'
 } as const

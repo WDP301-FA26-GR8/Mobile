@@ -13,11 +13,14 @@ import type { OffboardingRevocationsOpenedResponseDtoDataChecklist } from './off
 import type { OffboardingRevocationsOpenedResponseDtoDataClosure } from './offboardingRevocationsOpenedResponseDtoDataClosure'
 import type { OffboardingRevocationsOpenedResponseDtoDataDepartment } from './offboardingRevocationsOpenedResponseDtoDataDepartment'
 import type { OffboardingRevocationsOpenedResponseDtoDataEmployee } from './offboardingRevocationsOpenedResponseDtoDataEmployee'
-import type { OffboardingRevocationsOpenedResponseDtoDataGrounds } from './offboardingRevocationsOpenedResponseDtoDataGrounds'
 import type { OffboardingRevocationsOpenedResponseDtoDataHeadSuccessor } from './offboardingRevocationsOpenedResponseDtoDataHeadSuccessor'
+import type { OffboardingRevocationsOpenedResponseDtoDataItHandover } from './offboardingRevocationsOpenedResponseDtoDataItHandover'
 import type { OffboardingRevocationsOpenedResponseDtoDataLeft } from './offboardingRevocationsOpenedResponseDtoDataLeft'
+import type { OffboardingRevocationsOpenedResponseDtoDataMailboxLock } from './offboardingRevocationsOpenedResponseDtoDataMailboxLock'
 import type { OffboardingRevocationsOpenedResponseDtoDataPriorWorkState } from './offboardingRevocationsOpenedResponseDtoDataPriorWorkState'
+import type { OffboardingRevocationsOpenedResponseDtoDataRevocation } from './offboardingRevocationsOpenedResponseDtoDataRevocation'
 import type { OffboardingRevocationsOpenedResponseDtoDataRevocations } from './offboardingRevocationsOpenedResponseDtoDataRevocations'
+import type { OffboardingRevocationsOpenedResponseDtoDataRevocationsWithdrawn } from './offboardingRevocationsOpenedResponseDtoDataRevocationsWithdrawn'
 import type { OffboardingRevocationsOpenedResponseDtoDataRoleFlags } from './offboardingRevocationsOpenedResponseDtoDataRoleFlags'
 import type { OffboardingRevocationsOpenedResponseDtoDataState } from './offboardingRevocationsOpenedResponseDtoDataState'
 import type { OffboardingRevocationsOpenedResponseDtoDataWarnings } from './offboardingRevocationsOpenedResponseDtoDataWarnings'
@@ -30,7 +33,6 @@ export type OffboardingRevocationsOpenedResponseDtoData = {
   employee: OffboardingRevocationsOpenedResponseDtoDataEmployee
   state: OffboardingRevocationsOpenedResponseDtoDataState
   accessBlockMode: OffboardingRevocationsOpenedResponseDtoDataAccessBlockMode
-  abrupt: boolean
   lastWorkingDay: string
   /** @nullable */
   handoverDueOn: string | null
@@ -43,16 +45,18 @@ export type OffboardingRevocationsOpenedResponseDtoData = {
    * @maximum 9007199254740991
    */
   heldRights: number
+  revocation: OffboardingRevocationsOpenedResponseDtoDataRevocation
   accountLockMissing: boolean
   closed: boolean
   roleFlags: OffboardingRevocationsOpenedResponseDtoDataRoleFlags
   /** @nullable */
   department: OffboardingRevocationsOpenedResponseDtoDataDepartment
   firstPlacementRestored?: boolean
+  revocationsWithdrawn?: OffboardingRevocationsOpenedResponseDtoDataRevocationsWithdrawn
   priorWorkState: OffboardingRevocationsOpenedResponseDtoDataPriorWorkState
   departureEffectiveOn: string
   /** @nullable */
-  grounds: OffboardingRevocationsOpenedResponseDtoDataGrounds
+  groundsNote: string | null
   /** @nullable */
   headSuccessor: OffboardingRevocationsOpenedResponseDtoDataHeadSuccessor
   /** @nullable */
@@ -65,6 +69,10 @@ export type OffboardingRevocationsOpenedResponseDtoData = {
   cancellation: OffboardingRevocationsOpenedResponseDtoDataCancellation
   /** @nullable */
   accountLock: OffboardingRevocationsOpenedResponseDtoDataAccountLock
+  /** @nullable */
+  mailboxLock: OffboardingRevocationsOpenedResponseDtoDataMailboxLock
+  /** @nullable */
+  itHandover: OffboardingRevocationsOpenedResponseDtoDataItHandover
   /** @nullable */
   closure: OffboardingRevocationsOpenedResponseDtoDataClosure
   /** @nullable */

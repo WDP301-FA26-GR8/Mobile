@@ -5,6 +5,7 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { DevicePageResponseDtoDataItemsItemCollection } from './devicePageResponseDtoDataItemsItemCollection'
 import type { DevicePageResponseDtoDataItemsItemHolder } from './devicePageResponseDtoDataItemsItemHolder'
 import type { DevicePageResponseDtoDataItemsItemState } from './devicePageResponseDtoDataItemsItemState'
 
@@ -23,6 +24,7 @@ export type DevicePageResponseDtoDataItemsItem = {
    */
   registeredFrom: string | null
   state: DevicePageResponseDtoDataItemsItemState
+  collection: DevicePageResponseDtoDataItemsItemCollection
   signatureRecorded: boolean
   /** @nullable */
   retiredAt: string | null

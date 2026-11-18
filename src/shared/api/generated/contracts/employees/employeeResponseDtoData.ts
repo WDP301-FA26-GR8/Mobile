@@ -21,6 +21,8 @@ export type EmployeeResponseDtoData = {
   workEmail: string | null
   employmentType: EmployeeResponseDtoDataEmploymentType
   hireDate: string
+  /** @nullable */
+  contractEndDate: string | null
   status: EmployeeResponseDtoDataStatus
   workState: EmployeeResponseDtoDataWorkState
   /** @nullable */

@@ -11,6 +11,7 @@ type SessionContextValue = {
   restoreFailed: boolean
   login(email: string, password: string): Promise<void>
   logout(): Promise<void>
+  endLocally(): Promise<void>
   read<T>(operation: (accessToken: string) => Promise<T>): Promise<T>
   write<T>(operation: (accessToken: string) => Promise<T>): Promise<T>
 }
@@ -62,6 +63,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
           setState('authenticated')
         },
         logout: () => session.logout(),
+        endLocally: () => session.endLocally(),
         read: (operation) => session.read(operation),
         write: (operation) => session.write(operation)
       }}

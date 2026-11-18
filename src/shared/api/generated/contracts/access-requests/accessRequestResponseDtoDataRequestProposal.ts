@@ -19,4 +19,6 @@ export type AccessRequestResponseDtoDataRequestProposal = {
    * @exclusiveMinimum 0
    */
   expectedUsers: number
+  /** @nullable */
+  existingApplicationId: string | null
 } | null

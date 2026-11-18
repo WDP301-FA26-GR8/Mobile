@@ -9,7 +9,6 @@ import type { InternalRegistrationBodyDtoDataSensitivity } from './internalRegis
 import type { InternalRegistrationBodyDtoSpend } from './internalRegistrationBodyDtoSpend'
 
 export interface InternalRegistrationBodyDto {
-  businessOwnerEmployeeId: string
   /**
    * @minLength 1
    * @maxLength 200

@@ -27,7 +27,9 @@ import type {
   LicenseKeyImport201,
   LicenseKeyList200,
   LicenseKeyListParams,
-  LicenseKeyReveal200
+  LicenseKeyReveal200,
+  LicenseKeyWithdraw200,
+  WithdrawalBodyDto
 } from '../../contracts'
 
 import { env } from '@/shared/config/env'
@@ -408,6 +410,11 @@ export type licenseKeyRevealResponse404 = {
   status: 404
 }
 
+export type licenseKeyRevealResponse409 = {
+  data: ErrorEnvelopeDto
+  status: 409
+}
+
 export type licenseKeyRevealResponse422 = {
   data: ErrorEnvelopeDto
   status: 422
@@ -430,6 +437,7 @@ export type licenseKeyRevealResponseError = (
   | licenseKeyRevealResponse401
   | licenseKeyRevealResponse403
   | licenseKeyRevealResponse404
+  | licenseKeyRevealResponse409
   | licenseKeyRevealResponse422
   | licenseKeyRevealResponse429
   | licenseKeyRevealResponse503
@@ -504,4 +512,174 @@ export const useLicenseKeyReveal = <
   queryClient?: QueryClient
 ): UseMutationResult<Awaited<ReturnType<typeof licenseKeyReveal>>, TError, { id: string }, TContext> => {
   return useMutation(getLicenseKeyRevealMutationOptions(options), queryClient)
+}
+export type licenseKeyWithdrawResponse200 = {
+  data: LicenseKeyWithdraw200
+  status: 200
+}
+
+export type licenseKeyWithdrawResponse400 = {
+  data: ErrorEnvelopeDto
+  status: 400
+}
+
+export type licenseKeyWithdrawResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type licenseKeyWithdrawResponse403 = {
+  data: ErrorEnvelopeDto
+  status: 403
+}
+
+export type licenseKeyWithdrawResponse404 = {
+  data: ErrorEnvelopeDto
+  status: 404
+}
+
+export type licenseKeyWithdrawResponse409 = {
+  data: ErrorEnvelopeDto
+  status: 409
+}
+
+export type licenseKeyWithdrawResponse413 = {
+  data: ErrorEnvelopeDto
+  status: 413
+}
+
+export type licenseKeyWithdrawResponse415 = {
+  data: ErrorEnvelopeDto
+  status: 415
+}
+
+export type licenseKeyWithdrawResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type licenseKeyWithdrawResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type licenseKeyWithdrawResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type licenseKeyWithdrawResponseSuccess = licenseKeyWithdrawResponse200 & {
+  headers: Headers
+}
+export type licenseKeyWithdrawResponseError = (
+  | licenseKeyWithdrawResponse400
+  | licenseKeyWithdrawResponse401
+  | licenseKeyWithdrawResponse403
+  | licenseKeyWithdrawResponse404
+  | licenseKeyWithdrawResponse409
+  | licenseKeyWithdrawResponse413
+  | licenseKeyWithdrawResponse415
+  | licenseKeyWithdrawResponse422
+  | licenseKeyWithdrawResponse429
+  | licenseKeyWithdrawResponse503
+) & {
+  headers: Headers
+}
+
+export const getLicenseKeyWithdrawUrl = (id: string) => {
+  return `${env.API_BASE_URL}/api/v1/license-keys/${id}/withdrawal`
+}
+
+/**
+ * @summary Withdraw a free license key from the store, with a reason
+ */
+export const licenseKeyWithdraw = async (
+  id: string,
+  withdrawalBodyDto: WithdrawalBodyDto,
+  options?: RequestInit
+): Promise<licenseKeyWithdrawResponseSuccess> => {
+  const res = await fetch(getLicenseKeyWithdrawUrl(id), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(withdrawalBodyDto)
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: licenseKeyWithdrawResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: licenseKeyWithdrawResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: licenseKeyWithdrawResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as licenseKeyWithdrawResponseSuccess
+}
+
+export const getLicenseKeyWithdrawMutationOptions = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof licenseKeyWithdraw>>,
+    TError,
+    { id: string; data: WithdrawalBodyDto },
+    TContext
+  >
+  fetch?: RequestInit
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof licenseKeyWithdraw>>,
+  TError,
+  { id: string; data: WithdrawalBodyDto },
+  TContext
+> => {
+  const mutationKey = ['licenseKeyWithdraw']
+  const { mutation: mutationOptions, fetch: fetchOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, fetch: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof licenseKeyWithdraw>>,
+    { id: string; data: WithdrawalBodyDto }
+  > = (props) => {
+    const { id, data } = props ?? {}
+
+    return licenseKeyWithdraw(id, data, fetchOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type LicenseKeyWithdrawMutationResult = NonNullable<Awaited<ReturnType<typeof licenseKeyWithdraw>>>
+export type LicenseKeyWithdrawMutationBody = WithdrawalBodyDto
+export type LicenseKeyWithdrawMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+/**
+ * @summary Withdraw a free license key from the store, with a reason
+ */
+export const useLicenseKeyWithdraw = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof licenseKeyWithdraw>>,
+      TError,
+      { id: string; data: WithdrawalBodyDto },
+      TContext
+    >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof licenseKeyWithdraw>>,
+  TError,
+  { id: string; data: WithdrawalBodyDto },
+  TContext
+> => {
+  return useMutation(getLicenseKeyWithdrawMutationOptions(options), queryClient)
 }

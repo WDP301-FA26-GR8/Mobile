@@ -7,6 +7,7 @@
  */
 import type { SaasIssueResponseDtoDataAssignedItAdmin } from './saasIssueResponseDtoDataAssignedItAdmin'
 import type { SaasIssueResponseDtoDataCategory } from './saasIssueResponseDtoDataCategory'
+import type { SaasIssueResponseDtoDataDepartment } from './saasIssueResponseDtoDataDepartment'
 import type { SaasIssueResponseDtoDataDuplicateOf } from './saasIssueResponseDtoDataDuplicateOf'
 import type { SaasIssueResponseDtoDataImpact } from './saasIssueResponseDtoDataImpact'
 import type { SaasIssueResponseDtoDataLinkedWork } from './saasIssueResponseDtoDataLinkedWork'
@@ -25,7 +26,11 @@ export type SaasIssueResponseDtoData = {
   impact: SaasIssueResponseDtoDataImpact
   assignmentId: string
   plan: SaasIssueResponseDtoDataPlan
+  /** @maxLength 120 */
+  title: string
   reporter: SaasIssueResponseDtoDataReporter
+  /** @nullable */
+  department: SaasIssueResponseDtoDataDepartment
   assignedItAdmin: SaasIssueResponseDtoDataAssignedItAdmin
   responseDueOn: string
   overdue: boolean

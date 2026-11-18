@@ -12,7 +12,7 @@ export function useLiveRequests(view: 'open' | 'ended', page: number) {
     queryFn: ({ signal }) =>
       session.read(async (token) => {
         const result = await meAccessRequestList(
-          { view, page, pageSize: 20 },
+          { view, involvement: 'ALL', page, pageSize: 20 },
           { signal, headers: { Authorization: `Bearer ${token}` } }
         )
         if (!result.data.data) throw new Error('Missing request list')
@@ -29,8 +29,17 @@ export function useLiveRequest(requestId: string) {
     queryFn: ({ signal }) =>
       session.read(async (token) => {
         const result = await accessRequestGet(requestId, { signal, headers: { Authorization: `Bearer ${token}` } })
-        if (!result.data.data) throw new Error('Missing request details')
-        return result.data.data
+        const data = result.data.data
+        if (
+          !data ||
+          ('request' in data && 'draft' in data) ||
+          ('request' in data && data.request?.id !== requestId) ||
+          ('draft' in data && data.draft?.id !== requestId) ||
+          (!('request' in data) && !('draft' in data))
+        ) {
+          throw new Error('Missing or inconsistent request details')
+        }
+        return data
       })
   })
 }

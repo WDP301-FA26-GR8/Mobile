@@ -9,7 +9,6 @@ import { faker } from '@faker-js/faker'
 
 import type {
   BudgetProposalGet200,
-  BudgetProposalLineList200,
   BudgetProposalList200,
   BudgetProposalResubmit201,
   BudgetProposalReturn200,
@@ -17,11 +16,7 @@ import type {
   BudgetProposalWithdraw200
 } from '../../contracts'
 
-import {
-  getProposalLinePageResponseDtoResponseMock,
-  getProposalPageResponseDtoResponseMock,
-  getProposalResponseDtoResponseMock
-} from '../../contracts/index.faker'
+import { getProposalPageResponseDtoResponseMock, getProposalResponseDtoResponseMock } from '../../contracts/index.faker'
 
 export const getBudgetProposalSubmitResponseMock = (): BudgetProposalSubmit201 => ({
   ...{ ...getProposalResponseDtoResponseMock() },
@@ -35,11 +30,6 @@ export const getBudgetProposalListResponseMock = (): BudgetProposalList200 => ({
 
 export const getBudgetProposalGetResponseMock = (): BudgetProposalGet200 => ({
   ...{ ...getProposalResponseDtoResponseMock() },
-  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
-})
-
-export const getBudgetProposalLineListResponseMock = (): BudgetProposalLineList200 => ({
-  ...{ ...getProposalLinePageResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 

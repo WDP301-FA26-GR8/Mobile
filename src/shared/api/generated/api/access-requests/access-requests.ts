@@ -26,6 +26,8 @@ import type {
   AccessRequestAssessmentGet200,
   AccessRequestAssessmentReject200,
   AccessRequestAssessmentSave200,
+  AccessRequestAuditFlagList200,
+  AccessRequestAuditFlagListParams,
   AccessRequestCancelForDeparture200,
   AccessRequestCatalogLink200,
   AccessRequestDraftDelete200,
@@ -33,26 +35,36 @@ import type {
   AccessRequestDraftListParams,
   AccessRequestDraftSave201,
   AccessRequestDraftSubmit201,
+  AccessRequestEventList200,
+  AccessRequestEventListParams,
   AccessRequestGet200,
   AccessRequestInternalRegister200,
+  AccessRequestList200,
+  AccessRequestListParams,
   AccessRequestNeedDecide200,
   AccessRequestPreview200,
   AccessRequestPropose201,
   AccessRequestRenewalSubmit201,
-  AccessRequestServiceAccountReview200,
-  AccessRequestServiceAccountSubmit201,
+  AccessRequestResubmit200,
   AccessRequestSimilarSeatList200,
   AccessRequestSimilarSeatListParams,
   AccessRequestSubmit201,
   AccessRequestTimingsGet200,
   AccessRequestWithdraw200,
+  AssessmentCompletionBodyDto,
+  AssessmentDecisionList200,
+  AssessmentDecisionListParams,
   AssessmentPatchDto,
+  AssessmentQueueDepartmentList200,
+  AssessmentQueueDepartmentListParams,
   AssessmentQueueList200,
   AssessmentQueueListParams,
   AssessmentRejectionBodyDto,
   AugmentedZodDto,
   CancelBodyDto,
   CatalogLinkBodyDto,
+  DepartmentAccessRequestList200,
+  DepartmentAccessRequestListParams,
   DraftSubmitBodyDto,
   ErrorEnvelopeDto,
   InternalRegistrationBodyDto,
@@ -60,8 +72,6 @@ import type {
   PreviewBodyDto,
   ProposalBodyDto,
   RenewalBodyDto,
-  ServiceAccountReviewBodyDto,
-  ServiceAccountSubmitBodyDto,
   SubmitBodyDto,
   WithdrawBodyDto
 } from '../../contracts'
@@ -900,6 +910,194 @@ export const useAccessRequestSubmit = <
 ): UseMutationResult<Awaited<ReturnType<typeof accessRequestSubmit>>, TError, { data: SubmitBodyDto }, TContext> => {
   return useMutation(getAccessRequestSubmitMutationOptions(options), queryClient)
 }
+export type accessRequestListResponse200 = {
+  data: AccessRequestList200
+  status: 200
+}
+
+export type accessRequestListResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type accessRequestListResponse403 = {
+  data: ErrorEnvelopeDto
+  status: 403
+}
+
+export type accessRequestListResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type accessRequestListResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type accessRequestListResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type accessRequestListResponseSuccess = accessRequestListResponse200 & {
+  headers: Headers
+}
+export type accessRequestListResponseError = (
+  | accessRequestListResponse401
+  | accessRequestListResponse403
+  | accessRequestListResponse422
+  | accessRequestListResponse429
+  | accessRequestListResponse503
+) & {
+  headers: Headers
+}
+
+export const getAccessRequestListUrl = (params?: AccessRequestListParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `${env.API_BASE_URL}/api/v1/access-requests?${stringifiedParams}`
+    : `${env.API_BASE_URL}/api/v1/access-requests`
+}
+
+/**
+ * @summary List the requests my role oversees
+ */
+export const accessRequestList = async (
+  params?: AccessRequestListParams,
+  options?: RequestInit
+): Promise<accessRequestListResponseSuccess> => {
+  const res = await fetch(getAccessRequestListUrl(params), {
+    ...options,
+    method: 'GET'
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: accessRequestListResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: accessRequestListResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: accessRequestListResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as accessRequestListResponseSuccess
+}
+
+export const getAccessRequestListQueryKey = (params?: AccessRequestListParams) => {
+  return [`${env.API_BASE_URL}/api/v1/access-requests`, ...(params ? [params] : [])] as const
+}
+
+export const getAccessRequestListQueryOptions = <
+  TData = Awaited<ReturnType<typeof accessRequestList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: AccessRequestListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessRequestList>>, TError, TData>>
+    fetch?: RequestInit
+  }
+) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAccessRequestListQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof accessRequestList>>> = ({ signal }) =>
+    accessRequestList(params, { signal, ...fetchOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof accessRequestList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AccessRequestListQueryResult = NonNullable<Awaited<ReturnType<typeof accessRequestList>>>
+export type AccessRequestListQueryError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+export function useAccessRequestList<
+  TData = Awaited<ReturnType<typeof accessRequestList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params: undefined | AccessRequestListParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessRequestList>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof accessRequestList>>,
+          TError,
+          Awaited<ReturnType<typeof accessRequestList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAccessRequestList<
+  TData = Awaited<ReturnType<typeof accessRequestList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: AccessRequestListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessRequestList>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof accessRequestList>>,
+          TError,
+          Awaited<ReturnType<typeof accessRequestList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAccessRequestList<
+  TData = Awaited<ReturnType<typeof accessRequestList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: AccessRequestListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessRequestList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List the requests my role oversees
+ */
+
+export function useAccessRequestList<
+  TData = Awaited<ReturnType<typeof accessRequestList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: AccessRequestListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessRequestList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAccessRequestListQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
 export type accessRequestPreviewResponse200 = {
   data: AccessRequestPreview200
   status: 200
@@ -1056,6 +1254,132 @@ export const useAccessRequestPreview = <
   queryClient?: QueryClient
 ): UseMutationResult<Awaited<ReturnType<typeof accessRequestPreview>>, TError, { data: PreviewBodyDto }, TContext> => {
   return useMutation(getAccessRequestPreviewMutationOptions(options), queryClient)
+}
+export type accessRequestResubmitResponse200 = {
+  data: AccessRequestResubmit200
+  status: 200
+}
+
+export type accessRequestResubmitResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type accessRequestResubmitResponse403 = {
+  data: ErrorEnvelopeDto
+  status: 403
+}
+
+export type accessRequestResubmitResponse404 = {
+  data: ErrorEnvelopeDto
+  status: 404
+}
+
+export type accessRequestResubmitResponse409 = {
+  data: ErrorEnvelopeDto
+  status: 409
+}
+
+export type accessRequestResubmitResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type accessRequestResubmitResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type accessRequestResubmitResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type accessRequestResubmitResponseSuccess = accessRequestResubmitResponse200 & {
+  headers: Headers
+}
+export type accessRequestResubmitResponseError = (
+  | accessRequestResubmitResponse401
+  | accessRequestResubmitResponse403
+  | accessRequestResubmitResponse404
+  | accessRequestResubmitResponse409
+  | accessRequestResubmitResponse422
+  | accessRequestResubmitResponse429
+  | accessRequestResubmitResponse503
+) & {
+  headers: Headers
+}
+
+export const getAccessRequestResubmitUrl = (id: string) => {
+  return `${env.API_BASE_URL}/api/v1/access-requests/${id}/resubmission`
+}
+
+/**
+ * @summary Send a revised one-step request again
+ */
+export const accessRequestResubmit = async (
+  id: string,
+  options?: RequestInit
+): Promise<accessRequestResubmitResponseSuccess> => {
+  const res = await fetch(getAccessRequestResubmitUrl(id), {
+    ...options,
+    method: 'POST'
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: accessRequestResubmitResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: accessRequestResubmitResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: accessRequestResubmitResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as accessRequestResubmitResponseSuccess
+}
+
+export const getAccessRequestResubmitMutationOptions = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof accessRequestResubmit>>, TError, { id: string }, TContext>
+  fetch?: RequestInit
+}): UseMutationOptions<Awaited<ReturnType<typeof accessRequestResubmit>>, TError, { id: string }, TContext> => {
+  const mutationKey = ['accessRequestResubmit']
+  const { mutation: mutationOptions, fetch: fetchOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, fetch: undefined }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof accessRequestResubmit>>, { id: string }> = (props) => {
+    const { id } = props ?? {}
+
+    return accessRequestResubmit(id, fetchOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AccessRequestResubmitMutationResult = NonNullable<Awaited<ReturnType<typeof accessRequestResubmit>>>
+
+export type AccessRequestResubmitMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+/**
+ * @summary Send a revised one-step request again
+ */
+export const useAccessRequestResubmit = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(
+  options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof accessRequestResubmit>>, TError, { id: string }, TContext>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseMutationResult<Awaited<ReturnType<typeof accessRequestResubmit>>, TError, { id: string }, TContext> => {
+  return useMutation(getAccessRequestResubmitMutationOptions(options), queryClient)
 }
 export type accessRequestGetResponse200 = {
   data: AccessRequestGet200
@@ -1478,7 +1802,7 @@ export const getAccessRequestWithdrawUrl = (id: string) => {
 }
 
 /**
- * @summary Withdraw a request that is still waiting
+ * @summary Withdraw a request nobody has decided yet
  */
 export const accessRequestWithdraw = async (
   id: string,
@@ -1546,7 +1870,7 @@ export type AccessRequestWithdrawMutationBody = WithdrawBodyDto
 export type AccessRequestWithdrawMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
 
 /**
- * @summary Withdraw a request that is still waiting
+ * @summary Withdraw a request nobody has decided yet
  */
 export const useAccessRequestWithdraw = <
   TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
@@ -2457,6 +2781,11 @@ export type accessRequestAssessmentCompleteResponse200 = {
   status: 200
 }
 
+export type accessRequestAssessmentCompleteResponse400 = {
+  data: ErrorEnvelopeDto
+  status: 400
+}
+
 export type accessRequestAssessmentCompleteResponse401 = {
   data: ErrorEnvelopeDto
   status: 401
@@ -2475,6 +2804,16 @@ export type accessRequestAssessmentCompleteResponse404 = {
 export type accessRequestAssessmentCompleteResponse409 = {
   data: ErrorEnvelopeDto
   status: 409
+}
+
+export type accessRequestAssessmentCompleteResponse413 = {
+  data: ErrorEnvelopeDto
+  status: 413
+}
+
+export type accessRequestAssessmentCompleteResponse415 = {
+  data: ErrorEnvelopeDto
+  status: 415
 }
 
 export type accessRequestAssessmentCompleteResponse422 = {
@@ -2496,10 +2835,13 @@ export type accessRequestAssessmentCompleteResponseSuccess = accessRequestAssess
   headers: Headers
 }
 export type accessRequestAssessmentCompleteResponseError = (
+  | accessRequestAssessmentCompleteResponse400
   | accessRequestAssessmentCompleteResponse401
   | accessRequestAssessmentCompleteResponse403
   | accessRequestAssessmentCompleteResponse404
   | accessRequestAssessmentCompleteResponse409
+  | accessRequestAssessmentCompleteResponse413
+  | accessRequestAssessmentCompleteResponse415
   | accessRequestAssessmentCompleteResponse422
   | accessRequestAssessmentCompleteResponse429
   | accessRequestAssessmentCompleteResponse503
@@ -2516,11 +2858,14 @@ export const getAccessRequestAssessmentCompleteUrl = (id: string) => {
  */
 export const accessRequestAssessmentComplete = async (
   id: string,
+  assessmentCompletionBodyDto: AssessmentCompletionBodyDto,
   options?: RequestInit
 ): Promise<accessRequestAssessmentCompleteResponseSuccess> => {
   const res = await fetch(getAccessRequestAssessmentCompleteUrl(id), {
     ...options,
-    method: 'POST'
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(assessmentCompletionBodyDto)
   })
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text()
@@ -2543,14 +2888,14 @@ export const getAccessRequestAssessmentCompleteMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof accessRequestAssessmentComplete>>,
     TError,
-    { id: string },
+    { id: string; data: AssessmentCompletionBodyDto },
     TContext
   >
   fetch?: RequestInit
 }): UseMutationOptions<
   Awaited<ReturnType<typeof accessRequestAssessmentComplete>>,
   TError,
-  { id: string },
+  { id: string; data: AssessmentCompletionBodyDto },
   TContext
 > => {
   const mutationKey = ['accessRequestAssessmentComplete']
@@ -2560,12 +2905,13 @@ export const getAccessRequestAssessmentCompleteMutationOptions = <
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, fetch: undefined }
 
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof accessRequestAssessmentComplete>>, { id: string }> = (
-    props
-  ) => {
-    const { id } = props ?? {}
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof accessRequestAssessmentComplete>>,
+    { id: string; data: AssessmentCompletionBodyDto }
+  > = (props) => {
+    const { id, data } = props ?? {}
 
-    return accessRequestAssessmentComplete(id, fetchOptions)
+    return accessRequestAssessmentComplete(id, data, fetchOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -2574,7 +2920,7 @@ export const getAccessRequestAssessmentCompleteMutationOptions = <
 export type AccessRequestAssessmentCompleteMutationResult = NonNullable<
   Awaited<ReturnType<typeof accessRequestAssessmentComplete>>
 >
-
+export type AccessRequestAssessmentCompleteMutationBody = AssessmentCompletionBodyDto
 export type AccessRequestAssessmentCompleteMutationError = globalThis.Error & {
   info?: ErrorEnvelopeDto
   status?: number
@@ -2591,13 +2937,18 @@ export const useAccessRequestAssessmentComplete = <
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof accessRequestAssessmentComplete>>,
       TError,
-      { id: string },
+      { id: string; data: AssessmentCompletionBodyDto },
       TContext
     >
     fetch?: RequestInit
   },
   queryClient?: QueryClient
-): UseMutationResult<Awaited<ReturnType<typeof accessRequestAssessmentComplete>>, TError, { id: string }, TContext> => {
+): UseMutationResult<
+  Awaited<ReturnType<typeof accessRequestAssessmentComplete>>,
+  TError,
+  { id: string; data: AssessmentCompletionBodyDto },
+  TContext
+> => {
   return useMutation(getAccessRequestAssessmentCompleteMutationOptions(options), queryClient)
 }
 export type accessRequestAssessmentRejectResponse200 = {
@@ -2678,7 +3029,7 @@ export const getAccessRequestAssessmentRejectUrl = (id: string) => {
 }
 
 /**
- * @summary Refuse a proposal at the gate
+ * @summary Refuse a proposal at the gate, or send it back to its sender
  */
 export const accessRequestAssessmentReject = async (
   id: string,
@@ -2748,7 +3099,7 @@ export type AccessRequestAssessmentRejectMutationBody = AssessmentRejectionBodyD
 export type AccessRequestAssessmentRejectMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
 
 /**
- * @summary Refuse a proposal at the gate
+ * @summary Refuse a proposal at the gate, or send it back to its sender
  */
 export const useAccessRequestAssessmentReject = <
   TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
@@ -3302,355 +3653,384 @@ export function useAssessmentQueueList<
   return withQueryKey(query, queryOptions.queryKey)
 }
 
-export type accessRequestServiceAccountSubmitResponse201 = {
-  data: AccessRequestServiceAccountSubmit201
-  status: 201
-}
-
-export type accessRequestServiceAccountSubmitResponse400 = {
-  data: ErrorEnvelopeDto
-  status: 400
-}
-
-export type accessRequestServiceAccountSubmitResponse401 = {
-  data: ErrorEnvelopeDto
-  status: 401
-}
-
-export type accessRequestServiceAccountSubmitResponse403 = {
-  data: ErrorEnvelopeDto
-  status: 403
-}
-
-export type accessRequestServiceAccountSubmitResponse404 = {
-  data: ErrorEnvelopeDto
-  status: 404
-}
-
-export type accessRequestServiceAccountSubmitResponse409 = {
-  data: ErrorEnvelopeDto
-  status: 409
-}
-
-export type accessRequestServiceAccountSubmitResponse413 = {
-  data: ErrorEnvelopeDto
-  status: 413
-}
-
-export type accessRequestServiceAccountSubmitResponse415 = {
-  data: ErrorEnvelopeDto
-  status: 415
-}
-
-export type accessRequestServiceAccountSubmitResponse422 = {
-  data: ErrorEnvelopeDto
-  status: 422
-}
-
-export type accessRequestServiceAccountSubmitResponse429 = {
-  data: ErrorEnvelopeDto
-  status: 429
-}
-
-export type accessRequestServiceAccountSubmitResponse503 = {
-  data: ErrorEnvelopeDto
-  status: 503
-}
-
-export type accessRequestServiceAccountSubmitResponseSuccess = accessRequestServiceAccountSubmitResponse201 & {
-  headers: Headers
-}
-export type accessRequestServiceAccountSubmitResponseError = (
-  | accessRequestServiceAccountSubmitResponse400
-  | accessRequestServiceAccountSubmitResponse401
-  | accessRequestServiceAccountSubmitResponse403
-  | accessRequestServiceAccountSubmitResponse404
-  | accessRequestServiceAccountSubmitResponse409
-  | accessRequestServiceAccountSubmitResponse413
-  | accessRequestServiceAccountSubmitResponse415
-  | accessRequestServiceAccountSubmitResponse422
-  | accessRequestServiceAccountSubmitResponse429
-  | accessRequestServiceAccountSubmitResponse503
-) & {
-  headers: Headers
-}
-
-export const getAccessRequestServiceAccountSubmitUrl = () => {
-  return `${env.API_BASE_URL}/api/v1/access-requests/service-accounts`
-}
-
-/**
- * @summary Send a request for a service account
- */
-export const accessRequestServiceAccountSubmit = async (
-  serviceAccountSubmitBodyDto: ServiceAccountSubmitBodyDto,
-  options?: RequestInit
-): Promise<accessRequestServiceAccountSubmitResponseSuccess> => {
-  const res = await fetch(getAccessRequestServiceAccountSubmitUrl(), {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(serviceAccountSubmitBodyDto)
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  if (!res.ok) {
-    const err: globalThis.Error & { info?: accessRequestServiceAccountSubmitResponseError['data']; status?: number } =
-      new globalThis.Error()
-    const data: accessRequestServiceAccountSubmitResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data
-    err.status = res.status
-    throw err
-  }
-  const data: accessRequestServiceAccountSubmitResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as accessRequestServiceAccountSubmitResponseSuccess
-}
-
-export const getAccessRequestServiceAccountSubmitMutationOptions = <
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
-  TContext = unknown
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof accessRequestServiceAccountSubmit>>,
-    TError,
-    { data: ServiceAccountSubmitBodyDto },
-    TContext
-  >
-  fetch?: RequestInit
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof accessRequestServiceAccountSubmit>>,
-  TError,
-  { data: ServiceAccountSubmitBodyDto },
-  TContext
-> => {
-  const mutationKey = ['accessRequestServiceAccountSubmit']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof accessRequestServiceAccountSubmit>>,
-    { data: ServiceAccountSubmitBodyDto }
-  > = (props) => {
-    const { data } = props ?? {}
-
-    return accessRequestServiceAccountSubmit(data, fetchOptions)
-  }
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type AccessRequestServiceAccountSubmitMutationResult = NonNullable<
-  Awaited<ReturnType<typeof accessRequestServiceAccountSubmit>>
->
-export type AccessRequestServiceAccountSubmitMutationBody = ServiceAccountSubmitBodyDto
-export type AccessRequestServiceAccountSubmitMutationError = globalThis.Error & {
-  info?: ErrorEnvelopeDto
-  status?: number
-}
-
-/**
- * @summary Send a request for a service account
- */
-export const useAccessRequestServiceAccountSubmit = <
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
-  TContext = unknown
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof accessRequestServiceAccountSubmit>>,
-      TError,
-      { data: ServiceAccountSubmitBodyDto },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof accessRequestServiceAccountSubmit>>,
-  TError,
-  { data: ServiceAccountSubmitBodyDto },
-  TContext
-> => {
-  return useMutation(getAccessRequestServiceAccountSubmitMutationOptions(options), queryClient)
-}
-export type accessRequestServiceAccountReviewResponse200 = {
-  data: AccessRequestServiceAccountReview200
+export type assessmentQueueDepartmentListResponse200 = {
+  data: AssessmentQueueDepartmentList200
   status: 200
 }
 
-export type accessRequestServiceAccountReviewResponse400 = {
-  data: ErrorEnvelopeDto
-  status: 400
-}
-
-export type accessRequestServiceAccountReviewResponse401 = {
+export type assessmentQueueDepartmentListResponse401 = {
   data: ErrorEnvelopeDto
   status: 401
 }
 
-export type accessRequestServiceAccountReviewResponse403 = {
+export type assessmentQueueDepartmentListResponse403 = {
   data: ErrorEnvelopeDto
   status: 403
 }
 
-export type accessRequestServiceAccountReviewResponse404 = {
-  data: ErrorEnvelopeDto
-  status: 404
-}
-
-export type accessRequestServiceAccountReviewResponse409 = {
-  data: ErrorEnvelopeDto
-  status: 409
-}
-
-export type accessRequestServiceAccountReviewResponse413 = {
-  data: ErrorEnvelopeDto
-  status: 413
-}
-
-export type accessRequestServiceAccountReviewResponse415 = {
-  data: ErrorEnvelopeDto
-  status: 415
-}
-
-export type accessRequestServiceAccountReviewResponse422 = {
+export type assessmentQueueDepartmentListResponse422 = {
   data: ErrorEnvelopeDto
   status: 422
 }
 
-export type accessRequestServiceAccountReviewResponse429 = {
+export type assessmentQueueDepartmentListResponse429 = {
   data: ErrorEnvelopeDto
   status: 429
 }
 
-export type accessRequestServiceAccountReviewResponse503 = {
+export type assessmentQueueDepartmentListResponse503 = {
   data: ErrorEnvelopeDto
   status: 503
 }
 
-export type accessRequestServiceAccountReviewResponseSuccess = accessRequestServiceAccountReviewResponse200 & {
+export type assessmentQueueDepartmentListResponseSuccess = assessmentQueueDepartmentListResponse200 & {
   headers: Headers
 }
-export type accessRequestServiceAccountReviewResponseError = (
-  | accessRequestServiceAccountReviewResponse400
-  | accessRequestServiceAccountReviewResponse401
-  | accessRequestServiceAccountReviewResponse403
-  | accessRequestServiceAccountReviewResponse404
-  | accessRequestServiceAccountReviewResponse409
-  | accessRequestServiceAccountReviewResponse413
-  | accessRequestServiceAccountReviewResponse415
-  | accessRequestServiceAccountReviewResponse422
-  | accessRequestServiceAccountReviewResponse429
-  | accessRequestServiceAccountReviewResponse503
+export type assessmentQueueDepartmentListResponseError = (
+  | assessmentQueueDepartmentListResponse401
+  | assessmentQueueDepartmentListResponse403
+  | assessmentQueueDepartmentListResponse422
+  | assessmentQueueDepartmentListResponse429
+  | assessmentQueueDepartmentListResponse503
 ) & {
   headers: Headers
 }
 
-export const getAccessRequestServiceAccountReviewUrl = (id: string) => {
-  return `${env.API_BASE_URL}/api/v1/access-requests/${id}/service-account-review`
+export const getAssessmentQueueDepartmentListUrl = (params?: AssessmentQueueDepartmentListParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `${env.API_BASE_URL}/api/v1/assessment-queue/departments?${stringifiedParams}`
+    : `${env.API_BASE_URL}/api/v1/assessment-queue/departments`
 }
 
 /**
- * @summary Accept or refuse the boundary of a service account
+ * @summary Count the proposals waiting for IT assessment by department
  */
-export const accessRequestServiceAccountReview = async (
-  id: string,
-  serviceAccountReviewBodyDto: ServiceAccountReviewBodyDto,
+export const assessmentQueueDepartmentList = async (
+  params?: AssessmentQueueDepartmentListParams,
   options?: RequestInit
-): Promise<accessRequestServiceAccountReviewResponseSuccess> => {
-  const res = await fetch(getAccessRequestServiceAccountReviewUrl(id), {
+): Promise<assessmentQueueDepartmentListResponseSuccess> => {
+  const res = await fetch(getAssessmentQueueDepartmentListUrl(params), {
     ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(serviceAccountReviewBodyDto)
+    method: 'GET'
   })
 
   const body = [204, 205, 304].includes(res.status) ? null : await res.text()
   if (!res.ok) {
-    const err: globalThis.Error & { info?: accessRequestServiceAccountReviewResponseError['data']; status?: number } =
+    const err: globalThis.Error & { info?: assessmentQueueDepartmentListResponseError['data']; status?: number } =
       new globalThis.Error()
-    const data: accessRequestServiceAccountReviewResponseError['data'] = body ? JSON.parse(body) : {}
+    const data: assessmentQueueDepartmentListResponseError['data'] = body ? JSON.parse(body) : {}
     err.info = data
     err.status = res.status
     throw err
   }
-  const data: accessRequestServiceAccountReviewResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as accessRequestServiceAccountReviewResponseSuccess
+  const data: assessmentQueueDepartmentListResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as assessmentQueueDepartmentListResponseSuccess
 }
 
-export const getAccessRequestServiceAccountReviewMutationOptions = <
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
-  TContext = unknown
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof accessRequestServiceAccountReview>>,
-    TError,
-    { id: string; data: ServiceAccountReviewBodyDto },
-    TContext
-  >
-  fetch?: RequestInit
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof accessRequestServiceAccountReview>>,
-  TError,
-  { id: string; data: ServiceAccountReviewBodyDto },
-  TContext
-> => {
-  const mutationKey = ['accessRequestServiceAccountReview']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof accessRequestServiceAccountReview>>,
-    { id: string; data: ServiceAccountReviewBodyDto }
-  > = (props) => {
-    const { id, data } = props ?? {}
-
-    return accessRequestServiceAccountReview(id, data, fetchOptions)
-  }
-
-  return { mutationFn, ...mutationOptions }
+export const getAssessmentQueueDepartmentListQueryKey = (params?: AssessmentQueueDepartmentListParams) => {
+  return [`${env.API_BASE_URL}/api/v1/assessment-queue/departments`, ...(params ? [params] : [])] as const
 }
 
-export type AccessRequestServiceAccountReviewMutationResult = NonNullable<
-  Awaited<ReturnType<typeof accessRequestServiceAccountReview>>
->
-export type AccessRequestServiceAccountReviewMutationBody = ServiceAccountReviewBodyDto
-export type AccessRequestServiceAccountReviewMutationError = globalThis.Error & {
-  info?: ErrorEnvelopeDto
-  status?: number
-}
-
-/**
- * @summary Accept or refuse the boundary of a service account
- */
-export const useAccessRequestServiceAccountReview = <
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
-  TContext = unknown
+export const getAssessmentQueueDepartmentListQueryOptions = <
+  TData = Awaited<ReturnType<typeof assessmentQueueDepartmentList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
 >(
+  params?: AssessmentQueueDepartmentListParams,
   options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof accessRequestServiceAccountReview>>,
-      TError,
-      { id: string; data: ServiceAccountReviewBodyDto },
-      TContext
-    >
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assessmentQueueDepartmentList>>, TError, TData>>
+    fetch?: RequestInit
+  }
+) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssessmentQueueDepartmentListQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assessmentQueueDepartmentList>>> = ({ signal }) =>
+    assessmentQueueDepartmentList(params, { signal, ...fetchOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assessmentQueueDepartmentList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AssessmentQueueDepartmentListQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assessmentQueueDepartmentList>>
+>
+export type AssessmentQueueDepartmentListQueryError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+export function useAssessmentQueueDepartmentList<
+  TData = Awaited<ReturnType<typeof assessmentQueueDepartmentList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params: undefined | AssessmentQueueDepartmentListParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assessmentQueueDepartmentList>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof assessmentQueueDepartmentList>>,
+          TError,
+          Awaited<ReturnType<typeof assessmentQueueDepartmentList>>
+        >,
+        'initialData'
+      >
     fetch?: RequestInit
   },
   queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof accessRequestServiceAccountReview>>,
-  TError,
-  { id: string; data: ServiceAccountReviewBodyDto },
-  TContext
-> => {
-  return useMutation(getAccessRequestServiceAccountReviewMutationOptions(options), queryClient)
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAssessmentQueueDepartmentList<
+  TData = Awaited<ReturnType<typeof assessmentQueueDepartmentList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: AssessmentQueueDepartmentListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assessmentQueueDepartmentList>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof assessmentQueueDepartmentList>>,
+          TError,
+          Awaited<ReturnType<typeof assessmentQueueDepartmentList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAssessmentQueueDepartmentList<
+  TData = Awaited<ReturnType<typeof assessmentQueueDepartmentList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: AssessmentQueueDepartmentListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assessmentQueueDepartmentList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Count the proposals waiting for IT assessment by department
+ */
+
+export function useAssessmentQueueDepartmentList<
+  TData = Awaited<ReturnType<typeof assessmentQueueDepartmentList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: AssessmentQueueDepartmentListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assessmentQueueDepartmentList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAssessmentQueueDepartmentListQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
 }
+
+export type assessmentDecisionListResponse200 = {
+  data: AssessmentDecisionList200
+  status: 200
+}
+
+export type assessmentDecisionListResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type assessmentDecisionListResponse403 = {
+  data: ErrorEnvelopeDto
+  status: 403
+}
+
+export type assessmentDecisionListResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type assessmentDecisionListResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type assessmentDecisionListResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type assessmentDecisionListResponseSuccess = assessmentDecisionListResponse200 & {
+  headers: Headers
+}
+export type assessmentDecisionListResponseError = (
+  | assessmentDecisionListResponse401
+  | assessmentDecisionListResponse403
+  | assessmentDecisionListResponse422
+  | assessmentDecisionListResponse429
+  | assessmentDecisionListResponse503
+) & {
+  headers: Headers
+}
+
+export const getAssessmentDecisionListUrl = (params?: AssessmentDecisionListParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `${env.API_BASE_URL}/api/v1/assessment-decisions?${stringifiedParams}`
+    : `${env.API_BASE_URL}/api/v1/assessment-decisions`
+}
+
+/**
+ * @summary List the assessments IT has decided
+ */
+export const assessmentDecisionList = async (
+  params?: AssessmentDecisionListParams,
+  options?: RequestInit
+): Promise<assessmentDecisionListResponseSuccess> => {
+  const res = await fetch(getAssessmentDecisionListUrl(params), {
+    ...options,
+    method: 'GET'
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: assessmentDecisionListResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: assessmentDecisionListResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: assessmentDecisionListResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as assessmentDecisionListResponseSuccess
+}
+
+export const getAssessmentDecisionListQueryKey = (params?: AssessmentDecisionListParams) => {
+  return [`${env.API_BASE_URL}/api/v1/assessment-decisions`, ...(params ? [params] : [])] as const
+}
+
+export const getAssessmentDecisionListQueryOptions = <
+  TData = Awaited<ReturnType<typeof assessmentDecisionList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: AssessmentDecisionListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assessmentDecisionList>>, TError, TData>>
+    fetch?: RequestInit
+  }
+) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssessmentDecisionListQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assessmentDecisionList>>> = ({ signal }) =>
+    assessmentDecisionList(params, { signal, ...fetchOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assessmentDecisionList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AssessmentDecisionListQueryResult = NonNullable<Awaited<ReturnType<typeof assessmentDecisionList>>>
+export type AssessmentDecisionListQueryError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+export function useAssessmentDecisionList<
+  TData = Awaited<ReturnType<typeof assessmentDecisionList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params: undefined | AssessmentDecisionListParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof assessmentDecisionList>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof assessmentDecisionList>>,
+          TError,
+          Awaited<ReturnType<typeof assessmentDecisionList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAssessmentDecisionList<
+  TData = Awaited<ReturnType<typeof assessmentDecisionList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: AssessmentDecisionListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assessmentDecisionList>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof assessmentDecisionList>>,
+          TError,
+          Awaited<ReturnType<typeof assessmentDecisionList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAssessmentDecisionList<
+  TData = Awaited<ReturnType<typeof assessmentDecisionList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: AssessmentDecisionListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assessmentDecisionList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List the assessments IT has decided
+ */
+
+export function useAssessmentDecisionList<
+  TData = Awaited<ReturnType<typeof assessmentDecisionList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: AssessmentDecisionListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof assessmentDecisionList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAssessmentDecisionListQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
 export type accessRequestRenewalSubmitResponse201 = {
   data: AccessRequestRenewalSubmit201
   status: 201
@@ -3990,6 +4370,590 @@ export function useAccessRequestTimingsGet<
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
   const queryOptions = getAccessRequestTimingsGetQueryOptions(id, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+export type departmentAccessRequestListResponse200 = {
+  data: DepartmentAccessRequestList200
+  status: 200
+}
+
+export type departmentAccessRequestListResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type departmentAccessRequestListResponse403 = {
+  data: ErrorEnvelopeDto
+  status: 403
+}
+
+export type departmentAccessRequestListResponse404 = {
+  data: ErrorEnvelopeDto
+  status: 404
+}
+
+export type departmentAccessRequestListResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type departmentAccessRequestListResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type departmentAccessRequestListResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type departmentAccessRequestListResponseSuccess = departmentAccessRequestListResponse200 & {
+  headers: Headers
+}
+export type departmentAccessRequestListResponseError = (
+  | departmentAccessRequestListResponse401
+  | departmentAccessRequestListResponse403
+  | departmentAccessRequestListResponse404
+  | departmentAccessRequestListResponse422
+  | departmentAccessRequestListResponse429
+  | departmentAccessRequestListResponse503
+) & {
+  headers: Headers
+}
+
+export const getDepartmentAccessRequestListUrl = (id: string, params?: DepartmentAccessRequestListParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `${env.API_BASE_URL}/api/v1/departments/${id}/access-requests?${stringifiedParams}`
+    : `${env.API_BASE_URL}/api/v1/departments/${id}/access-requests`
+}
+
+/**
+ * @summary List the requests of the department I head
+ */
+export const departmentAccessRequestList = async (
+  id: string,
+  params?: DepartmentAccessRequestListParams,
+  options?: RequestInit
+): Promise<departmentAccessRequestListResponseSuccess> => {
+  const res = await fetch(getDepartmentAccessRequestListUrl(id, params), {
+    ...options,
+    method: 'GET'
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: departmentAccessRequestListResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: departmentAccessRequestListResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: departmentAccessRequestListResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as departmentAccessRequestListResponseSuccess
+}
+
+export const getDepartmentAccessRequestListQueryKey = (id: string, params?: DepartmentAccessRequestListParams) => {
+  return [`${env.API_BASE_URL}/api/v1/departments/${id}/access-requests`, ...(params ? [params] : [])] as const
+}
+
+export const getDepartmentAccessRequestListQueryOptions = <
+  TData = Awaited<ReturnType<typeof departmentAccessRequestList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  id: string,
+  params?: DepartmentAccessRequestListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof departmentAccessRequestList>>, TError, TData>>
+    fetch?: RequestInit
+  }
+) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getDepartmentAccessRequestListQueryKey(id, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof departmentAccessRequestList>>> = ({ signal }) =>
+    departmentAccessRequestList(id, params, { signal, ...fetchOptions })
+
+  return { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof departmentAccessRequestList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type DepartmentAccessRequestListQueryResult = NonNullable<
+  Awaited<ReturnType<typeof departmentAccessRequestList>>
+>
+export type DepartmentAccessRequestListQueryError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+export function useDepartmentAccessRequestList<
+  TData = Awaited<ReturnType<typeof departmentAccessRequestList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  id: string,
+  params: undefined | DepartmentAccessRequestListParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof departmentAccessRequestList>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof departmentAccessRequestList>>,
+          TError,
+          Awaited<ReturnType<typeof departmentAccessRequestList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDepartmentAccessRequestList<
+  TData = Awaited<ReturnType<typeof departmentAccessRequestList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  id: string,
+  params?: DepartmentAccessRequestListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof departmentAccessRequestList>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof departmentAccessRequestList>>,
+          TError,
+          Awaited<ReturnType<typeof departmentAccessRequestList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useDepartmentAccessRequestList<
+  TData = Awaited<ReturnType<typeof departmentAccessRequestList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  id: string,
+  params?: DepartmentAccessRequestListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof departmentAccessRequestList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List the requests of the department I head
+ */
+
+export function useDepartmentAccessRequestList<
+  TData = Awaited<ReturnType<typeof departmentAccessRequestList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  id: string,
+  params?: DepartmentAccessRequestListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof departmentAccessRequestList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getDepartmentAccessRequestListQueryOptions(id, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+export type accessRequestEventListResponse200 = {
+  data: AccessRequestEventList200
+  status: 200
+}
+
+export type accessRequestEventListResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type accessRequestEventListResponse404 = {
+  data: ErrorEnvelopeDto
+  status: 404
+}
+
+export type accessRequestEventListResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type accessRequestEventListResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type accessRequestEventListResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type accessRequestEventListResponseSuccess = accessRequestEventListResponse200 & {
+  headers: Headers
+}
+export type accessRequestEventListResponseError = (
+  | accessRequestEventListResponse401
+  | accessRequestEventListResponse404
+  | accessRequestEventListResponse422
+  | accessRequestEventListResponse429
+  | accessRequestEventListResponse503
+) & {
+  headers: Headers
+}
+
+export const getAccessRequestEventListUrl = (id: string, params?: AccessRequestEventListParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `${env.API_BASE_URL}/api/v1/access-requests/${id}/events?${stringifiedParams}`
+    : `${env.API_BASE_URL}/api/v1/access-requests/${id}/events`
+}
+
+/**
+ * @summary List what happened to a request
+ */
+export const accessRequestEventList = async (
+  id: string,
+  params?: AccessRequestEventListParams,
+  options?: RequestInit
+): Promise<accessRequestEventListResponseSuccess> => {
+  const res = await fetch(getAccessRequestEventListUrl(id, params), {
+    ...options,
+    method: 'GET'
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: accessRequestEventListResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: accessRequestEventListResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: accessRequestEventListResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as accessRequestEventListResponseSuccess
+}
+
+export const getAccessRequestEventListQueryKey = (id: string, params?: AccessRequestEventListParams) => {
+  return [`${env.API_BASE_URL}/api/v1/access-requests/${id}/events`, ...(params ? [params] : [])] as const
+}
+
+export const getAccessRequestEventListQueryOptions = <
+  TData = Awaited<ReturnType<typeof accessRequestEventList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  id: string,
+  params?: AccessRequestEventListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessRequestEventList>>, TError, TData>>
+    fetch?: RequestInit
+  }
+) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAccessRequestEventListQueryKey(id, params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof accessRequestEventList>>> = ({ signal }) =>
+    accessRequestEventList(id, params, { signal, ...fetchOptions })
+
+  return { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof accessRequestEventList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AccessRequestEventListQueryResult = NonNullable<Awaited<ReturnType<typeof accessRequestEventList>>>
+export type AccessRequestEventListQueryError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+export function useAccessRequestEventList<
+  TData = Awaited<ReturnType<typeof accessRequestEventList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  id: string,
+  params: undefined | AccessRequestEventListParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessRequestEventList>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof accessRequestEventList>>,
+          TError,
+          Awaited<ReturnType<typeof accessRequestEventList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAccessRequestEventList<
+  TData = Awaited<ReturnType<typeof accessRequestEventList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  id: string,
+  params?: AccessRequestEventListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessRequestEventList>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof accessRequestEventList>>,
+          TError,
+          Awaited<ReturnType<typeof accessRequestEventList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAccessRequestEventList<
+  TData = Awaited<ReturnType<typeof accessRequestEventList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  id: string,
+  params?: AccessRequestEventListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessRequestEventList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List what happened to a request
+ */
+
+export function useAccessRequestEventList<
+  TData = Awaited<ReturnType<typeof accessRequestEventList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  id: string,
+  params?: AccessRequestEventListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessRequestEventList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAccessRequestEventListQueryOptions(id, params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
+export type accessRequestAuditFlagListResponse200 = {
+  data: AccessRequestAuditFlagList200
+  status: 200
+}
+
+export type accessRequestAuditFlagListResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type accessRequestAuditFlagListResponse403 = {
+  data: ErrorEnvelopeDto
+  status: 403
+}
+
+export type accessRequestAuditFlagListResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type accessRequestAuditFlagListResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type accessRequestAuditFlagListResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type accessRequestAuditFlagListResponseSuccess = accessRequestAuditFlagListResponse200 & {
+  headers: Headers
+}
+export type accessRequestAuditFlagListResponseError = (
+  | accessRequestAuditFlagListResponse401
+  | accessRequestAuditFlagListResponse403
+  | accessRequestAuditFlagListResponse422
+  | accessRequestAuditFlagListResponse429
+  | accessRequestAuditFlagListResponse503
+) & {
+  headers: Headers
+}
+
+export const getAccessRequestAuditFlagListUrl = (params?: AccessRequestAuditFlagListParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `${env.API_BASE_URL}/api/v1/access-request-audit-flags?${stringifiedParams}`
+    : `${env.API_BASE_URL}/api/v1/access-request-audit-flags`
+}
+
+/**
+ * @summary List the requests flagged for the audit report
+ */
+export const accessRequestAuditFlagList = async (
+  params?: AccessRequestAuditFlagListParams,
+  options?: RequestInit
+): Promise<accessRequestAuditFlagListResponseSuccess> => {
+  const res = await fetch(getAccessRequestAuditFlagListUrl(params), {
+    ...options,
+    method: 'GET'
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: accessRequestAuditFlagListResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: accessRequestAuditFlagListResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: accessRequestAuditFlagListResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as accessRequestAuditFlagListResponseSuccess
+}
+
+export const getAccessRequestAuditFlagListQueryKey = (params?: AccessRequestAuditFlagListParams) => {
+  return [`${env.API_BASE_URL}/api/v1/access-request-audit-flags`, ...(params ? [params] : [])] as const
+}
+
+export const getAccessRequestAuditFlagListQueryOptions = <
+  TData = Awaited<ReturnType<typeof accessRequestAuditFlagList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: AccessRequestAuditFlagListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessRequestAuditFlagList>>, TError, TData>>
+    fetch?: RequestInit
+  }
+) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAccessRequestAuditFlagListQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof accessRequestAuditFlagList>>> = ({ signal }) =>
+    accessRequestAuditFlagList(params, { signal, ...fetchOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof accessRequestAuditFlagList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type AccessRequestAuditFlagListQueryResult = NonNullable<Awaited<ReturnType<typeof accessRequestAuditFlagList>>>
+export type AccessRequestAuditFlagListQueryError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+export function useAccessRequestAuditFlagList<
+  TData = Awaited<ReturnType<typeof accessRequestAuditFlagList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params: undefined | AccessRequestAuditFlagListParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessRequestAuditFlagList>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof accessRequestAuditFlagList>>,
+          TError,
+          Awaited<ReturnType<typeof accessRequestAuditFlagList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAccessRequestAuditFlagList<
+  TData = Awaited<ReturnType<typeof accessRequestAuditFlagList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: AccessRequestAuditFlagListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessRequestAuditFlagList>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof accessRequestAuditFlagList>>,
+          TError,
+          Awaited<ReturnType<typeof accessRequestAuditFlagList>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useAccessRequestAuditFlagList<
+  TData = Awaited<ReturnType<typeof accessRequestAuditFlagList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: AccessRequestAuditFlagListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessRequestAuditFlagList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List the requests flagged for the audit report
+ */
+
+export function useAccessRequestAuditFlagList<
+  TData = Awaited<ReturnType<typeof accessRequestAuditFlagList>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params?: AccessRequestAuditFlagListParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof accessRequestAuditFlagList>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getAccessRequestAuditFlagListQueryOptions(params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>

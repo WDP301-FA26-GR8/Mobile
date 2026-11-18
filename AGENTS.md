@@ -5,7 +5,8 @@ in this repository. Read `ARCHITECTURE.md` before changing structure or data flo
 
 ## Product scope
 
-- BRD 3.53 includes a native iOS/Android companion for four tasks: an employee's
+- The mobile scope (BRD v4.13, QĐ-61b, EP-16, `mobile-api-map.md` in the Docs repo) is a native
+  iOS/Android companion for four tasks: an employee's
   software and simple requests, manager need approval, spending approval, and an
   in-app inbox. The web client remains the full capability surface.
 - Mobile shares backend business rules, authorization, and separation of duties.
@@ -171,7 +172,7 @@ new authored code must not be placed there. See `ARCHITECTURE.md` for full examp
 ## AI workflow
 
 1. Read this file and `ARCHITECTURE.md`.
-2. Confirm the request fits the four mobile tasks in BRD 3.53; flag web-only
+2. Confirm the request fits the four mobile tasks (BRD v4.13 / QĐ-61b); flag web-only
    workflows and API contracts that have not been supplied yet.
 3. Inspect the closest route, feature public entry, generated API surface, and test.
    Search before inventing a new pattern.

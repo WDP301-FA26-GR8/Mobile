@@ -10,5 +10,6 @@ export type NeedDecisionBodyDtoDecision = (typeof NeedDecisionBodyDtoDecision)[k
 
 export const NeedDecisionBodyDtoDecision = {
   APPROVE: 'APPROVE',
-  REJECT: 'REJECT'
+  REJECT: 'REJECT',
+  RETURN: 'RETURN'
 } as const

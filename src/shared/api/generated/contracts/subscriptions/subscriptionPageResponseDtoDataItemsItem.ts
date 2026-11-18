@@ -7,24 +7,34 @@
  */
 import type { SubscriptionPageResponseDtoDataItemsItemAlerts } from './subscriptionPageResponseDtoDataItemsItemAlerts'
 import type { SubscriptionPageResponseDtoDataItemsItemBillingCycle } from './subscriptionPageResponseDtoDataItemsItemBillingCycle'
+import type { SubscriptionPageResponseDtoDataItemsItemCommitmentTermMonths } from './subscriptionPageResponseDtoDataItemsItemCommitmentTermMonths'
+import type { SubscriptionPageResponseDtoDataItemsItemDeadlineKind } from './subscriptionPageResponseDtoDataItemsItemDeadlineKind'
+import type { SubscriptionPageResponseDtoDataItemsItemExpiry } from './subscriptionPageResponseDtoDataItemsItemExpiry'
 import type { SubscriptionPageResponseDtoDataItemsItemKind } from './subscriptionPageResponseDtoDataItemsItemKind'
 import type { SubscriptionPageResponseDtoDataItemsItemMissingItem } from './subscriptionPageResponseDtoDataItemsItemMissingItem'
 import type { SubscriptionPageResponseDtoDataItemsItemNoticeDeadline } from './subscriptionPageResponseDtoDataItemsItemNoticeDeadline'
-import type { SubscriptionPageResponseDtoDataItemsItemPriceSnapshot } from './subscriptionPageResponseDtoDataItemsItemPriceSnapshot'
+import type { SubscriptionPageResponseDtoDataItemsItemOriginalPrice } from './subscriptionPageResponseDtoDataItemsItemOriginalPrice'
+import type { SubscriptionPageResponseDtoDataItemsItemResponsibleItAdmin } from './subscriptionPageResponseDtoDataItemsItemResponsibleItAdmin'
+import type { SubscriptionPageResponseDtoDataItemsItemSeats } from './subscriptionPageResponseDtoDataItemsItemSeats'
 import type { SubscriptionPageResponseDtoDataItemsItemStatus } from './subscriptionPageResponseDtoDataItemsItemStatus'
 import type { SubscriptionPageResponseDtoDataItemsItemTaxEstimate } from './subscriptionPageResponseDtoDataItemsItemTaxEstimate'
 import type { SubscriptionPageResponseDtoDataItemsItemTaxProfile } from './subscriptionPageResponseDtoDataItemsItemTaxProfile'
 import type { SubscriptionPageResponseDtoDataItemsItemUnitPrice } from './subscriptionPageResponseDtoDataItemsItemUnitPrice'
 import type { SubscriptionPageResponseDtoDataItemsItemVendor } from './subscriptionPageResponseDtoDataItemsItemVendor'
+import type { SubscriptionPageResponseDtoDataItemsItemVendorAdminsItem } from './subscriptionPageResponseDtoDataItemsItemVendorAdminsItem'
 import type { SubscriptionPageResponseDtoDataItemsItemWarningsItem } from './subscriptionPageResponseDtoDataItemsItemWarningsItem'
 
 export type SubscriptionPageResponseDtoDataItemsItem = {
   id: string
   planId: string
   planName: string
-  ownerDepartmentId: string
   applicationId: string
   applicationName: string
+  /**
+   * The https link to the logo image of the application that the IT Admin pasted, or null. The server never checks it: it may be broken, so show the first letter of the name when the image does not load.
+   * @nullable
+   */
+  logoUrl: string | null
   vendor: SubscriptionPageResponseDtoDataItemsItemVendor
   kind: SubscriptionPageResponseDtoDataItemsItemKind
   status: SubscriptionPageResponseDtoDataItemsItemStatus
@@ -39,9 +49,12 @@ export type SubscriptionPageResponseDtoDataItemsItem = {
   /** @nullable */
   unitPrice: SubscriptionPageResponseDtoDataItemsItemUnitPrice
   /** @nullable */
-  priceSnapshot: SubscriptionPageResponseDtoDataItemsItemPriceSnapshot
+  originalPrice: SubscriptionPageResponseDtoDataItemsItemOriginalPrice
   /** @nullable */
   billingCycle: SubscriptionPageResponseDtoDataItemsItemBillingCycle
+  commitmentTermMonths:
+    | (typeof SubscriptionPageResponseDtoDataItemsItemCommitmentTermMonths)[keyof typeof SubscriptionPageResponseDtoDataItemsItemCommitmentTermMonths]
+    | null
   /** @nullable */
   startDate: string | null
   /** @nullable */
@@ -56,9 +69,54 @@ export type SubscriptionPageResponseDtoDataItemsItem = {
   noticePeriodDays: number | null
   autoRenew: boolean
   allowsMidTermReduction: boolean
+  /** @nullable */
+  responsibleItAdminEmployeeId: string | null
+  /**
+   * The IT Admin who answers for the subscription, by name; null when none is named.
+   * @nullable
+   */
+  responsibleItAdmin: SubscriptionPageResponseDtoDataItemsItemResponsibleItAdmin
+  /**
+   * @minimum -9007199254740991
+   * @maximum 9007199254740991
+   * @nullable
+   */
+  vendorMinimumSeats: number | null
+  isPrimaryForPlan: boolean
+  /**
+   * SOON from the point of adjustment to the last day of the period (a plan by the year stays SOON past its deadline to cancel); EXPIRED the day after the last day of the period (the renewal day, else the end day; for a plan by the month that does not renew itself, its end day) while seats are still held; null before the point, for a purchase made once and when no date is known to count from.
+   * @nullable
+   */
+  expiry: SubscriptionPageResponseDtoDataItemsItemExpiry
+  /**
+   * The days from today to the deadline the point counts to; negative once it is past while the period still runs (a plan by the year after its deadline to cancel); once EXPIRED it counts from the last day of the period instead, and deadlineKind says which; null when there is no point.
+   * @minimum -9007199254740991
+   * @maximum 9007199254740991
+   * @nullable
+   */
+  daysLeft: number | null
+  /**
+   * What daysLeft counts to: the next payment day of a plan by the month; by the year, the deadline to cancel, else the renewal day, else the end day; once EXPIRED, the last day of the period it counts from (the renewal day or the end day; the payment day of a plan by the month that ends; the deadline itself when no later day is known).
+   * @nullable
+   */
+  deadlineKind: SubscriptionPageResponseDtoDataItemsItemDeadlineKind
+  /**
+   * The seats of the shared pool of a K2 plan: bought, taken by an assignment from today on, free to grant, and held by a right being taken back. Null for any other kind of plan.
+   * @nullable
+   */
+  seats: SubscriptionPageResponseDtoDataItemsItemSeats
   noticeDeadline: SubscriptionPageResponseDtoDataItemsItemNoticeDeadline
   alerts: SubscriptionPageResponseDtoDataItemsItemAlerts
   warnings: SubscriptionPageResponseDtoDataItemsItemWarningsItem[]
+  mergeCandidateIds: string[]
+  /** @maxItems 20 */
+  vendorAdmins: SubscriptionPageResponseDtoDataItemsItemVendorAdminsItem[]
+  /** @nullable */
+  ownerAccountEmail: string | null
+  /** @nullable */
+  adminNote: string | null
+  vendorAdminsBelowMinimum: boolean
+  ownerAccountEmailMissing: boolean
   taxProfile: SubscriptionPageResponseDtoDataItemsItemTaxProfile
   /** @nullable */
   taxEstimate: SubscriptionPageResponseDtoDataItemsItemTaxEstimate

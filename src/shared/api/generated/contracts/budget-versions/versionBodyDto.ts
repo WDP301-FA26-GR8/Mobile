@@ -5,19 +5,60 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
-import type { VersionBodyDtoBase } from './versionBodyDtoBase'
-import type { VersionBodyDtoQuarters } from './versionBodyDtoQuarters'
-import type { VersionBodyDtoReserve } from './versionBodyDtoReserve'
 
-export interface VersionBodyDto {
-  proposalId: string
-  base: VersionBodyDtoBase
-  reserve?: VersionBodyDtoReserve
-  /**
-   * @minLength 1
-   * @maxLength 1000
-   */
-  reserveReason?: string
-  /** @nullable */
-  quarters?: VersionBodyDtoQuarters
-}
+export type VersionBodyDto =
+  | {
+      source?: 'PROPOSAL'
+      proposalId: string
+      /** The base of the year. Left out, it is filled in with what the Cost Center carries into the year (carriedOverNextYear). */
+      base?: {
+        /** @maxLength 40 */
+        amount: string
+      }
+      /** The reserve as an amount; not with reservePercent. An amount that is not the default share of the base asks a reason when the version is sent. */
+      reserve?: {
+        /** @maxLength 40 */
+        amount: string
+      }
+      /**
+       * The reserve as a share of the base, in whole percent; not with reserve. The default share when neither is given. A share that is not the default asks reserveReason when the version is sent.
+       * @minimum 0
+       * @maximum 100
+       */
+      reservePercent?: number
+      /**
+       * @minLength 1
+       * @maxLength 1000
+       */
+      reserveReason?: string
+    }
+  | {
+      source: 'BASELINE'
+      costCenterId: string
+      /**
+       * @minimum 2000
+       * @maximum 2200
+       */
+      year: number
+      /** The base of the year. Left out, it is filled in with what the Cost Center carries into the year (carriedOverNextYear). */
+      base?: {
+        /** @maxLength 40 */
+        amount: string
+      }
+      /** The reserve as an amount; not with reservePercent. An amount that is not the default share of the base asks a reason when the version is sent. */
+      reserve?: {
+        /** @maxLength 40 */
+        amount: string
+      }
+      /**
+       * The reserve as a share of the base, in whole percent; not with reserve. The default share when neither is given. A share that is not the default asks reserveReason when the version is sent.
+       * @minimum 0
+       * @maximum 100
+       */
+      reservePercent?: number
+      /**
+       * @minLength 1
+       * @maxLength 1000
+       */
+      reserveReason?: string
+    }

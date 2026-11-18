@@ -7,11 +7,11 @@
  */
 import { faker } from '@faker-js/faker'
 
-import type { LicenseAssignmentChangeResponsible200, LicenseAssignmentList200 } from '../../contracts'
+import type { LicenseAssignmentList200, LicenseAssignmentSetMachineAccount200 } from '../../contracts'
 
 import {
   getAssignmentPageResponseDtoResponseMock,
-  getResponsibleChangeResponseDtoResponseMock
+  getMachineAccountResponseDtoResponseMock
 } from '../../contracts/index.faker'
 
 export const getLicenseAssignmentListResponseMock = (): LicenseAssignmentList200 => ({
@@ -19,7 +19,7 @@ export const getLicenseAssignmentListResponseMock = (): LicenseAssignmentList200
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 
-export const getLicenseAssignmentChangeResponsibleResponseMock = (): LicenseAssignmentChangeResponsible200 => ({
-  ...{ ...getResponsibleChangeResponseDtoResponseMock() },
+export const getLicenseAssignmentSetMachineAccountResponseMock = (): LicenseAssignmentSetMachineAccount200 => ({
+  ...{ ...getMachineAccountResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })

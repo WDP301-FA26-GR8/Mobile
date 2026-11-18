@@ -14,5 +14,6 @@ export const MyRequestsPageResponseDtoDataItemsItemNeedStepState = {
   WAITING: 'WAITING',
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED',
-  CLOSED: 'CLOSED'
+  CLOSED: 'CLOSED',
+  NOT_REQUIRED: 'NOT_REQUIRED'
 } as const

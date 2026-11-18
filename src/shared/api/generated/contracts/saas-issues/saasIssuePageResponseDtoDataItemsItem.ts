@@ -7,6 +7,7 @@
  */
 import type { SaasIssuePageResponseDtoDataItemsItemAssignedItAdmin } from './saasIssuePageResponseDtoDataItemsItemAssignedItAdmin'
 import type { SaasIssuePageResponseDtoDataItemsItemCategory } from './saasIssuePageResponseDtoDataItemsItemCategory'
+import type { SaasIssuePageResponseDtoDataItemsItemDepartment } from './saasIssuePageResponseDtoDataItemsItemDepartment'
 import type { SaasIssuePageResponseDtoDataItemsItemImpact } from './saasIssuePageResponseDtoDataItemsItemImpact'
 import type { SaasIssuePageResponseDtoDataItemsItemPlan } from './saasIssuePageResponseDtoDataItemsItemPlan'
 import type { SaasIssuePageResponseDtoDataItemsItemReporter } from './saasIssuePageResponseDtoDataItemsItemReporter'
@@ -20,7 +21,11 @@ export type SaasIssuePageResponseDtoDataItemsItem = {
   impact: SaasIssuePageResponseDtoDataItemsItemImpact
   assignmentId: string
   plan: SaasIssuePageResponseDtoDataItemsItemPlan
+  /** @maxLength 120 */
+  title: string
   reporter: SaasIssuePageResponseDtoDataItemsItemReporter
+  /** @nullable */
+  department: SaasIssuePageResponseDtoDataItemsItemDepartment
   assignedItAdmin: SaasIssuePageResponseDtoDataItemsItemAssignedItAdmin
   responseDueOn: string
   overdue: boolean

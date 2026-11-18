@@ -5,6 +5,7 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { MeAccessRequestListInvolvement } from './meAccessRequestListInvolvement'
 import type { MeAccessRequestListType } from './meAccessRequestListType'
 import type { MeAccessRequestListView } from './meAccessRequestListView'
 
@@ -24,7 +25,7 @@ export type MeAccessRequestListParams = {
    */
   view?: MeAccessRequestListView
   /**
-   * One or more states of a request, comma-separated and none twice (for example PENDING,AWAITING_BUDGET); a draft is not a state of a request. Narrows within view when both are given.
+   * One or more states of a request, comma-separated and none twice (for example PENDING,AWAITING_SPEND_DECISION); a draft is not a state of a request. Narrows within view when both are given.
    * @maxLength 400
    */
   state?: string
@@ -37,4 +38,8 @@ export type MeAccessRequestListParams = {
    * The moment after the last one the request was sent that is read (excluded).
    */
   to?: string
+  /**
+   * SENT (the default): the requests the caller sent. FOR_ME: the requests the caller is one of the people for, a request for a group somebody else sent included. ALL: both.
+   */
+  involvement?: MeAccessRequestListInvolvement
 }

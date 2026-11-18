@@ -6,12 +6,13 @@
  * OpenAPI spec version: 1.0
  */
 import type { VersionResponseDtoDataVersionBase } from './versionResponseDtoDataVersionBase'
+import type { VersionResponseDtoDataVersionCarriedOverNextYear } from './versionResponseDtoDataVersionCarriedOverNextYear'
+import type { VersionResponseDtoDataVersionCarriedOverShortfall } from './versionResponseDtoDataVersionCarriedOverShortfall'
 import type { VersionResponseDtoDataVersionCostCenter } from './versionResponseDtoDataVersionCostCenter'
 import type { VersionResponseDtoDataVersionCreatedBy } from './versionResponseDtoDataVersionCreatedBy'
 import type { VersionResponseDtoDataVersionDecision } from './versionResponseDtoDataVersionDecision'
 import type { VersionResponseDtoDataVersionDefaultReserve } from './versionResponseDtoDataVersionDefaultReserve'
-import type { VersionResponseDtoDataVersionKind } from './versionResponseDtoDataVersionKind'
-import type { VersionResponseDtoDataVersionQuarters } from './versionResponseDtoDataVersionQuarters'
+import type { VersionResponseDtoDataVersionOrigin } from './versionResponseDtoDataVersionOrigin'
 import type { VersionResponseDtoDataVersionReserve } from './versionResponseDtoDataVersionReserve'
 import type { VersionResponseDtoDataVersionState } from './versionResponseDtoDataVersionState'
 import type { VersionResponseDtoDataVersionTotal } from './versionResponseDtoDataVersionTotal'
@@ -30,13 +31,15 @@ export type VersionResponseDtoDataVersion = {
    * @exclusiveMinimum 0
    */
   number: number
-  kind: VersionResponseDtoDataVersionKind
   state: VersionResponseDtoDataVersionState
   /** @nullable */
   proposalId: string | null
   /** @nullable */
   rejectedPredecessorId: string | null
   base: VersionResponseDtoDataVersionBase
+  /** @nullable */
+  baseReason: string | null
+  origin: VersionResponseDtoDataVersionOrigin
   reserve: VersionResponseDtoDataVersionReserve
   /**
    * @minimum -9007199254740991
@@ -50,9 +53,15 @@ export type VersionResponseDtoDataVersion = {
   reserveReason: string | null
   total: VersionResponseDtoDataVersionTotal
   /** @nullable */
-  quarters: VersionResponseDtoDataVersionQuarters
-  /** @nullable */
   reason: string | null
+  /** What the Cost Center carries into the year of the version: the amount the requests approved so far already saved for it (zero until the requests context tells it). */
+  carriedOverNextYear: VersionResponseDtoDataVersionCarriedOverNextYear
+  /** The red flag: the budget of the department, the base and the reserve together (total), is below carriedOverNextYear. It never stops a sending or a decision. */
+  belowCarriedOver: boolean
+  /** What the base and the reserve lack of carriedOverNextYear: zero when they cover it, the amount to tell with the red flag when they do not. */
+  carriedOverShortfall: VersionResponseDtoDataVersionCarriedOverShortfall
+  /** Finance built the version from the baseline because the department had no proposal at the deadline. */
+  noProposalSubmitted: boolean
   /** @nullable */
   waitingReason: VersionResponseDtoDataVersionWaitingReason
   /** @nullable */
