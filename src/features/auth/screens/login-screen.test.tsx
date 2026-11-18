@@ -4,6 +4,7 @@ import { LoginScreen } from '@/features/auth'
 import { setAppLanguage } from '@/shared/i18n/i18n'
 
 const mockReplace = jest.fn()
+const mockPush = jest.fn()
 const mockLogin = jest.fn()
 const mockSession = { state: 'anonymous', login: mockLogin, restoreFailed: false }
 const mockProfile = {
@@ -15,7 +16,7 @@ const mockProfile = {
   refetch: jest.fn()
 }
 
-jest.mock('expo-router', () => ({ useRouter: () => ({ replace: mockReplace }) }))
+jest.mock('expo-router', () => ({ useRouter: () => ({ replace: mockReplace, push: mockPush }) }))
 jest.mock('@/shared/api/session-context', () => ({ useSession: () => mockSession }))
 jest.mock('@/shared/api/use-account-profile', () => ({ useAccountProfile: () => mockProfile }))
 
@@ -35,7 +36,8 @@ test('requires credentials instead of opening demo data', async () => {
   screen.getByText('Vui lòng kiểm tra email và mật khẩu.')
   expect(mockLogin).not.toHaveBeenCalled()
   expect(mockReplace).not.toHaveBeenCalled()
-  screen.getByText('Đặt lại mật khẩu chưa có trên ứng dụng. Vui lòng sử dụng trang web.')
+  await fireEvent.press(screen.getByRole('button', { name: 'Quên mật khẩu?' }))
+  expect(mockPush).toHaveBeenCalledWith('/forgot-password')
 })
 
 test('submits the credentials and reports authentication failure', async () => {

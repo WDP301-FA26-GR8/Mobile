@@ -11,18 +11,20 @@ import { useMobileTheme } from '@/shared/theme/theme-provider'
 import { isNoDepartment, useRequestCatalog } from '../hooks/use-request-catalog'
 
 export function RequestCatalog({
+  initialApplication,
   onSelect,
   onSearchChange
 }: {
+  initialApplication?: { id: string; name: string }
   onSelect: (plan: RequestablePlanPageResponseDtoDataItemsItem) => void
   onSearchChange: (hasSearch: boolean) => void
 }) {
   const { t, i18n } = useTranslation()
   const { colors } = useMobileTheme()
   const styles = createStyles(colors)
-  const [mode, setMode] = useState<'department' | 'applications' | 'plans'>('department')
+  const [mode, setMode] = useState<'department' | 'applications' | 'plans'>(initialApplication ? 'plans' : 'department')
   const [origin, setOrigin] = useState<'department' | 'applications'>('department')
-  const [application, setApplication] = useState<{ id: string; name: string }>()
+  const [application, setApplication] = useState<{ id: string; name: string } | undefined>(initialApplication)
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const { department, applications, plans } = useRequestCatalog(mode, search.trim(), page, application?.id)

@@ -17,6 +17,7 @@ import type { GrantQueueResponseDtoDataItemsItemType } from './grantQueueRespons
 
 export type GrantQueueResponseDtoDataItemsItem = {
   requestId: string
+  /** SERVICE_ACCOUNT is on records of the earlier releases only: no request for a service account is made any more. */
   type: GrantQueueResponseDtoDataItemsItemType
   /**
    * @maximum 9007199254740991

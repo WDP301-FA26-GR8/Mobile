@@ -10,6 +10,7 @@ export type AccessRequestOrDraftResponseDtoData =
   | {
       request: {
         id: string
+        /** SERVICE_ACCOUNT is on records of the earlier releases only: no request for a service account is made any more. */
         type: 'GRANT' | 'SERVICE_ACCOUNT' | 'RENEWAL' | 'GROUP_GRANT'
         branch: 'INTERNAL_FREE' | 'PAID_IN_CATALOG' | 'NEW_SOFTWARE'
         state:

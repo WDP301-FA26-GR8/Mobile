@@ -12,5 +12,6 @@ export type SubscriptionRenewalResponseDtoDataRenewalSubscription = {
   planName: string
   applicationId: string
   applicationName: string
-  ownerDepartmentId: string
+  /** @nullable */
+  ownerDepartmentId: string | null
 }

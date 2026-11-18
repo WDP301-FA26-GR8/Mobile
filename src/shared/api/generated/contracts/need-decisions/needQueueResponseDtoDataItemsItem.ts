@@ -19,6 +19,7 @@ export type NeedQueueResponseDtoDataItemsItem = {
   stepId: string
   stepKind: NeedQueueResponseDtoDataItemsItemStepKind
   deciderRole: NeedQueueResponseDtoDataItemsItemDeciderRole
+  /** SERVICE_ACCOUNT is on records of the earlier releases only: no request for a service account is made any more. */
   type: NeedQueueResponseDtoDataItemsItemType
   openedAt: string
   /** @nullable */

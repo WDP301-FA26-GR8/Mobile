@@ -575,6 +575,11 @@ export type aiInvocationContentGetResponse404 = {
   status: 404
 }
 
+export type aiInvocationContentGetResponse409 = {
+  data: ErrorEnvelopeDto
+  status: 409
+}
+
 export type aiInvocationContentGetResponse422 = {
   data: ErrorEnvelopeDto
   status: 422
@@ -597,6 +602,7 @@ export type aiInvocationContentGetResponseError = (
   | aiInvocationContentGetResponse401
   | aiInvocationContentGetResponse403
   | aiInvocationContentGetResponse404
+  | aiInvocationContentGetResponse409
   | aiInvocationContentGetResponse422
   | aiInvocationContentGetResponse429
   | aiInvocationContentGetResponse503

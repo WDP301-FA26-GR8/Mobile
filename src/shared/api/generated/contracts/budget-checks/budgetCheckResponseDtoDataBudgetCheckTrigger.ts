@@ -6,6 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 
+/**
+ * PLAN_LINE_MOVED, BUDGET_VERSION_APPROVED and FINANCE_OUTCOME_WHILE_WAITING are on checks of the earlier releases only; they are not given any more.
+ */
 export type BudgetCheckResponseDtoDataBudgetCheckTrigger =
   (typeof BudgetCheckResponseDtoDataBudgetCheckTrigger)[keyof typeof BudgetCheckResponseDtoDataBudgetCheckTrigger]
 

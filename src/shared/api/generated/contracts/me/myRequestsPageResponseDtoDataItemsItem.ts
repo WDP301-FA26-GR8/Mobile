@@ -20,6 +20,7 @@ import type { MyRequestsPageResponseDtoDataItemsItemWithdrawal } from './myReque
 
 export type MyRequestsPageResponseDtoDataItemsItem = {
   id: string
+  /** SERVICE_ACCOUNT is on records of the earlier releases only: no request for a service account is made any more. */
   type: MyRequestsPageResponseDtoDataItemsItemType
   branch: MyRequestsPageResponseDtoDataItemsItemBranch
   state: MyRequestsPageResponseDtoDataItemsItemState

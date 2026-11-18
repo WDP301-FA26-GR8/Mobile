@@ -26,6 +26,7 @@ export type MyDevicePageResponseDtoDataItemsItem = {
    */
   acknowledgedVersionNumber: number | null
   signatureRecorded: boolean
+  stopRequestPending: boolean
   canAcknowledge: boolean
   /** @nullable */
   blockedReason: MyDevicePageResponseDtoDataItemsItemBlockedReason

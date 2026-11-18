@@ -29,6 +29,7 @@ import type { CatalogLinkResponseDtoDataRequestWithdrawal } from './catalogLinkR
 
 export type CatalogLinkResponseDtoDataRequest = {
   id: string
+  /** SERVICE_ACCOUNT is on records of the earlier releases only: no request for a service account is made any more. */
   type: CatalogLinkResponseDtoDataRequestType
   branch: CatalogLinkResponseDtoDataRequestBranch
   state: CatalogLinkResponseDtoDataRequestState

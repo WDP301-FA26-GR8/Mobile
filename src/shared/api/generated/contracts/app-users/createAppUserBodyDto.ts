@@ -9,7 +9,11 @@ import type { CreateAppUserBodyDtoRole } from './createAppUserBodyDtoRole'
 
 export interface CreateAppUserBodyDto {
   employeeId: string
-  /** @maxLength 254 */
+  /**
+   * Deprecated, to be removed: the account always logs in with the work email of the employee. Omit it. When sent, it must equal the work email (case aside), otherwise the answer is 422 APP_USER.LOGIN_EMAIL_NOT_WORK_EMAIL.
+   * @deprecated
+   * @maxLength 254
+   */
   loginEmail?: string
   role?: CreateAppUserBodyDtoRole
 }

@@ -29,6 +29,7 @@ import type { AccessRequestResponseDtoDataRequestWithdrawal } from './accessRequ
 
 export type AccessRequestResponseDtoDataRequest = {
   id: string
+  /** SERVICE_ACCOUNT is on records of the earlier releases only: no request for a service account is made any more. */
   type: AccessRequestResponseDtoDataRequestType
   branch: AccessRequestResponseDtoDataRequestBranch
   state: AccessRequestResponseDtoDataRequestState

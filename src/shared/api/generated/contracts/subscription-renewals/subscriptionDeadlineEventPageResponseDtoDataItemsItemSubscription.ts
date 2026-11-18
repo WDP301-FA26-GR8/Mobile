@@ -12,5 +12,6 @@ export type SubscriptionDeadlineEventPageResponseDtoDataItemsItemSubscription = 
   planName: string
   applicationId: string
   applicationName: string
-  ownerDepartmentId: string
+  /** @nullable */
+  ownerDepartmentId: string | null
 }

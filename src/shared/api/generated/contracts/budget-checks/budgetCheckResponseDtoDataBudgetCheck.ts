@@ -22,6 +22,7 @@ export type BudgetCheckResponseDtoDataBudgetCheck = {
    * @exclusiveMinimum 0
    */
   number: number
+  /** PLAN_LINE_MOVED, BUDGET_VERSION_APPROVED and FINANCE_OUTCOME_WHILE_WAITING are on checks of the earlier releases only; they are not given any more. */
   trigger: BudgetCheckResponseDtoDataBudgetCheckTrigger
   route: BudgetCheckResponseDtoDataBudgetCheckRoute
   outcome: BudgetCheckResponseDtoDataBudgetCheckOutcome

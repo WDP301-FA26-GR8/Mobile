@@ -178,7 +178,7 @@ test('shows unknown codes rather than inventing a notification meaning', async (
   const screen = await renderScreen()
   await screen.findByText('Thông báo mới')
   await fireEvent.press(screen.getByRole('button', { name: 'Mở thông báo: Thông báo mới' }))
-  await screen.findByText('Nội dung này chưa có trên ứng dụng. Vui lòng xem chi tiết trên web.')
+  await screen.findByText('Việc này chỉ thực hiện được trên web. Hãy mở ứng dụng web để tiếp tục.')
   expect(mockRouter.push).not.toHaveBeenCalled()
 })
 
@@ -268,7 +268,7 @@ test('does not open a malformed request id', async () => {
   const screen = await renderScreen()
   await screen.findByText('Đã cấp quyền sử dụng')
   await fireEvent.press(screen.getByRole('button', { name: 'Mở thông báo: Đã cấp quyền sử dụng' }))
-  await screen.findByText('Nội dung này chưa có trên ứng dụng. Vui lòng xem chi tiết trên web.')
+  await screen.findByText('Việc này chỉ thực hiện được trên web. Hãy mở ứng dụng web để tiếp tục.')
   expect(mockRouter.push).not.toHaveBeenCalled()
 })
 
@@ -298,7 +298,7 @@ test('does not open another employee’s expiry notification as personal softwar
   const screen = await renderScreen()
   await screen.findByText('Quyền phần mềm sắp hết hạn')
   await fireEvent.press(screen.getByRole('button', { name: 'Mở thông báo: Quyền phần mềm sắp hết hạn' }))
-  await screen.findByText('Nội dung này chưa có trên ứng dụng. Vui lòng xem chi tiết trên web.')
+  await screen.findByText('Việc này chỉ thực hiện được trên web. Hãy mở ứng dụng web để tiếp tục.')
   expect(mockRouter.push).not.toHaveBeenCalled()
 })
 

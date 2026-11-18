@@ -19,7 +19,7 @@ export type NeedDecisionListParams = {
    */
   pageSize?: number
   /**
-   * Only the requests of this kind: GRANT (one person), GROUP_GRANT (several people, decided line by line), RENEWAL (a right that is renewed) or SERVICE_ACCOUNT.
+   * Only the requests of this kind: GRANT (one person), GROUP_GRANT (several people, decided line by line), RENEWAL (a right that is renewed) or SERVICE_ACCOUNT (only on records of the earlier releases; no new request has it).
    */
   type?: NeedDecisionListType
 }

@@ -6,6 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 import type { SubscriptionRenewalProposeBodyDtoChoice } from './subscriptionRenewalProposeBodyDtoChoice'
+import type { SubscriptionRenewalProposeBodyDtoClosure } from './subscriptionRenewalProposeBodyDtoClosure'
+import type { SubscriptionRenewalProposeBodyDtoNextPeriod } from './subscriptionRenewalProposeBodyDtoNextPeriod'
+import type { SubscriptionRenewalProposeBodyDtoOutcome } from './subscriptionRenewalProposeBodyDtoOutcome'
 
 export interface SubscriptionRenewalProposeBodyDto {
   subscriptionId: string
@@ -20,6 +23,12 @@ export interface SubscriptionRenewalProposeBodyDto {
    * @maxLength 2000
    */
   note?: string
-  /** @maxItems 10000 */
-  releasedAssignmentIds?: string[]
+  outcome: SubscriptionRenewalProposeBodyDtoOutcome
+  /**
+   * @minLength 1
+   * @maxLength 2000
+   */
+  outcomeNote?: string
+  nextPeriod?: SubscriptionRenewalProposeBodyDtoNextPeriod
+  closure?: SubscriptionRenewalProposeBodyDtoClosure
 }

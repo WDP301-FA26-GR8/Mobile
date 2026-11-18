@@ -7,6 +7,7 @@
  */
 
 /**
+ * RETURNED_BY_FINANCE and CONFLICT_OF_INTEREST are on batches of the earlier releases only; they are not given any more.
  * @nullable
  */
 export type BatchItemListResponseDtoDataItemsItemLeftReason =

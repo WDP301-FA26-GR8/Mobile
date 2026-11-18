@@ -7,7 +7,7 @@
  */
 
 /**
- * NOT_REQUIRED: a month, or a Cost Center that is green, is not asked. PENDING: asked and waiting for the head of the department. EXPLAINED: the head explained. UNEXPLAINED: Finance signed the quarter before the head explained. NO_HEAD: Finance signed and the department had no head to ask (not held against it).
+ * NOT_REQUIRED: a month, or a Cost Center that is green, is not asked. PENDING: asked and waiting for the head of the department. EXPLAINED: the head explained. UNEXPLAINED: Finance signed the quarter before the head explained. NO_HEAD: the department had no head the day the quarter opened, so nobody is asked and the quarter does not wait for it (not held against it).
  */
 export type ReviewPeriodDetailResponseDtoDataItemsItemExplanationStatus =
   (typeof ReviewPeriodDetailResponseDtoDataItemsItemExplanationStatus)[keyof typeof ReviewPeriodDetailResponseDtoDataItemsItemExplanationStatus]

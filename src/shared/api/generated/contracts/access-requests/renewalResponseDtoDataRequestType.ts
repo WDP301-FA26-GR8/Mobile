@@ -6,6 +6,9 @@
  * OpenAPI spec version: 1.0
  */
 
+/**
+ * SERVICE_ACCOUNT is on records of the earlier releases only: no request for a service account is made any more.
+ */
 export type RenewalResponseDtoDataRequestType =
   (typeof RenewalResponseDtoDataRequestType)[keyof typeof RenewalResponseDtoDataRequestType]
 

@@ -235,7 +235,7 @@ test('loads only assigned individual grants and opens real details', async () =>
   await fireEvent.press(screen.getByRole('button', { name: 'Mở thông tin tài khoản của Manager An' }))
   expect(mockRouter.push).toHaveBeenCalledWith('/profile')
   expect(needDecisionList).toHaveBeenCalledWith(
-    { type: 'GRANT', page: 1, pageSize: 20 },
+    { page: 1, pageSize: 20 },
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
   await fireEvent.press(screen.getByRole('button', { name: 'Xem Figma do An yêu cầu' }))
@@ -293,7 +293,7 @@ test('does not open a stale or unsupported assigned notification as an individua
     params?.pageSize === 100
       ? {
           ...response,
-          data: { ...response.data, data: { ...data, items: [{ ...data.items[0], type: 'GROUP_GRANT' }] } }
+          data: { ...response.data, data: { ...data, items: [{ ...data.items[0], type: 'SERVICE_ACCOUNT' }] } }
         }
       : response
   )
@@ -724,7 +724,7 @@ test('shows price from the server with an English locale', async () => {
 })
 
 test('moves to the next page of assigned work', async () => {
-  const response = await jest.mocked(needDecisionList)({ type: 'GRANT', page: 1, pageSize: 20 })
+  const response = await jest.mocked(needDecisionList)({ page: 1, pageSize: 20 })
   if (!response.data.data) throw new Error('Expected queue')
   jest.mocked(needDecisionList).mockResolvedValue({
     ...response,
@@ -736,9 +736,7 @@ test('moves to the next page of assigned work', async () => {
   const screen = await renderScreen()
   await screen.findByText('Figma')
   await fireEvent.press(screen.getByRole('button', { name: 'Trang sau' }))
-  await waitFor(() =>
-    expect(needDecisionList).toHaveBeenCalledWith({ type: 'GRANT', page: 2, pageSize: 20 }, expect.anything())
-  )
+  await waitFor(() => expect(needDecisionList).toHaveBeenCalledWith({ page: 2, pageSize: 20 }, expect.anything()))
 })
 
 test('requires a checklist answer and blocks approval for a No', async () => {

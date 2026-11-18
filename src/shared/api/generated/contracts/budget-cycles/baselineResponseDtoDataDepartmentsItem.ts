@@ -17,7 +17,7 @@ export type BaselineResponseDtoDataDepartmentsItem = {
   departmentName: string
   /** @nullable */
   costCenterId: string | null
-  /** The invoices recorded this year against every Cost Center the department ever had (the seat-months of K2 are not in it yet). */
+  /** The invoices recorded this year, with the seat-months charged to them, against every Cost Center the department ever had. */
   spentThisYear: BaselineResponseDtoDataDepartmentsItemSpentThisYear
   /** What the Cost Center carries into the year of the cycle: the amount already saved for it by the requests approved so far (a right with an end at what its approval kept, a right with no end at twelve months of its monthly price), the figure the base of its version is filled in with. Zero when it has none, and for a department with no Cost Center. */
   carriedOverNextYear: BaselineResponseDtoDataDepartmentsItemCarriedOverNextYear

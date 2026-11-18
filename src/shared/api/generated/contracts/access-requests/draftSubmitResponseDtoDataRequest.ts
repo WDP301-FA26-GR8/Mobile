@@ -29,6 +29,7 @@ import type { DraftSubmitResponseDtoDataRequestWithdrawal } from './draftSubmitR
 
 export type DraftSubmitResponseDtoDataRequest = {
   id: string
+  /** SERVICE_ACCOUNT is on records of the earlier releases only: no request for a service account is made any more. */
   type: DraftSubmitResponseDtoDataRequestType
   branch: DraftSubmitResponseDtoDataRequestBranch
   state: DraftSubmitResponseDtoDataRequestState

@@ -20,7 +20,7 @@ export type BaselineResponseDtoDataDepartmentsItemSoftwareItem = {
    */
   seatsPurchased: number | null
   /**
-   * The seats the people of the department hold, counted the way the warehouse counts them: a future start and a service account they answer for included.
+   * The seats the people of the department hold, counted the way the warehouse counts them: a seat that starts later is included.
    * @minimum -9007199254740991
    * @maximum 9007199254740991
    */

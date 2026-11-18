@@ -29,6 +29,7 @@ import type { RenewalResponseDtoDataRequestWithdrawal } from './renewalResponseD
 
 export type RenewalResponseDtoDataRequest = {
   id: string
+  /** SERVICE_ACCOUNT is on records of the earlier releases only: no request for a service account is made any more. */
   type: RenewalResponseDtoDataRequestType
   branch: RenewalResponseDtoDataRequestBranch
   state: RenewalResponseDtoDataRequestState

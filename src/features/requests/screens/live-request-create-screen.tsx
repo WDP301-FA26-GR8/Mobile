@@ -105,7 +105,7 @@ function submitConflictId(error: unknown, rejection: string | undefined) {
     : undefined
 }
 
-export function LiveRequestCreateScreen() {
+export function LiveRequestCreateScreen({ initialApplication }: { initialApplication?: { id: string; name: string } }) {
   const { colors: mobileColors } = useMobileTheme()
   const styles = createStyles(mobileColors)
   const { t } = useTranslation()
@@ -313,6 +313,7 @@ export function LiveRequestCreateScreen() {
               </Pressable>
             ) : null}
             <RequestCatalog
+              initialApplication={initialApplication}
               onSearchChange={setHasSearch}
               onSelect={(plan) => {
                 if (locked) return

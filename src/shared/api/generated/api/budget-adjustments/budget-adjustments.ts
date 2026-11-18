@@ -68,6 +68,11 @@ export type budgetAdjustmentCreateResponse403 = {
   status: 403
 }
 
+export type budgetAdjustmentCreateResponse404 = {
+  data: ErrorEnvelopeDto
+  status: 404
+}
+
 export type budgetAdjustmentCreateResponse409 = {
   data: ErrorEnvelopeDto
   status: 409
@@ -105,6 +110,7 @@ export type budgetAdjustmentCreateResponseError = (
   | budgetAdjustmentCreateResponse400
   | budgetAdjustmentCreateResponse401
   | budgetAdjustmentCreateResponse403
+  | budgetAdjustmentCreateResponse404
   | budgetAdjustmentCreateResponse409
   | budgetAdjustmentCreateResponse413
   | budgetAdjustmentCreateResponse415

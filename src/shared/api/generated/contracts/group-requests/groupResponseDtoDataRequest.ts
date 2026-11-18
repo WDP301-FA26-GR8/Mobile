@@ -29,6 +29,7 @@ import type { GroupResponseDtoDataRequestWithdrawal } from './groupResponseDtoDa
 
 export type GroupResponseDtoDataRequest = {
   id: string
+  /** SERVICE_ACCOUNT is on records of the earlier releases only: no request for a service account is made any more. */
   type: GroupResponseDtoDataRequestType
   branch: GroupResponseDtoDataRequestBranch
   state: GroupResponseDtoDataRequestState

@@ -157,7 +157,9 @@ export function LoginScreen() {
             </View>
           </View>
 
-          <Text style={styles.forgotLabel}>{t('auth.recoveryUnavailable')}</Text>
+          <Pressable accessibilityRole='button' onPress={() => router.push('/forgot-password')}>
+            <Text style={styles.forgotLabel}>{t('auth.forgotPassword')}</Text>
+          </Pressable>
           {error || session.restoreFailed ? (
             <Text accessibilityRole='alert' style={styles.forgotLabel}>
               {error ? t(`auth.errors.${error}`) : t('auth.errors.restore')}

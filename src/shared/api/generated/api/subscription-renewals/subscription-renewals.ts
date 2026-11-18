@@ -25,8 +25,8 @@ import type {
   ErrorEnvelopeDto,
   SubscriptionDeadlineEventList200,
   SubscriptionDeadlineEventListParams,
-  SubscriptionRenewalDecide200,
-  SubscriptionRenewalDecideBodyDto,
+  SubscriptionRenewalAdjustmentGet200,
+  SubscriptionRenewalAdjustmentGetParams,
   SubscriptionRenewalGet200,
   SubscriptionRenewalList200,
   SubscriptionRenewalListParams,
@@ -321,7 +321,7 @@ export const getSubscriptionRenewalProposeUrl = () => {
 }
 
 /**
- * @summary Propose the renewal of a subscription period
+ * @summary Record the result of the adjustment of a subscription period
  */
 export const subscriptionRenewalPropose = async (
   subscriptionRenewalProposeBodyDto: SubscriptionRenewalProposeBodyDto,
@@ -390,7 +390,7 @@ export type SubscriptionRenewalProposeMutationBody = SubscriptionRenewalProposeB
 export type SubscriptionRenewalProposeMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
 
 /**
- * @summary Propose the renewal of a subscription period
+ * @summary Record the result of the adjustment of a subscription period
  */
 export const useSubscriptionRenewalPropose = <
   TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
@@ -414,6 +414,208 @@ export const useSubscriptionRenewalPropose = <
 > => {
   return useMutation(getSubscriptionRenewalProposeMutationOptions(options), queryClient)
 }
+export type subscriptionRenewalAdjustmentGetResponse200 = {
+  data: SubscriptionRenewalAdjustmentGet200
+  status: 200
+}
+
+export type subscriptionRenewalAdjustmentGetResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type subscriptionRenewalAdjustmentGetResponse403 = {
+  data: ErrorEnvelopeDto
+  status: 403
+}
+
+export type subscriptionRenewalAdjustmentGetResponse404 = {
+  data: ErrorEnvelopeDto
+  status: 404
+}
+
+export type subscriptionRenewalAdjustmentGetResponse409 = {
+  data: ErrorEnvelopeDto
+  status: 409
+}
+
+export type subscriptionRenewalAdjustmentGetResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type subscriptionRenewalAdjustmentGetResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type subscriptionRenewalAdjustmentGetResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type subscriptionRenewalAdjustmentGetResponseSuccess = subscriptionRenewalAdjustmentGetResponse200 & {
+  headers: Headers
+}
+export type subscriptionRenewalAdjustmentGetResponseError = (
+  | subscriptionRenewalAdjustmentGetResponse401
+  | subscriptionRenewalAdjustmentGetResponse403
+  | subscriptionRenewalAdjustmentGetResponse404
+  | subscriptionRenewalAdjustmentGetResponse409
+  | subscriptionRenewalAdjustmentGetResponse422
+  | subscriptionRenewalAdjustmentGetResponse429
+  | subscriptionRenewalAdjustmentGetResponse503
+) & {
+  headers: Headers
+}
+
+export const getSubscriptionRenewalAdjustmentGetUrl = (params: SubscriptionRenewalAdjustmentGetParams) => {
+  const normalizedParams = new URLSearchParams()
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  })
+
+  const stringifiedParams = normalizedParams.toString()
+
+  return stringifiedParams.length > 0
+    ? `${env.API_BASE_URL}/api/v1/subscription-renewals/adjustment?${stringifiedParams}`
+    : `${env.API_BASE_URL}/api/v1/subscription-renewals/adjustment`
+}
+
+/**
+ * @summary Read the seats a subscription needs for its next period
+ */
+export const subscriptionRenewalAdjustmentGet = async (
+  params: SubscriptionRenewalAdjustmentGetParams,
+  options?: RequestInit
+): Promise<subscriptionRenewalAdjustmentGetResponseSuccess> => {
+  const res = await fetch(getSubscriptionRenewalAdjustmentGetUrl(params), {
+    ...options,
+    method: 'GET'
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: subscriptionRenewalAdjustmentGetResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: subscriptionRenewalAdjustmentGetResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: subscriptionRenewalAdjustmentGetResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as subscriptionRenewalAdjustmentGetResponseSuccess
+}
+
+export const getSubscriptionRenewalAdjustmentGetQueryKey = (params?: SubscriptionRenewalAdjustmentGetParams) => {
+  return [`${env.API_BASE_URL}/api/v1/subscription-renewals/adjustment`, ...(params ? [params] : [])] as const
+}
+
+export const getSubscriptionRenewalAdjustmentGetQueryOptions = <
+  TData = Awaited<ReturnType<typeof subscriptionRenewalAdjustmentGet>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params: SubscriptionRenewalAdjustmentGetParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof subscriptionRenewalAdjustmentGet>>, TError, TData>>
+    fetch?: RequestInit
+  }
+) => {
+  const { query: queryOptions, fetch: fetchOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getSubscriptionRenewalAdjustmentGetQueryKey(params)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof subscriptionRenewalAdjustmentGet>>> = ({ signal }) =>
+    subscriptionRenewalAdjustmentGet(params, { signal, ...fetchOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof subscriptionRenewalAdjustmentGet>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type SubscriptionRenewalAdjustmentGetQueryResult = NonNullable<
+  Awaited<ReturnType<typeof subscriptionRenewalAdjustmentGet>>
+>
+export type SubscriptionRenewalAdjustmentGetQueryError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+export function useSubscriptionRenewalAdjustmentGet<
+  TData = Awaited<ReturnType<typeof subscriptionRenewalAdjustmentGet>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params: SubscriptionRenewalAdjustmentGetParams,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof subscriptionRenewalAdjustmentGet>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof subscriptionRenewalAdjustmentGet>>,
+          TError,
+          Awaited<ReturnType<typeof subscriptionRenewalAdjustmentGet>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSubscriptionRenewalAdjustmentGet<
+  TData = Awaited<ReturnType<typeof subscriptionRenewalAdjustmentGet>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params: SubscriptionRenewalAdjustmentGetParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof subscriptionRenewalAdjustmentGet>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof subscriptionRenewalAdjustmentGet>>,
+          TError,
+          Awaited<ReturnType<typeof subscriptionRenewalAdjustmentGet>>
+        >,
+        'initialData'
+      >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useSubscriptionRenewalAdjustmentGet<
+  TData = Awaited<ReturnType<typeof subscriptionRenewalAdjustmentGet>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params: SubscriptionRenewalAdjustmentGetParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof subscriptionRenewalAdjustmentGet>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Read the seats a subscription needs for its next period
+ */
+
+export function useSubscriptionRenewalAdjustmentGet<
+  TData = Awaited<ReturnType<typeof subscriptionRenewalAdjustmentGet>>,
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+>(
+  params: SubscriptionRenewalAdjustmentGetParams,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof subscriptionRenewalAdjustmentGet>>, TError, TData>>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getSubscriptionRenewalAdjustmentGetQueryOptions(params, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  return withQueryKey(query, queryOptions.queryKey)
+}
+
 export type subscriptionRenewalGetResponse200 = {
   data: SubscriptionRenewalGet200
   status: 200
@@ -801,176 +1003,6 @@ export function useSubscriptionRenewalSeatRanking<
   return withQueryKey(query, queryOptions.queryKey)
 }
 
-export type subscriptionRenewalDecideResponse200 = {
-  data: SubscriptionRenewalDecide200
-  status: 200
-}
-
-export type subscriptionRenewalDecideResponse400 = {
-  data: ErrorEnvelopeDto
-  status: 400
-}
-
-export type subscriptionRenewalDecideResponse401 = {
-  data: ErrorEnvelopeDto
-  status: 401
-}
-
-export type subscriptionRenewalDecideResponse403 = {
-  data: ErrorEnvelopeDto
-  status: 403
-}
-
-export type subscriptionRenewalDecideResponse404 = {
-  data: ErrorEnvelopeDto
-  status: 404
-}
-
-export type subscriptionRenewalDecideResponse409 = {
-  data: ErrorEnvelopeDto
-  status: 409
-}
-
-export type subscriptionRenewalDecideResponse413 = {
-  data: ErrorEnvelopeDto
-  status: 413
-}
-
-export type subscriptionRenewalDecideResponse415 = {
-  data: ErrorEnvelopeDto
-  status: 415
-}
-
-export type subscriptionRenewalDecideResponse422 = {
-  data: ErrorEnvelopeDto
-  status: 422
-}
-
-export type subscriptionRenewalDecideResponse429 = {
-  data: ErrorEnvelopeDto
-  status: 429
-}
-
-export type subscriptionRenewalDecideResponse503 = {
-  data: ErrorEnvelopeDto
-  status: 503
-}
-
-export type subscriptionRenewalDecideResponseSuccess = subscriptionRenewalDecideResponse200 & {
-  headers: Headers
-}
-export type subscriptionRenewalDecideResponseError = (
-  | subscriptionRenewalDecideResponse400
-  | subscriptionRenewalDecideResponse401
-  | subscriptionRenewalDecideResponse403
-  | subscriptionRenewalDecideResponse404
-  | subscriptionRenewalDecideResponse409
-  | subscriptionRenewalDecideResponse413
-  | subscriptionRenewalDecideResponse415
-  | subscriptionRenewalDecideResponse422
-  | subscriptionRenewalDecideResponse429
-  | subscriptionRenewalDecideResponse503
-) & {
-  headers: Headers
-}
-
-export const getSubscriptionRenewalDecideUrl = (id: string) => {
-  return `${env.API_BASE_URL}/api/v1/subscription-renewals/${id}/decision`
-}
-
-/**
- * @summary Confirm a renewal of a subscription period
- */
-export const subscriptionRenewalDecide = async (
-  id: string,
-  subscriptionRenewalDecideBodyDto: SubscriptionRenewalDecideBodyDto,
-  options?: RequestInit
-): Promise<subscriptionRenewalDecideResponseSuccess> => {
-  const res = await fetch(getSubscriptionRenewalDecideUrl(id), {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(subscriptionRenewalDecideBodyDto)
-  })
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
-  if (!res.ok) {
-    const err: globalThis.Error & { info?: subscriptionRenewalDecideResponseError['data']; status?: number } =
-      new globalThis.Error()
-    const data: subscriptionRenewalDecideResponseError['data'] = body ? JSON.parse(body) : {}
-    err.info = data
-    err.status = res.status
-    throw err
-  }
-  const data: subscriptionRenewalDecideResponseSuccess['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as subscriptionRenewalDecideResponseSuccess
-}
-
-export const getSubscriptionRenewalDecideMutationOptions = <
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
-  TContext = unknown
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof subscriptionRenewalDecide>>,
-    TError,
-    { id: string; data: SubscriptionRenewalDecideBodyDto },
-    TContext
-  >
-  fetch?: RequestInit
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof subscriptionRenewalDecide>>,
-  TError,
-  { id: string; data: SubscriptionRenewalDecideBodyDto },
-  TContext
-> => {
-  const mutationKey = ['subscriptionRenewalDecide']
-  const { mutation: mutationOptions, fetch: fetchOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, fetch: undefined }
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof subscriptionRenewalDecide>>,
-    { id: string; data: SubscriptionRenewalDecideBodyDto }
-  > = (props) => {
-    const { id, data } = props ?? {}
-
-    return subscriptionRenewalDecide(id, data, fetchOptions)
-  }
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type SubscriptionRenewalDecideMutationResult = NonNullable<Awaited<ReturnType<typeof subscriptionRenewalDecide>>>
-export type SubscriptionRenewalDecideMutationBody = SubscriptionRenewalDecideBodyDto
-export type SubscriptionRenewalDecideMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
-
-/**
- * @summary Confirm a renewal of a subscription period
- */
-export const useSubscriptionRenewalDecide = <
-  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
-  TContext = unknown
->(
-  options?: {
-    mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof subscriptionRenewalDecide>>,
-      TError,
-      { id: string; data: SubscriptionRenewalDecideBodyDto },
-      TContext
-    >
-    fetch?: RequestInit
-  },
-  queryClient?: QueryClient
-): UseMutationResult<
-  Awaited<ReturnType<typeof subscriptionRenewalDecide>>,
-  TError,
-  { id: string; data: SubscriptionRenewalDecideBodyDto },
-  TContext
-> => {
-  return useMutation(getSubscriptionRenewalDecideMutationOptions(options), queryClient)
-}
 export type subscriptionRenewalRecordOutcomeResponse200 = {
   data: SubscriptionRenewalRecordOutcome200
   status: 200
@@ -1049,7 +1081,7 @@ export const getSubscriptionRenewalRecordOutcomeUrl = (id: string) => {
 }
 
 /**
- * @summary Record the outcome of a renewal
+ * @summary Record the outcome of a renewal decided before (legacy)
  */
 export const subscriptionRenewalRecordOutcome = async (
   id: string,
@@ -1122,7 +1154,7 @@ export type SubscriptionRenewalRecordOutcomeMutationError = globalThis.Error & {
 }
 
 /**
- * @summary Record the outcome of a renewal
+ * @summary Record the outcome of a renewal decided before (legacy)
  */
 export const useSubscriptionRenewalRecordOutcome = <
   TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
@@ -1206,7 +1238,7 @@ export const getSubscriptionDeadlineEventListUrl = (params?: SubscriptionDeadlin
 }
 
 /**
- * @summary List the milestones that passed with no renewal decision
+ * @summary List the renewal days that passed with no result recorded
  */
 export const subscriptionDeadlineEventList = async (
   params?: SubscriptionDeadlineEventListParams,
@@ -1313,7 +1345,7 @@ export function useSubscriptionDeadlineEventList<
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * @summary List the milestones that passed with no renewal decision
+ * @summary List the renewal days that passed with no result recorded
  */
 
 export function useSubscriptionDeadlineEventList<

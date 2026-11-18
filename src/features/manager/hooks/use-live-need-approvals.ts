@@ -16,7 +16,7 @@ export function useLiveNeedApprovals(page: number, requestId?: string, permitted
     queryFn: ({ signal }) =>
       session.read(async (token) => {
         const result = await needDecisionList(
-          { type: 'GRANT', page, pageSize: 20 },
+          { page, pageSize: 20 },
           { signal, headers: { Authorization: `Bearer ${token}` } }
         )
         if (!result.data.data) throw new Error('Missing need approval queue')

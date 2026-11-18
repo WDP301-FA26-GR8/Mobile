@@ -786,6 +786,12 @@ import type {
   StartedRevocationResponseDtoResponse,
   StockSummaryResponseDto,
   StockSummaryResponseDtoResponse,
+  StopRequestBodyDto,
+  StopRequestPageResponseDto,
+  StopRequestPageResponseDtoResponse,
+  StopRequestRequest,
+  StopRequestResponseDto,
+  StopRequestResponseDtoResponse,
   SubmitBatchBodyDto,
   SubmitBatchBodyDtoReserveConfirmationsItem,
   SubmitBatchRequest,
@@ -799,8 +805,8 @@ import type {
   SubscriptionDeadlineEventPageResponseDtoResponse,
   SubscriptionPageResponseDto,
   SubscriptionPageResponseDtoResponse,
-  SubscriptionRenewalDecideBodyDto,
-  SubscriptionRenewalDecideRequest,
+  SubscriptionRenewalAdjustmentResponseDto,
+  SubscriptionRenewalAdjustmentResponseDtoResponse,
   SubscriptionRenewalOutcomeBodyDto,
   SubscriptionRenewalOutcomeRequest,
   SubscriptionRenewalPageResponseDto,
@@ -966,7 +972,7 @@ export const getDeclareTaxProfileBodyDtoResponseLinesItemMock = (
   overrideResponse: Partial<DeclareTaxProfileBodyDtoLinesItem> = {}
 ): DeclareTaxProfileBodyDtoLinesItem => ({
   ...{
-    taxType: faker.string.alpha({ length: { min: 10, max: 1000 } }),
+    taxType: faker.string.alpha({ length: { min: 10, max: 20 } }),
     ratePercent: faker.string.alpha({ length: { min: 10, max: 20 } }),
     deductible: faker.datatype.boolean()
   },
@@ -4112,10 +4118,10 @@ export const getApplicationPageResponseDtoMock = (
         emptyState: faker.helpers.arrayElement([
           faker.helpers.arrayElement([
             {
-              reason: faker.helpers.arrayElement(['NO_APPLICATIONS', 'NO_SUBSCRIPTIONS'] as const),
+              reason: faker.helpers.arrayElement(['NO_APPLICATIONS'] as const),
               nextStep: {
-                step: faker.number.int({ min: 2, max: 3 }),
-                key: faker.helpers.arrayElement(['APPLICATIONS', 'CONTRACTS_AND_SUBSCRIPTIONS'] as const)
+                step: faker.helpers.arrayElement([2] as const),
+                key: faker.helpers.arrayElement(['APPLICATIONS'] as const)
               }
             },
             null
@@ -5060,7 +5066,7 @@ export const getDeclareTaxProfileBodyDtoMock = (
   overrideResponse: Partial<DeclareTaxProfileBodyDto> = {}
 ): DeclareTaxProfileBodyDto => ({
   group: faker.helpers.arrayElement([faker.helpers.arrayElement(['T1', 'T2', 'T3'] as const), undefined]),
-  lines: Array.from({ length: faker.number.int({ min: 1, max: 100 }) }, (_, i) => i + 1).map(() => ({
+  lines: Array.from({ length: faker.number.int({ min: 1, max: 20 }) }, (_, i) => i + 1).map(() => ({
     ...getDeclareTaxProfileBodyDtoResponseLinesItemMock()
   })),
   ...overrideResponse
@@ -8072,19 +8078,25 @@ export const getSubscriptionRenewalPageResponseDtoMock = (
             planName: faker.string.alpha({ length: { min: 10, max: 20 } }),
             applicationId: faker.string.uuid(),
             applicationName: faker.string.alpha({ length: { min: 10, max: 20 } }),
-            ownerDepartmentId: faker.string.uuid()
+            ownerDepartmentId: faker.helpers.arrayElement([faker.string.uuid(), null])
           },
           milestone: {
-            basis: faker.helpers.arrayElement(['DECLARED', 'INFERRED_UNCONFIRMED', 'BY_END_DATE'] as const),
+            basis: faker.helpers.arrayElement([
+              'DECLARED',
+              'INFERRED_UNCONFIRMED',
+              'BY_END_DATE',
+              'BY_RENEWAL_DATE',
+              'BY_PAYMENT_DATE'
+            ] as const),
             baseDate: faker.string.alpha({ length: { min: 10, max: 20 } })
           },
-          proposedChoice: faker.helpers.arrayElement(['RENEW', 'REDUCE', 'CANCEL'] as const),
+          proposedChoice: faker.helpers.arrayElement(['RENEW', 'REDUCE', 'CANCEL', 'INCREASE'] as const),
           proposedQuantity: faker.helpers.arrayElement([
             faker.number.int({ min: -9007199254740991, max: 9007199254740991 }),
             null
           ]),
           decidedChoice: faker.helpers.arrayElement([
-            faker.helpers.arrayElement(['RENEW', 'REDUCE', 'CANCEL'] as const),
+            faker.helpers.arrayElement(['RENEW', 'REDUCE', 'CANCEL', 'INCREASE'] as const),
             null
           ]),
           executionPoint: faker.helpers.arrayElement([
@@ -8113,6 +8125,61 @@ export const getSubscriptionRenewalPageResponseDtoMock = (
   ...overrideResponse
 })
 
+export const getSubscriptionRenewalAdjustmentResponseDtoMock = (
+  overrideResponse: Partial<SubscriptionRenewalAdjustmentResponseDto> = {}
+): SubscriptionRenewalAdjustmentResponseDto => ({
+  success: faker.helpers.arrayElement([true] as const),
+  message: faker.helpers.fromRegExp('^[A-Z][A-Z0-9_]*(\\.[A-Z0-9_]+)+$'),
+  data: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      {
+        adjustment: {
+          subscriptionId: faker.string.uuid(),
+          commitment: faker.helpers.arrayElement(['MONTHLY', 'ANNUAL'] as const),
+          deadlineKind: faker.helpers.arrayElement([
+            'PAYMENT_DATE',
+            'NOTICE_DEADLINE',
+            'RENEWAL_DATE',
+            'END_DATE'
+          ] as const),
+          deadline: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          adjustmentPointOn: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          renewalOn: faker.string.alpha({ length: { min: 10, max: 20 } }),
+          redAlertOn: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
+          purchasedQuantity: faker.helpers.arrayElement([
+            faker.number.int({ min: -9007199254740991, max: 9007199254740991 }),
+            null
+          ]),
+          vendorMinimumSeats: faker.helpers.arrayElement([
+            faker.number.int({ min: -9007199254740991, max: 9007199254740991 }),
+            null
+          ]),
+          seatsNeeded: {
+            total: faker.number.int({ min: 0, max: 9007199254740991 }),
+            heldPastRenewal: faker.number.int({ min: 0, max: 9007199254740991 }),
+            pendingContinuations: faker.number.int({ min: 0, max: 9007199254740991 }),
+            approvedAwaitingGrant: faker.number.int({ min: 0, max: 9007199254740991 })
+          },
+          target: faker.number.int({ min: 0, max: 9007199254740991 }),
+          suggestedChoice: faker.helpers.arrayElement([
+            faker.helpers.arrayElement(['RENEW', 'REDUCE', 'CANCEL', 'INCREASE'] as const),
+            null
+          ]),
+          canCancel: faker.datatype.boolean(),
+          activeSeatsToday: faker.number.int({ min: 0, max: 9007199254740991 }),
+          openRequests: faker.number.int({ min: 0, max: 9007199254740991 }),
+          responsibleItAdminEmployeeId: faker.helpers.arrayElement([faker.string.uuid(), null]),
+          callerIsResponsible: faker.datatype.boolean(),
+          recordedRenewalId: faker.helpers.arrayElement([faker.string.uuid(), null])
+        }
+      },
+      null
+    ]),
+    null
+  ]),
+  ...overrideResponse
+})
+
 export const getSubscriptionRenewalResponseDtoMock = (
   overrideResponse: Partial<SubscriptionRenewalResponseDto> = {}
 ): SubscriptionRenewalResponseDto => ({
@@ -8130,19 +8197,25 @@ export const getSubscriptionRenewalResponseDtoMock = (
             planName: faker.string.alpha({ length: { min: 10, max: 20 } }),
             applicationId: faker.string.uuid(),
             applicationName: faker.string.alpha({ length: { min: 10, max: 20 } }),
-            ownerDepartmentId: faker.string.uuid()
+            ownerDepartmentId: faker.helpers.arrayElement([faker.string.uuid(), null])
           },
           milestone: {
-            basis: faker.helpers.arrayElement(['DECLARED', 'INFERRED_UNCONFIRMED', 'BY_END_DATE'] as const),
+            basis: faker.helpers.arrayElement([
+              'DECLARED',
+              'INFERRED_UNCONFIRMED',
+              'BY_END_DATE',
+              'BY_RENEWAL_DATE',
+              'BY_PAYMENT_DATE'
+            ] as const),
             baseDate: faker.string.alpha({ length: { min: 10, max: 20 } })
           },
-          proposedChoice: faker.helpers.arrayElement(['RENEW', 'REDUCE', 'CANCEL'] as const),
+          proposedChoice: faker.helpers.arrayElement(['RENEW', 'REDUCE', 'CANCEL', 'INCREASE'] as const),
           proposedQuantity: faker.helpers.arrayElement([
             faker.number.int({ min: -9007199254740991, max: 9007199254740991 }),
             null
           ]),
           decidedChoice: faker.helpers.arrayElement([
-            faker.helpers.arrayElement(['RENEW', 'REDUCE', 'CANCEL'] as const),
+            faker.helpers.arrayElement(['RENEW', 'REDUCE', 'CANCEL', 'INCREASE'] as const),
             null
           ]),
           executionPoint: faker.helpers.arrayElement([
@@ -8171,7 +8244,7 @@ export const getSubscriptionRenewalResponseDtoMock = (
           },
           usage: { status: faker.helpers.arrayElement(['AVAILABLE', 'NOT_AVAILABLE'] as const) },
           proposal: {
-            choice: faker.helpers.arrayElement(['RENEW', 'REDUCE', 'CANCEL'] as const),
+            choice: faker.helpers.arrayElement(['RENEW', 'REDUCE', 'CANCEL', 'INCREASE'] as const),
             quantity: faker.helpers.arrayElement([
               faker.number.int({ min: -9007199254740991, max: 9007199254740991 }),
               null
@@ -8179,12 +8252,13 @@ export const getSubscriptionRenewalResponseDtoMock = (
             note: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
             proposedByEmployeeId: faker.string.uuid(),
             proposedAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
+            seatsNeeded: faker.helpers.arrayElement([faker.number.int({ min: 0, max: 9007199254740991 }), null]),
             releasedSeatCount: faker.number.int({ min: 0, max: 9007199254740991 })
           },
           decision: faker.helpers.arrayElement([
             faker.helpers.arrayElement([
               {
-                choice: faker.helpers.arrayElement(['RENEW', 'REDUCE', 'CANCEL'] as const),
+                choice: faker.helpers.arrayElement(['RENEW', 'REDUCE', 'CANCEL', 'INCREASE'] as const),
                 quantity: faker.helpers.arrayElement([
                   faker.number.int({ min: -9007199254740991, max: 9007199254740991 }),
                   null
@@ -8194,7 +8268,8 @@ export const getSubscriptionRenewalResponseDtoMock = (
                 deciderRole: faker.helpers.arrayElement([
                   'OWNER_DEPARTMENT_HEAD',
                   'SPENDING_APPROVER',
-                  'CONFLICT_SUBSTITUTE'
+                  'CONFLICT_SUBSTITUTE',
+                  'IT_ADMIN_IN_CHARGE'
                 ] as const),
                 decidedAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
                 decidedOn: faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -8270,7 +8345,8 @@ export const getSubscriptionRenewalResponseDtoMock = (
                     null
                   ]),
                   null
-                ])
+                ]),
+                lateRenewal: faker.datatype.boolean()
               },
               null
             ]),
@@ -8326,22 +8402,33 @@ export const getSubscriptionRenewalProposeBodyDtoMock = (
   overrideResponse: Partial<SubscriptionRenewalProposeBodyDto> = {}
 ): SubscriptionRenewalProposeBodyDto => ({
   subscriptionId: faker.string.uuid(),
-  choice: faker.helpers.arrayElement(['RENEW', 'REDUCE', 'CANCEL'] as const),
+  choice: faker.helpers.arrayElement(['RENEW', 'REDUCE', 'CANCEL', 'INCREASE'] as const),
   proposedQuantity: faker.helpers.arrayElement([faker.number.int({ min: 0, max: 1000000000 }), undefined]),
   note: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 1, max: 2000 } }), undefined]),
-  releasedAssignmentIds: faker.helpers.arrayElement([
-    Array.from({ length: faker.number.int({ min: 1, max: 10000 }) }, (_, i) => i + 1).map(() => faker.string.uuid()),
+  outcome: faker.helpers.arrayElement(['AS_DECIDED', 'VENDOR_REFUSED', 'DIFFERENT'] as const),
+  outcomeNote: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 1, max: 2000 } }), undefined]),
+  nextPeriod: faker.helpers.arrayElement([
+    {
+      purchasedQuantity: faker.number.int({ min: 0, max: 1000000000 }),
+      unitPrice: {
+        amount: faker.string.alpha({ length: { min: 10, max: 40 } }),
+        currency: faker.helpers.fromRegExp('^[A-Z]{3}$')
+      },
+      billingCycle: faker.helpers.arrayElement(['MONTHLY', 'QUARTERLY', 'ANNUAL', 'OTHER'] as const),
+      startDate: faker.date.past().toISOString().slice(0, 10),
+      endDate: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), undefined]),
+      renewalDate: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), undefined]),
+      noticeDeadline: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), undefined]),
+      noticePeriodDays: faker.helpers.arrayElement([faker.number.int({ min: 0, max: 3650 }), undefined]),
+      autoRenew: faker.datatype.boolean(),
+      allowsMidTermReduction: faker.datatype.boolean()
+    },
     undefined
   ]),
-  ...overrideResponse
-})
-
-export const getSubscriptionRenewalDecideBodyDtoMock = (
-  overrideResponse: Partial<SubscriptionRenewalDecideBodyDto> = {}
-): SubscriptionRenewalDecideBodyDto => ({
-  decision: faker.helpers.arrayElement(['CONFIRM'] as const),
-  reason: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 1, max: 2000 } }), undefined]),
-  acknowledgeActiveUsers: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  closure: faker.helpers.arrayElement([
+    { dataExported: faker.datatype.boolean(), adminsTransferred: faker.datatype.boolean() },
+    undefined
+  ]),
   ...overrideResponse
 })
 
@@ -8387,7 +8474,7 @@ export const getSubscriptionDeadlineEventPageResponseDtoMock = (
             planName: faker.string.alpha({ length: { min: 10, max: 20 } }),
             applicationId: faker.string.uuid(),
             applicationName: faker.string.alpha({ length: { min: 10, max: 20 } }),
-            ownerDepartmentId: faker.string.uuid()
+            ownerDepartmentId: faker.helpers.arrayElement([faker.string.uuid(), null])
           },
           kind: faker.helpers.arrayElement(['AUTO_RENEWAL_INCIDENT', 'EXPIRY_MARKED'] as const),
           milestoneDate: faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -12226,7 +12313,8 @@ export const getBatchDecisionResponseDtoMock = (
               'STEP_NOT_PENDING',
               'NO_SPEND_STEP',
               'NOT_CHECKABLE',
-              'RECHECKED_RETURNED_TO_HEAD'
+              'RECHECKED_RETURNED_TO_HEAD',
+              'COMMITMENT_NOT_HOLDABLE'
             ] as const),
             null
           ])
@@ -18061,6 +18149,7 @@ export const getMyDevicePageResponseDtoMock = (
             null
           ]),
           signatureRecorded: faker.datatype.boolean(),
+          stopRequestPending: faker.datatype.boolean(),
           canAcknowledge: faker.datatype.boolean(),
           blockedReason: faker.helpers.arrayElement([
             faker.helpers.arrayElement([
@@ -18248,6 +18337,82 @@ export const getIssuedCredentialResponseDtoMock = (
       {
         token: faker.string.alpha({ length: { min: 10, max: 20 } }),
         expiresAt: faker.date.past().toISOString().slice(0, 19) + 'Z'
+      },
+      null
+    ]),
+    null
+  ]),
+  ...overrideResponse
+})
+
+export const getStopRequestBodyDtoMock = (overrideResponse: Partial<StopRequestBodyDto> = {}): StopRequestBodyDto => ({
+  ...overrideResponse
+})
+
+export const getStopRequestResponseDtoMock = (
+  overrideResponse: Partial<StopRequestResponseDto> = {}
+): StopRequestResponseDto => ({
+  success: faker.helpers.arrayElement([true] as const),
+  message: faker.helpers.fromRegExp('^[A-Z][A-Z0-9_]*(\\.[A-Z0-9_]+)+$'),
+  data: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      {
+        stopRequest: {
+          id: faker.string.uuid(),
+          registrationId: faker.string.uuid(),
+          deviceId: faker.string.uuid(),
+          holderEmployeeId: faker.string.uuid(),
+          state: faker.helpers.arrayElement(['OPEN', 'COMPLETED', 'INVALID'] as const),
+          invalidReason: faker.helpers.arrayElement([
+            faker.helpers.arrayElement(['DUPLICATE', 'ALREADY_STOPPED', 'REGISTRATION_ENDED', 'IT_ADMIN'] as const),
+            null
+          ]),
+          requestedAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
+          dueAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
+          handledAt: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]),
+          handledByAppUserId: faker.helpers.arrayElement([faker.string.uuid(), null]),
+          selfHandled: faker.datatype.boolean(),
+          overdue: faker.datatype.boolean()
+        }
+      },
+      null
+    ]),
+    null
+  ]),
+  ...overrideResponse
+})
+
+export const getStopRequestPageResponseDtoMock = (
+  overrideResponse: Partial<StopRequestPageResponseDto> = {}
+): StopRequestPageResponseDto => ({
+  success: faker.helpers.arrayElement([true] as const),
+  message: faker.helpers.fromRegExp('^[A-Z][A-Z0-9_]*(\\.[A-Z0-9_]+)+$'),
+  data: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      {
+        items: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({
+          id: faker.string.uuid(),
+          registrationId: faker.string.uuid(),
+          deviceId: faker.string.uuid(),
+          holderEmployeeId: faker.string.uuid(),
+          state: faker.helpers.arrayElement(['OPEN', 'COMPLETED', 'INVALID'] as const),
+          invalidReason: faker.helpers.arrayElement([
+            faker.helpers.arrayElement(['DUPLICATE', 'ALREADY_STOPPED', 'REGISTRATION_ENDED', 'IT_ADMIN'] as const),
+            null
+          ]),
+          requestedAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
+          dueAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
+          handledAt: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', null]),
+          handledByAppUserId: faker.helpers.arrayElement([faker.string.uuid(), null]),
+          selfHandled: faker.datatype.boolean(),
+          overdue: faker.datatype.boolean()
+        })),
+        pagination: {
+          page: faker.number.int({ min: 0, max: 9007199254740991 }),
+          pageSize: faker.number.int({ min: 0, max: 9007199254740991 }),
+          totalItems: faker.number.int({ min: 0, max: 9007199254740991 }),
+          totalPages: faker.number.int({ min: 0, max: 9007199254740991 })
+        }
       },
       null
     ]),
@@ -20567,6 +20732,7 @@ export const getQueueSummaryResponseDtoMock = (
         ] as const),
         createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
         sourceStale: faker.datatype.boolean(),
+        simulated: faker.datatype.boolean(),
         omittedCount: faker.number.int({ min: 0, max: 9007199254740991 }),
         lines: Array.from({ length: faker.number.int({ min: 1, max: 20 }) }, (_, i) => i + 1).map(() => ({
           requestId: faker.string.uuid(),
@@ -20592,6 +20758,7 @@ export const getInvocationContentResponseDtoMock = (
     faker.helpers.arrayElement([
       {
         invocationId: faker.string.uuid(),
+        providerMode: faker.helpers.arrayElement(['MODEL', 'SIMULATED'] as const),
         context: {
           [faker.string.alphanumeric(5)]: {}
         },
@@ -24063,12 +24230,11 @@ export const getSubscriptionRenewalResponseDtoResponseMock = (): SubscriptionRen
   ...getSubscriptionRenewalResponseDtoMock()
 })
 
+export const getSubscriptionRenewalAdjustmentResponseDtoResponseMock =
+  (): SubscriptionRenewalAdjustmentResponseDtoResponse => ({ ...getSubscriptionRenewalAdjustmentResponseDtoMock() })
+
 export const getSubscriptionRenewalSeatRankingResponseDtoResponseMock =
   (): SubscriptionRenewalSeatRankingResponseDtoResponse => ({ ...getSubscriptionRenewalSeatRankingResponseDtoMock() })
-
-export const getSubscriptionRenewalDecideRequestMock = (): SubscriptionRenewalDecideRequest => ({
-  ...getSubscriptionRenewalDecideBodyDtoMock()
-})
 
 export const getSubscriptionRenewalOutcomeRequestMock = (): SubscriptionRenewalOutcomeRequest => ({
   ...getSubscriptionRenewalOutcomeBodyDtoMock()
@@ -24573,6 +24739,16 @@ export const getRotationRequestMock = (): RotationRequest => ({ ...getRotationBo
 
 export const getIssuedCredentialResponseDtoResponseMock = (): IssuedCredentialResponseDtoResponse => ({
   ...getIssuedCredentialResponseDtoMock()
+})
+
+export const getStopRequestRequestMock = (): StopRequestRequest => ({ ...getStopRequestBodyDtoMock() })
+
+export const getStopRequestResponseDtoResponseMock = (): StopRequestResponseDtoResponse => ({
+  ...getStopRequestResponseDtoMock()
+})
+
+export const getStopRequestPageResponseDtoResponseMock = (): StopRequestPageResponseDtoResponse => ({
+  ...getStopRequestPageResponseDtoMock()
 })
 
 export const getParameterListResponseDtoResponseMock = (): ParameterListResponseDtoResponse => ({

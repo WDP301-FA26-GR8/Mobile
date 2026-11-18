@@ -20,6 +20,7 @@ import type { DepartmentAccessRequestPageResponseDtoDataItemsItemWithdrawal } fr
 
 export type DepartmentAccessRequestPageResponseDtoDataItemsItem = {
   id: string
+  /** SERVICE_ACCOUNT is on records of the earlier releases only: no request for a service account is made any more. */
   type: DepartmentAccessRequestPageResponseDtoDataItemsItemType
   branch: DepartmentAccessRequestPageResponseDtoDataItemsItemBranch
   state: DepartmentAccessRequestPageResponseDtoDataItemsItemState

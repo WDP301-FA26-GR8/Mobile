@@ -7,7 +7,7 @@
  */
 
 /**
- * The invoices recorded this year against every Cost Center the department ever had (the seat-months of K2 are not in it yet).
+ * The invoices recorded this year, with the seat-months charged to them, against every Cost Center the department ever had.
  */
 export type BaselineResponseDtoDataDepartmentsItemSpentThisYear = {
   amount: string

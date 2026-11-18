@@ -22,6 +22,12 @@ export type SubscriptionRenewalResponseDtoDataRenewalProposal = {
   /**
    * @minimum 0
    * @maximum 9007199254740991
+   * @nullable
+   */
+  seatsNeeded: number | null
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
    */
   releasedSeatCount: number
 }

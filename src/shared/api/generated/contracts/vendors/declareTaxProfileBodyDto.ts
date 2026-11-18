@@ -10,6 +10,6 @@ import type { DeclareTaxProfileBodyDtoLinesItem } from './declareTaxProfileBodyD
 
 export interface DeclareTaxProfileBodyDto {
   group?: DeclareTaxProfileBodyDtoGroup
-  /** @maxItems 100 */
+  /** @maxItems 20 */
   lines: DeclareTaxProfileBodyDtoLinesItem[]
 }

@@ -29,7 +29,7 @@ export type BaselineResponseDtoData = {
    */
   departmentsTotal: number
   /**
-   * The departments of the year, by id: at most 500 are listed (the most a division of the ceiling names); departmentsTotal says how many there are.
+   * The departments of the year, by id: at most 500 are listed; departmentsTotal says how many there are.
    * @maxItems 500
    */
   departments: BaselineResponseDtoDataDepartmentsItem[]

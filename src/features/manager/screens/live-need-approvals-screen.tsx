@@ -13,10 +13,14 @@ import { useAccountProfile } from '@/shared/api/use-account-profile'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
 import { PreferenceSwitches } from '@/shared/ui/preference-switches'
+import { ErrorReference } from '@/shared/ui/error-reference'
 
+import { ManagerGroupDecision } from '../components/manager-group-decision'
 import { ManagerLiveTabs } from '../components/manager-live-tabs'
+import { NeedQueueCard } from '../components/need-queue-card'
 import { SimilarSeats } from '../components/similar-seats'
 import { useLiveNeedApprovals, useNotificationNeedApproval } from '../hooks/use-live-need-approvals'
+import { isDecidableNeedType } from '../model/group-need-decision.model'
 
 function policyVersionChanged(error: unknown) {
   if (typeof error !== 'object' || error === null || !('status' in error) || error.status !== 409 || !('info' in error))
@@ -60,6 +64,8 @@ export function LiveNeedApprovalsScreen({
   const [validation, setValidation] = useState(false)
   const [activeTab, setActiveTab] = useState<'queue' | 'team' | 'inbox'>('queue')
   const [loggingOut, setLoggingOut] = useState(false)
+  const [groupBusy, setGroupBusy] = useState(false)
+  const [groupDone, setGroupDone] = useState(false)
   const [logoutError, setLogoutError] = useState(false)
   const [recoveryBusy, setRecoveryBusy] = useState(false)
   const [recoveryError, setRecoveryError] = useState(false)
@@ -84,7 +90,7 @@ export function LiveNeedApprovalsScreen({
     )
       return
     handledNotification.current = `${notification.source}:${notification.requestId}`
-    if (notificationLookup.data?.type === 'GRANT' && notificationLookup.data.stepKind === 'NEED') {
+    if (isDecidableNeedType(notificationLookup.data?.type) && notificationLookup.data?.stepKind === 'NEED') {
       setSelected(notificationLookup.data)
     } else if (!notificationLookup.data && notification.source === 'reminder') {
       router.replace({ pathname: '/live-requests/[requestId]', params: { requestId: notification.requestId } })
@@ -114,11 +120,21 @@ export function LiveNeedApprovalsScreen({
     !!request &&
     !detail.isError &&
     request.id === selected.requestId &&
-    request.type === 'GRANT' &&
+    (request.type === 'GRANT' || request.type === 'RENEWAL') &&
     request.needStep.id === selected.stepId &&
     request.needStep.state === 'PENDING' &&
     !request.needDecision
-  const inFlight = decision.isPending || (sent.current && !decision.isError && !decision.isSuccess)
+  const groupDecidable =
+    hasScope &&
+    !!selected &&
+    !!request &&
+    !detail.isError &&
+    request.id === selected.requestId &&
+    request.type === 'GROUP_GRANT' &&
+    request.needStep.id === selected.stepId &&
+    request.needStep.state === 'PENDING'
+  const canDecideGroup = groupDecidable || groupDone
+  const inFlight = decision.isPending || groupBusy || (sent.current && !decision.isError && !decision.isSuccess)
   usePreventRemove(inFlight, () => undefined)
   useFocusEffect(
     useCallback(() => {
@@ -136,6 +152,7 @@ export function LiveNeedApprovalsScreen({
   function closeDetails() {
     if (inFlight || (sent.current && !decision.isError && !decision.isSuccess)) return
     setSelected(undefined)
+    setGroupDone(false)
     setChoice(undefined)
     setResponse(undefined)
     setReason('')
@@ -395,7 +412,7 @@ export function LiveNeedApprovalsScreen({
               notification &&
               notificationLookup.isSuccess &&
               !notificationLookup.isFetching &&
-              (notificationLookup.data?.type !== 'GRANT' || notificationLookup.data.stepKind !== 'NEED') &&
+              (!isDecidableNeedType(notificationLookup.data?.type) || notificationLookup.data?.stepKind !== 'NEED') &&
               (notificationLookup.data || notification.source === 'assigned') ? (
                 <Text accessibilityRole='alert' style={styles.error}>
                   {t('manager.live.notificationUnavailable')}
@@ -461,58 +478,7 @@ export function LiveNeedApprovalsScreen({
                 </View>
               ) : null}
               {hasScope &&
-                queue.data?.items.map((item) => {
-                  const name = item.plan?.applicationName ?? item.softwareName ?? t('requests.live.unnamed')
-                  return (
-                    <Pressable
-                      key={item.stepId}
-                      accessibilityRole='button'
-                      accessibilityLabel={t('manager.live.openNamed', { name, person: item.requester.fullName })}
-                      onPress={() => setSelected(item)}
-                      style={styles.card}
-                    >
-                      <View style={styles.row}>
-                        <View style={styles.avatar}>
-                          <Text style={styles.avatarText}>
-                            {item.requester.fullName.trim().slice(0, 1).toLocaleUpperCase()}
-                          </Text>
-                        </View>
-                        <View style={styles.headingCopy}>
-                          <Text style={styles.name}>{item.requester.fullName}</Text>
-                          <Text style={styles.muted}>{item.department.name}</Text>
-                        </View>
-                        <Feather
-                          accessibilityElementsHidden
-                          importantForAccessibility='no'
-                          name='chevron-right'
-                          size={20}
-                          color={mobileColors.muted}
-                        />
-                      </View>
-                      <View style={styles.divider} />
-                      <Text style={styles.name}>{name}</Text>
-                      {item.plan ? (
-                        <Text style={styles.muted}>{t('licenses.live.plan', { plan: item.plan.planName })}</Text>
-                      ) : null}
-                      <Text style={styles.muted}>
-                        {t('manager.live.due', {
-                          date: formatDate(item.dueOn, i18n.language, t('licenses.live.dateUnavailable'))
-                        })}
-                      </Text>
-                      <View style={styles.divider} />
-                      <View style={styles.reviewRow}>
-                        <Text style={styles.review}>{t('manager.live.review')}</Text>
-                        <Feather
-                          accessibilityElementsHidden
-                          importantForAccessibility='no'
-                          name='arrow-right'
-                          size={14}
-                          color={mobileColors.primary}
-                        />
-                      </View>
-                    </Pressable>
-                  )
-                })}
+                queue.data?.items.map((item) => <NeedQueueCard key={item.stepId} item={item} onPress={setSelected} />)}
               {hasScope && queue.data && queue.data.pagination.totalPages > 1 ? (
                 <View style={styles.pagination}>
                   <Pressable
@@ -583,9 +549,12 @@ export function LiveNeedApprovalsScreen({
                     </Pressable>
                   </View>
                 ) : (
-                  <Text accessibilityRole='alert' style={styles.error}>
-                    {refusal ? t(`manager.live.${refusal}`) : t('manager.live.uncertain')}
-                  </Text>
+                  <>
+                    <Text accessibilityRole='alert' style={styles.error}>
+                      {refusal ? t(`manager.live.${refusal}`) : t('manager.live.uncertain')}
+                    </Text>
+                    <ErrorReference error={decision.error} />
+                  </>
                 )
               ) : null}
               {request ? (
@@ -617,7 +586,7 @@ export function LiveNeedApprovalsScreen({
                           months: new Intl.NumberFormat(i18n.language).format(request.termMonths)
                         })}
                   </Text>
-                  <SimilarSeats requestId={request.id} />
+                  {request.type !== 'GROUP_GRANT' ? <SimilarSeats requestId={request.id} /> : null}
                   <Text style={styles.label}>{t('manager.live.cost')}</Text>
                   <Text style={styles.value}>
                     {request.pricing.status === 'NOT_APPLICABLE'
@@ -626,10 +595,21 @@ export function LiveNeedApprovalsScreen({
                         ? t('manager.live.costMissing')
                         : (formatCost(request.pricing.amount, i18n.language) ?? t('manager.live.costUnavailable'))}
                   </Text>
-                  {!canDecide && !locked && !detail.isError ? (
+                  {!canDecide && !canDecideGroup && !locked && !detail.isError ? (
                     <Text accessibilityRole='alert' style={styles.error}>
                       {t('manager.live.stale')}
                     </Text>
+                  ) : null}
+                  {canDecideGroup ? (
+                    <ManagerGroupDecision
+                      requestId={request.id}
+                      checklist={policy.data}
+                      checklistLoading={policy.isLoading}
+                      checklistError={policy.isError}
+                      onReloadChecklist={() => void policy.refetch()}
+                      onBusyChange={setGroupBusy}
+                      onDone={() => setGroupDone(true)}
+                    />
                   ) : null}
                   {canDecide && !locked && !choice ? (
                     <View style={styles.actions}>
@@ -766,13 +746,6 @@ export function LiveNeedApprovalsScreen({
       </View>
     </SafeAreaView>
   )
-}
-
-function formatDate(value: string, locale: string, fallback: string) {
-  const date = new Date(`${value}T00:00:00Z`)
-  return Number.isNaN(date.getTime())
-    ? fallback
-    : new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: 'UTC' }).format(date)
 }
 
 function formatCost(value: { amount: string; currency: string } | null, locale: string) {

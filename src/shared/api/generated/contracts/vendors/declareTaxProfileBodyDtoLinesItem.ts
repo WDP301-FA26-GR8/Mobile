@@ -7,7 +7,7 @@
  */
 
 export type DeclareTaxProfileBodyDtoLinesItem = {
-  /** @maxLength 1000 */
+  /** At most 100 characters counted after the blanks at its ends are dropped, runs of blanks are collapsed to one and accents are composed (NFC); it is kept that way. */
   taxType: string
   /** @maxLength 20 */
   ratePercent: string

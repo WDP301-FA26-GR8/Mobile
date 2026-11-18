@@ -9,7 +9,7 @@ import { faker } from '@faker-js/faker'
 
 import type {
   SubscriptionDeadlineEventList200,
-  SubscriptionRenewalDecide200,
+  SubscriptionRenewalAdjustmentGet200,
   SubscriptionRenewalGet200,
   SubscriptionRenewalList200,
   SubscriptionRenewalPropose201,
@@ -19,6 +19,7 @@ import type {
 
 import {
   getSubscriptionDeadlineEventPageResponseDtoResponseMock,
+  getSubscriptionRenewalAdjustmentResponseDtoResponseMock,
   getSubscriptionRenewalPageResponseDtoResponseMock,
   getSubscriptionRenewalResponseDtoResponseMock,
   getSubscriptionRenewalSeatRankingResponseDtoResponseMock
@@ -34,6 +35,11 @@ export const getSubscriptionRenewalProposeResponseMock = (): SubscriptionRenewal
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 
+export const getSubscriptionRenewalAdjustmentGetResponseMock = (): SubscriptionRenewalAdjustmentGet200 => ({
+  ...{ ...getSubscriptionRenewalAdjustmentResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
 export const getSubscriptionRenewalGetResponseMock = (): SubscriptionRenewalGet200 => ({
   ...{ ...getSubscriptionRenewalResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
@@ -41,11 +47,6 @@ export const getSubscriptionRenewalGetResponseMock = (): SubscriptionRenewalGet2
 
 export const getSubscriptionRenewalSeatRankingResponseMock = (): SubscriptionRenewalSeatRanking200 => ({
   ...{ ...getSubscriptionRenewalSeatRankingResponseDtoResponseMock() },
-  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
-})
-
-export const getSubscriptionRenewalDecideResponseMock = (): SubscriptionRenewalDecide200 => ({
-  ...{ ...getSubscriptionRenewalResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })
 

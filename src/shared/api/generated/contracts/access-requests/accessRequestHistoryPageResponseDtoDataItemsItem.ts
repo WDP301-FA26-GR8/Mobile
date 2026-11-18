@@ -20,6 +20,7 @@ import type { AccessRequestHistoryPageResponseDtoDataItemsItemWithdrawal } from 
 
 export type AccessRequestHistoryPageResponseDtoDataItemsItem = {
   id: string
+  /** SERVICE_ACCOUNT is on records of the earlier releases only: no request for a service account is made any more. */
   type: AccessRequestHistoryPageResponseDtoDataItemsItemType
   branch: AccessRequestHistoryPageResponseDtoDataItemsItemBranch
   state: AccessRequestHistoryPageResponseDtoDataItemsItemState

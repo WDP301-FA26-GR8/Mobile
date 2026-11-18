@@ -12,6 +12,8 @@ import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
 import { PreferenceSwitches } from '@/shared/ui/preference-switches'
 
+import { ProfileEditor } from '../components/profile-editor'
+
 export function AccountProfileScreen() {
   const { t } = useTranslation()
   const { colors } = useMobileTheme()
@@ -119,6 +121,26 @@ export function AccountProfileScreen() {
                 </View>
               ))}
             </View>
+            <ProfileEditor
+              initials={account.employee.fullName.trim().slice(0, 1).toLocaleUpperCase()}
+              avatarUrl={account.avatar?.url}
+              workPhone={account.workPhone}
+            />
+            <Pressable
+              accessibilityRole='button'
+              accessibilityLabel={t('account.changePassword')}
+              onPress={() => router.push('/change-password')}
+              style={styles.changePassword}
+            >
+              <Feather
+                accessibilityElementsHidden
+                importantForAccessibility='no'
+                name='lock'
+                size={19}
+                color={colors.primaryInk}
+              />
+              <Text style={styles.changePasswordText}>{t('account.changePassword')}</Text>
+            </Pressable>
           </>
         ) : null}
         {session.state === 'authenticated' ? (
@@ -230,6 +252,16 @@ const createStyles = (colors: MobileColors) =>
     error: { color: colors.danger, fontSize: 14, lineHeight: 21 },
     retry: { alignSelf: 'flex-start', justifyContent: 'center', minHeight: 44, marginTop: 4 },
     retryText: { color: colors.primaryInk, fontWeight: '700' },
+    changePassword: {
+      alignItems: 'center',
+      flexDirection: 'row',
+      gap: 10,
+      minHeight: 52,
+      paddingHorizontal: 16,
+      borderRadius: 16,
+      backgroundColor: colors.primarySoft
+    },
+    changePasswordText: { color: colors.primaryInk, fontSize: 15, fontWeight: '700' },
     logout: {
       minHeight: 52,
       borderWidth: 1,

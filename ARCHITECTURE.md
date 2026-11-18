@@ -1,10 +1,11 @@
 # SaaS-Sentry Mobile architecture
 
-Status: Expo foundation updated for BRD 3.53 mobile scope, 2026-10-24.
+Status: Expo foundation aligned with the mobile scope of BRD v4.13 (QĐ-61b, EP-16) and
+`mobile-api-map.md`, 2026-11-18.
 
 ## Context and scope boundary
 
-BRD 3.53 includes a native iOS/Android companion for four tasks: employees view
+The mobile scope (BRD 3.1, QĐ-61b, EP-16) is a native iOS/Android companion for four tasks: employees view
 their software and requests and submit or withdraw simple requests for software
 already in the catalog; managers approve the need step for their department;
 spending approvers decide individual items against a read-only budget snapshot;
@@ -30,7 +31,7 @@ On an explicit policy-version conflict, the user may reload the policy, request 
 group lines; a different version and the same pending step are required before
 answering again. Neither this recovery nor uncertain writes automatically retry.
 The former prototype request, Manager-demo, Spending-demo, inbox-demo and password-recovery screens
-and the in-memory `demo-requests` store were removed; their legacy routes redirect to live screens. Contract availability alone does not resolve
+and the in-memory `demo-requests` store were removed. Contract availability alone does not resolve
 the differences between the current backend and newer proposed business decisions.
 The authenticated landing loads `/me` and opens `/home`, which shows self-service
 shortcuts and the live Manager or Spending Approver queue only to the matching role.
@@ -71,7 +72,11 @@ allow 1–12 months or an unspecified long-term duration, and K4 has no duration
 The preview remains authoritative, including restrictions on long-term use. K3 is
 not submitted from this screen until its mobile request behavior is specified.
 Request detail displays the expected end date rather than interpreting the legacy
-`termMonths` field, and loads the paginated server event history separately.
+`termMonths` field, shows the approval route (need review, spending, IT provisioning) from the
+routing mode, step state and holder, and loads the paginated server event history separately.
+The requester can withdraw from the detail (confirmation first) while the state allows it, a
+request returned for revision shows that revising and resubmitting is web-only, and a closed
+individual request offers "Request again", which opens the catalog on the same application.
 The list offers withdrawal only when the server indicates it is
 available, and displays the returned status rather than assuming immediate withdrawal.
 The withdrawal response must identify the same request; a missing or inconsistent
@@ -101,7 +106,12 @@ The request detail queries the
 assignee-only similar seats endpoint separately, with pagination and explicit
 loading/error states. The contract supplies a due date but no exact deadline or
 all-queue urgent count; the UI does not invent an hourly SLA countdown.
-Group, renewal, service-account and department-wide views are not implemented. Decisions
+Group and renewal requests are decided on mobile (Owner decision, 2026-11-18): the queue
+lists every type the server assigns, a single GRANT or RENEWAL uses the individual decision
+route, and a GROUP_GRANT is decided person by person through `accessRequestLineNeedDecide`
+with one shared step 1.2 checklist; `RETURN` applies to every waiting person or none, and the
+similar-seats lookup is not shown for groups. Old SERVICE_ACCOUNT records have no mobile
+decision. Decisions
 are confirmed explicitly and include the current policy step 1.2 checklist.
 An answer of No blocks approval; rejection or return requires a reason unless the
 server can derive it from a No answer.
@@ -120,14 +130,18 @@ Back from any tab returns to the screen that opened it (normally Home) instead o
 through previously visited tabs. Header and card shortcuts still use `push`. The login and
 authenticated headers share `PreferenceSwitches` (language VI/EN toggle persisted in
 AsyncStorage plus theme); the login password field has a show/hide control.
-Password recovery on the login screen directs the
-user to web until the real reset-link flow is implemented. Its former prototype
-route redirects to login and cannot simulate a successful password change.
-The authenticated account header opens `/profile`, a read-only account information
-screen for the signed-in user using the shared `/me` query. It shows the department
-managed when the account is a Manager; profile editing and password changes remain
-web-only. This account-information screen is an additional UX convenience not explicitly
-listed in the four mobile MVP tasks and requires Owner confirmation of its scope.
+Password recovery, activation and password change run on mobile (Owner decision, 2026-11-18).
+`/forgot-password` requests a reset link and always shows the same notice. `/activate` and
+`/reset-password` read the one-time token from the URL fragment (`#token=…`, query accepted as a
+fallback) of a link opened through the app scheme; the web links `https://<host>/activate#token=…`
+open in the app only after Android App Links / iOS Universal Links are configured for the web
+domain, which still needs a domain-verification decision. `/change-password` calls `meChangePassword`
+and, because the server ends every session, clears the local session without a second logout call.
+The authenticated account header opens `/profile`, which shows the signed-in user's account details
+using the shared `/me` query, including the department managed by a Manager. The user can change the
+work phone (`meProfilePatch`) and the profile photo (`meAvatarPut` / `meAvatarDelete`); the photo is
+chosen with the system picker, resized and redrawn as JPEG (removing EXIF/GPS) until it is at most
+1 MiB before upload. Failed calls show the server `requestId` as a reference for support.
 Employee self-service opens a confirmation before signing out from the account
 screen; the profile remains reachable when account loading fails. The software list
 uses local brand icons where available, with a generic fallback for other names.
@@ -140,8 +154,7 @@ expiring count; the filter explicitly applies only to the current page. Software
 details search the authenticated current and ended rights pages for the assignment;
 no separate detail endpoint exists. They do not expose invented accounts or keys.
 An all-pages expiring filter and return workflows are not provided.
-Legacy `/my-requests`, `/inbox` and `/manager` routes redirect to live screens;
-prototype request IDs redirect to the live request list.
+The former `/my-requests`, `/inbox` and `/manager` prototype redirects were removed.
 
 ## Runtime view
 
@@ -165,17 +178,18 @@ app/
   _layout.tsx              root route/provider attachment
   index.tsx                thin route entry
   home.tsx                 authenticated Home handoff
-  inbox.tsx                legacy inbox redirect
+  forgot-password.tsx      password reset request handoff
+  activate.tsx             invitation activation (token from URL fragment)
+  reset-password.tsx       password reset (token from URL fragment)
+  change-password.tsx      signed-in password change handoff
   live-inbox.tsx           authenticated inbox handoff
   live-requests.tsx        authenticated request list handoff
-  live-request-create.tsx  authenticated individual request handoff
+  live-request-create.tsx  authenticated individual request handoff (optional application preselection)
   live-need-approvals.tsx  authenticated need approval handoff
   live-requests/           authenticated request detail handoff
   my-software.tsx          employee software handoff
-  profile.tsx              read-only signed-in account handoff
-  manager.tsx              legacy manager redirect
+  profile.tsx              signed-in account and profile editing handoff
   spending-approvals.tsx   authenticated Spending Approver handoff
-  my-requests/             legacy request redirects
 src/
   providers/               application-wide framework providers
   features/
@@ -318,7 +332,11 @@ headers were updated from the local backend export (SHA-256
 `6d0d216b619da6aaaf094f73bb58bed7273fe0ced88634e3fccc39843ea4e200`);
 the corresponding response schemas matched the public `/api/docs-json` (SHA-256
 `9de2b7d504cadb306ee7881f4bb507a8f5f96fa85dae51db6972ed89e98b7a90`).
-The rest of the snapshot was not reimported. Contract shape alone does not prove
+The rest of the snapshot was not reimported at that time. On 2026-11-18 (evening) the
+whole snapshot was reimported from the same backend export
+(`BE/openapi.json`, SHA-256 `6d0d216b619da6aaaf094f73bb58bed7273fe0ced88634e3fccc39843ea4e200`),
+which adds the profile operations (`meProfilePatch`, `meAvatarPut`, `meAvatarDelete`,
+`employeeProfileLookup`). Contract shape alone does not prove
 the deployed backend's behavior.
 The import adds missing top-level tag declarations and request/response aliases
 to satisfy the mobile naming conventions without renaming the backend DTOs. It also
