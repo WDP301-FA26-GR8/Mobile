@@ -1,18 +1,16 @@
 import { Feather } from '@expo/vector-icons'
-import { useQuery } from '@tanstack/react-query'
 import { Redirect, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { notificationUnreadCount } from '@/shared/api/generated/api/notifications/notifications'
+import { useUnreadCount } from '@/shared/api/use-unread-count'
 import { mayCreateRequest } from '@/shared/api/request-eligibility'
 import { useSession } from '@/shared/api/session-context'
 import { useAccountProfile } from '@/shared/api/use-account-profile'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
-import { EmployeeProfileHeader } from '@/shared/ui/employee-profile-header'
-import { PreferenceSwitches } from '@/shared/ui/preference-switches'
+import { Avatar } from '@/shared/ui/avatar'
 
 export function LiveHomeScreen() {
   const { t, i18n } = useTranslation()
@@ -21,16 +19,7 @@ export function LiveHomeScreen() {
   const router = useRouter()
   const session = useSession()
   const profile = useAccountProfile()
-  const count = useQuery({
-    queryKey: ['session', 'notifications', 'count'],
-    enabled: session.state === 'authenticated',
-    queryFn: ({ signal }) =>
-      session.read(async (token) => {
-        const result = await notificationUnreadCount({ signal, headers: { Authorization: `Bearer ${token}` } })
-        if (!result.data.data) throw new Error('Missing notification count')
-        return result.data.data.unread
-      })
-  })
+  const count = useUnreadCount()
 
   if (session.state === 'anonymous') return <Redirect href='/' />
   const account = !profile.isError ? profile.data : undefined
@@ -44,22 +33,21 @@ export function LiveHomeScreen() {
         {account && role ? (
           <>
             <View style={styles.header}>
+              <Avatar
+                name={account.employee.fullName}
+                url={account.avatar?.url}
+                size={52}
+                onImageError={() => void profile.refetch()}
+              />
               <View style={styles.profile}>
-                <EmployeeProfileHeader
-                  initials={account.employee.fullName.trim().slice(0, 1).toLocaleUpperCase()}
-                  name={account.employee.fullName}
-                  meta={account.employee.department?.name ?? t('licenses.live.noDepartment')}
-                  onOpenProfile={() => router.push('/profile')}
-                />
+                <Text style={styles.eyebrow}>{t('home.live.eyebrow')}</Text>
+                <Text accessibilityRole='header' numberOfLines={2} style={styles.title}>
+                  {t('home.live.greeting', { name: account.employee.fullName })}
+                </Text>
+                <Text numberOfLines={1} style={styles.subtitle}>
+                  {account.employee.department?.name ?? t('licenses.live.noDepartment')}
+                </Text>
               </View>
-              <PreferenceSwitches />
-            </View>
-            <View style={styles.hero}>
-              <Text style={styles.eyebrow}>{t('home.live.eyebrow')}</Text>
-              <Text accessibilityRole='header' style={styles.title}>
-                {t('home.live.greeting', { name: account.employee.fullName })}
-              </Text>
-              <Text style={styles.subtitle}>{t('home.live.subtitle')}</Text>
             </View>
             {manager ? (
               <Pressable

@@ -15,6 +15,7 @@ export interface MobileTab {
   selected: boolean
   disabled?: boolean
   accessibilityHint?: string
+  badge?: number
 }
 
 interface MobileTabBarProps {
@@ -46,6 +47,11 @@ export function MobileTabBar({ accessibilityLabel, tabs }: MobileTabBarProps) {
               name={tab.icon}
               size={20}
             />
+            {tab.badge ? (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{tab.badge > 99 ? '99+' : tab.badge}</Text>
+              </View>
+            ) : null}
           </View>
           <Text style={[styles.label, tab.selected && styles.labelSelected]}>{tab.label}</Text>
         </Pressable>
@@ -56,6 +62,19 @@ export function MobileTabBar({ accessibilityLabel, tabs }: MobileTabBarProps) {
 
 const createStyles = (mobileColors: MobileColors) =>
   StyleSheet.create({
+    badge: {
+      position: 'absolute',
+      top: -2,
+      right: -4,
+      minWidth: 16,
+      height: 16,
+      borderRadius: 8,
+      paddingHorizontal: 4,
+      backgroundColor: mobileColors.danger,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    badgeText: { color: mobileColors.onDanger, fontSize: 10, fontWeight: '700' },
     container: {
       backgroundColor: mobileColors.sidebar,
       borderTopColor: mobileColors.border,

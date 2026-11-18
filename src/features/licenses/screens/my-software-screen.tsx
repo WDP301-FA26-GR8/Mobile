@@ -5,13 +5,9 @@ import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { mayCreateRequest } from '@/shared/api/request-eligibility'
 import { useSession } from '@/shared/api/session-context'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
-import { EmployeeProfileHeader } from '@/shared/ui/employee-profile-header'
-import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
-import { PreferenceSwitches } from '@/shared/ui/preference-switches'
 
 import { LiveSoftwareCard } from '../components/live-software-card'
 import { useMySoftware } from '../hooks/use-my-software'
@@ -44,102 +40,11 @@ export function MySoftwareScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.screen}>
         <ScrollView contentContainerStyle={styles.content}>
-          {session.state === 'authenticated' ? (
-            <View style={styles.profile}>
-              <View style={styles.profileCopy}>
-                {profile.data ? (
-                  <EmployeeProfileHeader
-                    initials={profile.data.employee.fullName.trim().slice(0, 1).toLocaleUpperCase()}
-                    name={profile.data.employee.fullName}
-                    meta={profile.data.employee.department?.name ?? t('licenses.live.noDepartment')}
-                    onOpenProfile={() => router.push('/profile')}
-                  />
-                ) : profile.isError ? (
-                  <Pressable
-                    accessibilityRole='button'
-                    accessibilityLabel={t('account.title')}
-                    onPress={() => router.push('/profile')}
-                    style={styles.profileFallback}
-                  >
-                    <Feather
-                      accessibilityElementsHidden
-                      importantForAccessibility='no'
-                      name='user'
-                      size={19}
-                      color={mobileColors.primaryInk}
-                    />
-                    <Text style={styles.buttonText}>{t('account.title')}</Text>
-                  </Pressable>
-                ) : null}
-              </View>
-              <PreferenceSwitches />
-              <Pressable
-                accessibilityRole='button'
-                accessibilityLabel={t('navigation.openTab', { tab: t('navigation.inbox') })}
-                onPress={() => router.push('/live-inbox')}
-                style={({ pressed }) => [styles.inboxButton, pressed && styles.pressed]}
-              >
-                <Feather
-                  accessibilityElementsHidden
-                  importantForAccessibility='no'
-                  name='bell'
-                  size={18}
-                  color={mobileColors.primaryInk}
-                />
-              </Pressable>
-            </View>
-          ) : null}
-          <View style={styles.heading}>
-            <View style={styles.headingMain}>
-              <View style={styles.headingCopy}>
-                <Text style={styles.kicker}>{t('licenses.live.kicker')}</Text>
-                <Text accessibilityRole='header' style={styles.title}>
-                  {t('licenses.screenTitle')}
-                </Text>
-                <Text style={[styles.subtitle, styles.heroSubtitle]}>{t('licenses.live.description')}</Text>
-              </View>
-              <View style={styles.headingIcon}>
-                <Feather
-                  accessibilityElementsHidden
-                  importantForAccessibility='no'
-                  name='grid'
-                  size={24}
-                  color={mobileColors.primaryInk}
-                />
-              </View>
-            </View>
-            <Pressable
-              accessibilityRole='button'
-              accessibilityLabel={t('navigation.home')}
-              onPress={() => router.push('/home')}
-              style={styles.approvalsLink}
-            >
-              <Feather
-                accessibilityElementsHidden
-                importantForAccessibility='no'
-                name='home'
-                size={16}
-                color={mobileColors.primaryInk}
-              />
-              <Text style={styles.buttonText}>{t('navigation.home')}</Text>
-            </Pressable>
-            {profile.data?.roles.includes('MANAGER') ? (
-              <Pressable
-                accessibilityRole='button'
-                accessibilityLabel={t('manager.live.openQueue')}
-                onPress={() => router.push('/live-need-approvals')}
-                style={styles.approvalsLink}
-              >
-                <Feather
-                  accessibilityElementsHidden
-                  importantForAccessibility='no'
-                  name='check-square'
-                  size={16}
-                  color={mobileColors.primaryInk}
-                />
-                <Text style={styles.buttonText}>{t('manager.live.openQueue')}</Text>
-              </Pressable>
-            ) : null}
+          <View style={styles.titleBlock}>
+            <Text accessibilityRole='header' style={styles.pageTitle}>
+              {t('licenses.screenTitle')}
+            </Text>
+            <Text style={styles.subtitle}>{t('licenses.live.description')}</Text>
           </View>
 
           <View style={styles.summary}>
@@ -332,46 +237,6 @@ export function MySoftwareScreen() {
             </View>
           ) : null}
         </ScrollView>
-        <MobileTabBar
-          accessibilityLabel={t('navigation.tabs')}
-          tabs={[
-            {
-              id: 'software',
-              label: t('navigation.software'),
-              icon: 'grid',
-              selected: true,
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') })
-            },
-            ...(!profile.isError && mayCreateRequest(profile.data)
-              ? [
-                  {
-                    id: 'create',
-                    label: t('navigation.createRequest'),
-                    icon: 'plus-circle' as const,
-                    selected: false,
-                    accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
-                    onPress: () => router.replace('/live-request-create')
-                  }
-                ]
-              : []),
-            {
-              id: 'requests',
-              label: t('navigation.requests'),
-              icon: 'clock',
-              selected: false,
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') }),
-              onPress: () => router.replace('/live-requests')
-            },
-            {
-              id: 'inbox',
-              label: t('navigation.inbox'),
-              icon: 'bell',
-              selected: false,
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') }),
-              onPress: () => router.replace('/live-inbox')
-            }
-          ]}
-        />
       </View>
     </SafeAreaView>
   )
@@ -395,6 +260,8 @@ const createStyles = (mobileColors: MobileColors) =>
       alignItems: 'center',
       justifyContent: 'center'
     },
+    titleBlock: { gap: 4 },
+    pageTitle: { color: mobileColors.foreground, fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
     heading: { gap: 8, padding: 20, borderRadius: 22, backgroundColor: mobileColors.primarySoft },
     headingMain: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
     headingCopy: { flex: 1, minWidth: 0, gap: 7 },

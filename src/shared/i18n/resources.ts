@@ -28,6 +28,8 @@ export const resources = {
         title: 'Account information',
         subtitle: 'Your signed-in account',
         details: 'Account details',
+        settings: 'Settings',
+        appearance: 'Language and appearance',
         changePassword: 'Change password',
         edit: {
           title: 'Edit profile',
@@ -75,6 +77,15 @@ export const resources = {
         confirm: 'I have read and understood'
       },
       navigation: {
+        tab: {
+          home: 'Home',
+          'my-software': 'Software',
+          'live-need-approvals': 'To review',
+          'spending-approvals': 'To approve',
+          'live-requests': 'Requests',
+          'live-inbox': 'Inbox',
+          profile: 'Me'
+        },
         home: 'Home',
         createRequest: 'Create request',
         inbox: 'Inbox',
@@ -145,6 +156,9 @@ export const resources = {
         login: 'Sign in',
         loginTitle: 'Sign in to your internal account',
         loginSubtitle: 'Access your software and follow your requests in one place.',
+        noAccount: 'No account yet? Contact your organisation administrator.',
+        secureSession: 'Your session is protected by short-lived access tokens.',
+        tagline: 'Every app. One place to manage.',
         password: 'Password',
         passwordPlaceholder: 'Enter your password',
         showPassword: 'Show password',
@@ -369,6 +383,7 @@ export const resources = {
           },
           kicker: 'Assigned spending work',
           needDecision: 'Need step decided by',
+          slaWorkingDays: 'Decision time limit',
           needReason: 'Need-step reason',
           nextPage: 'Next',
           nextYearApproved: 'Approved next-year budget',
@@ -762,6 +777,7 @@ export const resources = {
             }
           },
           subtitle: 'Requests you sent or that were made for you.',
+          createShort: 'New',
           forMe: 'Requested for you',
           revisionWebOnly:
             'This request was returned for revision. Editing and resubmitting it is only available on the web application.',
@@ -889,6 +905,8 @@ export const resources = {
         title: 'Thông tin tài khoản',
         subtitle: 'Tài khoản bạn đang đăng nhập',
         details: 'Chi tiết tài khoản',
+        settings: 'Cài đặt',
+        appearance: 'Ngôn ngữ và giao diện',
         changePassword: 'Đổi mật khẩu',
         edit: {
           title: 'Chỉnh sửa hồ sơ',
@@ -936,6 +954,15 @@ export const resources = {
         confirm: 'Tôi đã đọc và hiểu'
       },
       navigation: {
+        tab: {
+          home: 'Trang chủ',
+          'my-software': 'Phần mềm',
+          'live-need-approvals': 'Cần duyệt',
+          'spending-approvals': 'Duyệt chi',
+          'live-requests': 'Yêu cầu',
+          'live-inbox': 'Thông báo',
+          profile: 'Tôi'
+        },
         home: 'Trang chủ',
         createRequest: 'Tạo yêu cầu',
         inbox: 'Thông báo',
@@ -1006,6 +1033,9 @@ export const resources = {
         login: 'Đăng nhập',
         loginTitle: 'Đăng nhập tài khoản nội bộ',
         loginSubtitle: 'Xem phần mềm và theo dõi yêu cầu của bạn tại một nơi.',
+        noAccount: 'Chưa có tài khoản? Liên hệ quản trị viên của tổ chức.',
+        secureSession: 'Phiên làm việc được bảo vệ bằng mã truy cập ngắn hạn.',
+        tagline: 'Mọi ứng dụng. Một điểm quản trị.',
         password: 'Mật khẩu',
         passwordPlaceholder: 'Nhập mật khẩu',
         showPassword: 'Hiện mật khẩu',
@@ -1223,6 +1253,7 @@ export const resources = {
           },
           kicker: 'Công việc duyệt chi được giao',
           needDecision: 'Bước nhu cầu được quyết định bởi',
+          slaWorkingDays: 'Thời hạn quyết định',
           needReason: 'Lý do ở bước nhu cầu',
           nextPage: 'Sau',
           nextYearApproved: 'Ngân sách năm sau được duyệt',
@@ -1291,6 +1322,8 @@ export const resources = {
           totalPayable: 'Tổng số tiền phải trả ước tính',
           workingDays_one: '{{count}} ngày làm việc',
           workingDays_other: '{{count}} ngày làm việc',
+          rejectAll: 'Từ chối những người đã chọn',
+          withinBase: 'Trong ngân sách cơ bản',
           termMonths_one: '{{count}} tháng',
           termMonths_other: '{{count}} tháng',
           title: 'Duyệt chi',
@@ -1612,6 +1645,7 @@ export const resources = {
             }
           },
           subtitle: 'Các yêu cầu bạn đã gửi hoặc được tạo cho bạn.',
+          createShort: 'Tạo mới',
           forMe: 'Yêu cầu được tạo cho bạn',
           revisionWebOnly:
             'Yêu cầu này đã được trả về để bổ sung. Việc chỉnh sửa và gửi lại chỉ thực hiện được trên web.',

@@ -4,17 +4,15 @@ import { Redirect, useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BackHandler, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { SoftwareIcon } from '@/entities/software'
 import { mayCreateRequest } from '@/shared/api/request-eligibility'
 import { useSession } from '@/shared/api/session-context'
 import { useAccountProfile } from '@/shared/api/use-account-profile'
-import { goBackOr } from '@/shared/lib/go-back-or'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
-import { PreferenceSwitches } from '@/shared/ui/preference-switches'
-import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 
 import { LiveRequestStatus } from '../components/live-request-status'
 import { LiveRequestType } from '../components/live-request-type'
@@ -49,26 +47,32 @@ export function LiveRequestsScreen() {
     <SafeAreaView style={styles.safe}>
       <View style={styles.screen}>
         <ScrollView contentContainerStyle={styles.content}>
-          <Pressable
-            accessibilityRole='button'
-            accessibilityState={{ disabled: inFlight }}
-            disabled={inFlight}
-            onPress={() => {
-              if (!withdrawing.current) goBackOr(router, '/my-software')
-            }}
-            style={styles.action}
-          >
-            <Text style={styles.actionText}>{t('common.back')}</Text>
-          </Pressable>
-          <View style={styles.header}>
-            <View style={styles.heading}>
-              <Text style={styles.kicker}>{t('licenses.live.kicker')}</Text>
-              <Text accessibilityRole='header' style={styles.title}>
+          <View style={styles.titleRow}>
+            <View style={styles.titleBlock}>
+              <Text accessibilityRole='header' style={styles.pageTitle}>
                 {t('requests.title')}
               </Text>
-              <Text style={styles.headerSubtitle}>{t('requests.live.subtitle')}</Text>
+              <Text style={styles.muted}>{t('requests.live.subtitle')}</Text>
             </View>
-            <PreferenceSwitches />
+            {!profile.isError && mayCreateRequest(profile.data) ? (
+              <Pressable
+                accessibilityRole='button'
+                accessibilityLabel={t('navigation.createRequest')}
+                accessibilityState={{ disabled: inFlight }}
+                disabled={inFlight}
+                onPress={() => router.push('/live-request-create')}
+                style={styles.createButton}
+              >
+                <Feather
+                  accessibilityElementsHidden
+                  importantForAccessibility='no'
+                  name='plus'
+                  size={18}
+                  color={mobileColors.onPrimary}
+                />
+                <Text style={styles.createText}>{t('requests.live.createShort')}</Text>
+              </Pressable>
+            ) : null}
           </View>
           <View style={styles.filters}>
             {(['open', 'ended'] as const).map((value) => (
@@ -257,56 +261,6 @@ export function LiveRequestsScreen() {
             </View>
           ) : null}
         </ScrollView>
-        <MobileTabBar
-          accessibilityLabel={t('navigation.tabs')}
-          tabs={[
-            {
-              id: 'software',
-              label: t('navigation.software'),
-              icon: 'grid',
-              selected: false,
-              disabled: inFlight,
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') }),
-              onPress: () => {
-                if (!withdrawing.current) router.replace('/my-software')
-              }
-            },
-            ...(!profile.isError && mayCreateRequest(profile.data)
-              ? [
-                  {
-                    id: 'create',
-                    label: t('navigation.createRequest'),
-                    icon: 'plus-circle' as const,
-                    selected: false,
-                    disabled: inFlight,
-                    accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
-                    onPress: () => {
-                      if (!withdrawing.current) router.replace('/live-request-create')
-                    }
-                  }
-                ]
-              : []),
-            {
-              id: 'requests',
-              label: t('navigation.requests'),
-              icon: 'clock',
-              selected: true,
-              disabled: inFlight,
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') })
-            },
-            {
-              id: 'inbox',
-              label: t('navigation.inbox'),
-              icon: 'bell',
-              selected: false,
-              disabled: inFlight,
-              accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') }),
-              onPress: () => {
-                if (!withdrawing.current) router.replace('/live-inbox')
-              }
-            }
-          ]}
-        />
       </View>
     </SafeAreaView>
   )
@@ -314,6 +268,19 @@ export function LiveRequestsScreen() {
 
 const createStyles = (mobileColors: MobileColors) =>
   StyleSheet.create({
+    titleRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
+    titleBlock: { flex: 1, gap: 4 },
+    pageTitle: { color: mobileColors.foreground, fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
+    createButton: {
+      minHeight: 44,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 14,
+      borderRadius: 14,
+      backgroundColor: mobileColors.primary
+    },
+    createText: { color: mobileColors.onPrimary, fontWeight: '700' },
     safe: { flex: 1, backgroundColor: mobileColors.background },
     screen: { flex: 1 },
     content: { padding: 20, paddingBottom: 24, gap: 14 },

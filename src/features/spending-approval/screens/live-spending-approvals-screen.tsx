@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons'
 import { usePreventRemove } from '@react-navigation/native'
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Redirect, useFocusEffect, useRouter } from 'expo-router'
+import { Redirect, useFocusEffect } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 import { BackHandler, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -15,12 +15,8 @@ import type { LinesResponseDtoDataItemsItem } from '@/shared/api/generated/contr
 import type { PolicyStepResponseDtoDataStepChecklistItem } from '@/shared/api/generated/contracts/policies'
 import { useSession } from '@/shared/api/session-context'
 import { useAccountProfile } from '@/shared/api/use-account-profile'
-import { LiveInboxScreen } from '@/features/inbox'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
-import { EmployeeProfileHeader } from '@/shared/ui/employee-profile-header'
-import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
-import { PreferenceSwitches } from '@/shared/ui/preference-switches'
 
 import { LiveSpendingApprovalCard } from '../components/live-spending-approval-card'
 import { LiveSpendingBudgetSnapshot } from '../components/live-spending-budget-snapshot'
@@ -33,22 +29,18 @@ import {
   spendDecisionErrorCode,
   type SpendDecision
 } from '../model/live-spending-approvals'
-
-type ActiveTab = 'queue' | 'inbox'
 type ChecklistAnswers = Record<string, 'YES' | 'NO'>
 
 export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string }) {
   const { colors } = useMobileTheme()
   const styles = createStyles(colors)
   const { t, i18n } = useTranslation()
-  const router = useRouter()
   const session = useSession()
   const profile = useAccountProfile()
   const account = profile.data
   const isApprover = account?.roles.length === 1 && account.roles[0] === 'SPENDING_APPROVER'
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
-  const [activeTab, setActiveTab] = useState<ActiveTab>('queue')
   const [selectedRequestId, setSelectedRequestId] = useState<string>()
   const [notificationUnavailable, setNotificationUnavailable] = useState(false)
   const [notificationLookupError, setNotificationLookupError] = useState(false)
@@ -291,38 +283,6 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
   if (session.state === 'anonymous') return <Redirect href='/' />
   if (session.state === 'authenticated' && account && !isApprover) return <Redirect href='/home' />
 
-  const tabs = (
-    <MobileTabBar
-      accessibilityLabel={t('navigation.tabs')}
-      tabs={[
-        {
-          accessibilityLabel: t('navigation.openTab', { tab: t('spending.live.tabs.queue') }),
-          icon: 'check-square',
-          id: 'spending-queue',
-          label: t('spending.live.tabs.queue'),
-          disabled: inFlight,
-          onPress: () => {
-            if (!submissionStarted.current || result || mutationError) setActiveTab('queue')
-          },
-          selected: activeTab === 'queue'
-        },
-        {
-          accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') }),
-          icon: 'bell',
-          id: 'spending-inbox',
-          label: t('navigation.inbox'),
-          disabled: inFlight,
-          onPress: () => {
-            if (!submissionStarted.current || result || mutationError) setActiveTab('inbox')
-          },
-          selected: activeTab === 'inbox'
-        }
-      ]}
-    />
-  )
-
-  if (activeTab === 'inbox') return <LiveInboxScreen navigation={tabs} />
-
   const appName =
     approval?.request.plan?.applicationName ?? approval?.request.softwareName ?? t('spending.live.unnamed')
   const planName = approval?.request.plan?.planName
@@ -333,20 +293,6 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
     <SafeAreaView style={styles.safe}>
       <View style={styles.screen}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps='handled'>
-          <View style={styles.header}>
-            <View style={styles.profile}>
-              {account ? (
-                <EmployeeProfileHeader
-                  initials={account.employee.fullName.trim().slice(0, 1).toLocaleUpperCase()}
-                  meta={account.employee.department?.name ?? t('licenses.live.noDepartment')}
-                  name={account.employee.fullName}
-                  onOpenProfile={inFlight ? undefined : () => router.push('/profile')}
-                />
-              ) : null}
-            </View>
-            <PreferenceSwitches />
-          </View>
-
           {profile.isError ? (
             <View style={styles.notice}>
               <Text accessibilityRole='alert' style={styles.bodyText}>
@@ -665,7 +611,6 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
             </>
           )}
         </ScrollView>
-        {tabs}
       </View>
     </SafeAreaView>
   )

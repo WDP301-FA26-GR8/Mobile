@@ -12,8 +12,7 @@ import { useSession } from '@/shared/api/session-context'
 import { useAccountProfile } from '@/shared/api/use-account-profile'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
-import { PreferenceSwitches } from '@/shared/ui/preference-switches'
-import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
+import { goBackOr } from '@/shared/lib/go-back-or'
 
 import { RequestCatalog } from '../components/request-catalog'
 import { RequestPreview } from '../components/request-preview'
@@ -118,13 +117,14 @@ export function LiveRequestCreateScreen({ initialApplication }: { initialApplica
   const [term, setTerm] = useState('')
   const [reason, setReason] = useState('')
   const [validation, setValidation] = useState(false)
-  const [destination, setDestination] = useState<Href>()
+  const [destination, setDestination] = useState<Href | 'back'>()
   const [pendingAction, setPendingAction] = useState<NavigationAction>()
   const [exitApp, setExitApp] = useState(false)
   const [choosing, setChoosing] = useState(true)
   const sent = useRef(false)
   const allowRemoval = useRef(false)
   const scroll = useRef<ScrollView>(null)
+  const scrollY = useRef(0)
   const permitted = !profile.isError && mayCreateRequest(profile.data)
   const { preview, submit } = useLiveRequestCreate()
   const dirty = !!selected || hasSearch || !!reason || !!term
@@ -229,36 +229,39 @@ export function LiveRequestCreateScreen({ initialApplication }: { initialApplica
       }
     )
   }
-  function navigateTo(target: Href) {
+  function navigateTo(target: Href | 'back') {
     if (inFlight || (sent.current && !submit.isError && !submit.isSuccess)) return
     if (dirty) {
       setDestination(target)
       return
     }
-    router.replace(target)
+    if (target === 'back') goBackOr(router, '/live-requests')
+    else router.replace(target)
   }
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView ref={scroll} keyboardShouldPersistTaps='handled' contentContainerStyle={styles.content}>
+      <ScrollView
+        ref={scroll}
+        keyboardShouldPersistTaps='handled'
+        contentContainerStyle={styles.content}
+        onScroll={(event) => {
+          scrollY.current = event.nativeEvent.contentOffset.y
+        }}
+        scrollEventThrottle={32}
+      >
         <Pressable
           accessibilityRole='button'
           accessibilityState={{ disabled: inFlight }}
           disabled={inFlight}
-          onPress={() => navigateTo('/live-requests')}
+          onPress={() => navigateTo('back')}
           style={styles.action}
         >
           <Text style={styles.actionText}>{t('requests.live.back')}</Text>
         </Pressable>
-        <View style={styles.header}>
-          <View style={styles.headerCopy}>
-            <Text style={styles.kicker}>{t('licenses.live.kicker')}</Text>
-            <Text accessibilityRole='header' style={styles.title}>
-              {t('requests.createLive.title')}
-            </Text>
-            <Text style={styles.headerSubtitle}>{t('requests.createLive.intro')}</Text>
-          </View>
-          <PreferenceSwitches />
-        </View>
+        <Text accessibilityRole='header' style={styles.pageTitle}>
+          {t('requests.createLive.title')}
+        </Text>
+        <Text style={styles.muted}>{t('requests.createLive.intro')}</Text>
         {locked ? (
           <View>
             <Text accessibilityRole='alert' style={styles.error}>
@@ -313,6 +316,8 @@ export function LiveRequestCreateScreen({ initialApplication }: { initialApplica
               </Pressable>
             ) : null}
             <RequestCatalog
+              getScrollY={() => scrollY.current}
+              scrollTo={(y, animated) => scroll.current?.scrollTo({ y, animated })}
               initialApplication={initialApplication}
               onSearchChange={setHasSearch}
               onSelect={(plan) => {
@@ -335,7 +340,7 @@ export function LiveRequestCreateScreen({ initialApplication }: { initialApplica
                   {t('requests.createLive.selectedHeading')}
                 </Text>
                 <View style={styles.planRow}>
-                  <SoftwareIcon name={selected.application.name} />
+                  <SoftwareIcon name={selected.application.name} logoUrl={selected.application.logoUrl} />
                   <View style={styles.headerCopy}>
                     <Text style={styles.name}>{selected.application.name}</Text>
                     <Text style={styles.muted}>{t('licenses.live.plan', { plan: selected.name })}</Text>
@@ -478,46 +483,6 @@ export function LiveRequestCreateScreen({ initialApplication }: { initialApplica
           </View>
         ) : null}
       </ScrollView>
-      <MobileTabBar
-        accessibilityLabel={t('navigation.tabs')}
-        tabs={[
-          {
-            id: 'software',
-            label: t('navigation.software'),
-            icon: 'grid',
-            selected: false,
-            disabled: inFlight,
-            accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') }),
-            onPress: () => navigateTo('/my-software')
-          },
-          {
-            id: 'create',
-            label: t('navigation.createRequest'),
-            icon: 'plus-circle',
-            selected: true,
-            disabled: inFlight,
-            accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') })
-          },
-          {
-            id: 'requests',
-            label: t('navigation.requests'),
-            icon: 'clock',
-            selected: false,
-            disabled: inFlight,
-            accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') }),
-            onPress: () => navigateTo('/live-requests')
-          },
-          {
-            id: 'inbox',
-            label: t('navigation.inbox'),
-            icon: 'bell',
-            selected: false,
-            disabled: inFlight,
-            accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') }),
-            onPress: () => navigateTo('/live-inbox')
-          }
-        ]}
-      />
       <Modal
         transparent
         animationType='fade'
@@ -551,7 +516,8 @@ export function LiveRequestCreateScreen({ initialApplication }: { initialApplica
                 if (destination) {
                   allowRemoval.current = true
                   setDestination(undefined)
-                  router.replace(destination)
+                  if (destination === 'back') goBackOr(router, '/live-requests')
+                  else router.replace(destination)
                 } else if (pendingAction) {
                   navigation.dispatch(pendingAction)
                   setPendingAction(undefined)
@@ -573,6 +539,7 @@ export function LiveRequestCreateScreen({ initialApplication }: { initialApplica
 
 const createStyles = (mobileColors: MobileColors) =>
   StyleSheet.create({
+    pageTitle: { color: mobileColors.foreground, fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
     safe: { flex: 1, backgroundColor: mobileColors.background },
     content: { padding: 20, gap: 12, paddingBottom: 30 },
     header: {

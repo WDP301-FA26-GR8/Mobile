@@ -7,12 +7,11 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { useSession } from '@/shared/api/session-context'
 import { useAccountProfile } from '@/shared/api/use-account-profile'
-import { goBackOr } from '@/shared/lib/go-back-or'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
 import { PreferenceSwitches } from '@/shared/ui/preference-switches'
 
-import { ProfileEditor } from '../components/profile-editor'
+import { ProfileHero, WorkPhoneRow } from '../components/profile-hero'
 
 export function AccountProfileScreen() {
   const { t } = useTranslation()
@@ -60,30 +59,9 @@ export function AccountProfileScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.topRow}>
-          <Pressable
-            accessibilityRole='button'
-            accessibilityLabel={t('common.back')}
-            onPress={() => goBackOr(router, '/')}
-            style={styles.back}
-          >
-            <Feather
-              accessibilityElementsHidden
-              importantForAccessibility='no'
-              name='arrow-left'
-              size={20}
-              color={colors.foreground}
-            />
-            <Text style={styles.backText}>{t('common.back')}</Text>
-          </Pressable>
-          <PreferenceSwitches />
-        </View>
-        <View style={styles.heading}>
-          <Text accessibilityRole='header' style={styles.title}>
-            {t('account.title')}
-          </Text>
-          <Text style={styles.subtitle}>{t('account.subtitle')}</Text>
-        </View>
+        <Text accessibilityRole='header' style={styles.pageTitle}>
+          {t('account.title')}
+        </Text>
         {session.state === 'loading' || profile.isLoading ? (
           <Text accessibilityRole='progressbar' style={styles.subtitle}>
             {t('account.loading')}
@@ -101,15 +79,12 @@ export function AccountProfileScreen() {
         ) : null}
         {account ? (
           <>
-            <View style={styles.hero}>
-              <View style={styles.avatar}>
-                <Text style={styles.initials}>{account.employee.fullName.trim().slice(0, 1).toLocaleUpperCase()}</Text>
-              </View>
-              <View style={styles.heroCopy}>
-                <Text style={styles.heroName}>{account.employee.fullName}</Text>
-                <Text style={styles.heroMeta}>{account.employee.jobTitle || t('account.noValue')}</Text>
-              </View>
-            </View>
+            <ProfileHero
+              name={account.employee.fullName}
+              jobTitle={account.employee.jobTitle}
+              avatarUrl={account.avatar?.url}
+              onAvatarError={() => void profile.refetch()}
+            />
             <View style={styles.card}>
               <Text accessibilityRole='header' style={styles.cardTitle}>
                 {t('account.details')}
@@ -120,12 +95,17 @@ export function AccountProfileScreen() {
                   <Text style={styles.value}>{field.value || t('account.noValue')}</Text>
                 </View>
               ))}
+              <WorkPhoneRow workPhone={account.workPhone} />
             </View>
-            <ProfileEditor
-              initials={account.employee.fullName.trim().slice(0, 1).toLocaleUpperCase()}
-              avatarUrl={account.avatar?.url}
-              workPhone={account.workPhone}
-            />
+            <View style={styles.card}>
+              <Text accessibilityRole='header' style={styles.cardTitle}>
+                {t('account.settings')}
+              </Text>
+              <View style={styles.settingRow}>
+                <Text style={styles.value}>{t('account.appearance')}</Text>
+                <PreferenceSwitches />
+              </View>
+            </View>
             <Pressable
               accessibilityRole='button'
               accessibilityLabel={t('account.changePassword')}
@@ -210,6 +190,14 @@ export function AccountProfileScreen() {
 
 const createStyles = (colors: MobileColors) =>
   StyleSheet.create({
+    pageTitle: { color: colors.foreground, fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
+    settingRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12,
+      paddingTop: 10
+    },
     safe: { flex: 1, backgroundColor: colors.background },
     content: { padding: 20, paddingBottom: 36, gap: 20 },
     topRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },

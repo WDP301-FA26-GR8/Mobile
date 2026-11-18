@@ -547,7 +547,6 @@ test('locks navigation while a decision is in flight and never reports an incons
   await waitFor(() => {
     expect(spendApprovalDecide).toHaveBeenCalledTimes(1)
     expect(screen.getByRole('button', { name: 'Quay lại việc được giao' }).props.accessibilityState.disabled).toBe(true)
-    expect(screen.getByRole('tab', { name: 'Mở mục Thông báo' }).props.accessibilityState.disabled).toBe(true)
     expect(mockPreventRemove).toHaveBeenLastCalledWith(true)
   })
   await act(() => resolveDecision({ status: 200, headers: new Headers(), data: makeApprovalDetail() }))

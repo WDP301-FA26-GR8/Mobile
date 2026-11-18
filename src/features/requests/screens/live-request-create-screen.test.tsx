@@ -12,7 +12,7 @@ import {
 } from '@/shared/api/generated/api/requestable-software/requestable-software'
 import { i18n, setAppLanguage } from '@/shared/i18n/i18n'
 
-const mockRouter = { replace: jest.fn(), canGoBack: jest.fn(() => true) }
+const mockRouter = { replace: jest.fn(), back: jest.fn(), canGoBack: jest.fn(() => true) }
 const mockNavigation = { dispatch: jest.fn() }
 const mockPreventRemove = jest.fn<void, [boolean, (event: { data: { action: NavigationAction } }) => void]>()
 const mockSession = {
@@ -526,27 +526,22 @@ test('loads catalog errors and retries', async () => {
   await waitFor(() => screen.getByText('Figma'))
 })
 
-test('navigates between employee tabs and confirms before discarding entered details', async () => {
+test('confirms before discarding entered details and then goes back to the previous screen', async () => {
   const screen = await renderScreen()
   await openFigma(screen)
-  expect(screen.getByRole('tab', { name: 'Mở mục Tạo yêu cầu' }).props.accessibilityState.selected).toBe(true)
-  await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Phần mềm' }))
-  expect(mockRouter.replace).toHaveBeenCalledWith('/my-software')
-
-  jest.clearAllMocks()
   await fireEvent.press(screen.getByRole('button', { name: 'Chọn Figma, Pro' }))
   await fireEvent.changeText(screen.getByLabelText('Lý do nghiệp vụ (bắt buộc)'), 'Thiết kế')
-  await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Thông báo' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Quay lại yêu cầu' }))
   screen.getByText('Gói đã chọn và thông tin bạn nhập sẽ không được lưu.')
-  expect(mockRouter.replace).not.toHaveBeenCalled()
+  expect(mockRouter.back).not.toHaveBeenCalled()
   await fireEvent.press(screen.getByRole('button', { name: 'Tiếp tục chỉnh sửa' }))
   expect(screen.getByLabelText('Lý do nghiệp vụ (bắt buộc)').props.value).toBe('Thiết kế')
   await fireEvent.press(screen.getByRole('button', { name: 'Quay lại yêu cầu' }))
   await fireEvent.press(screen.getByRole('button', { name: 'Rời yêu cầu' }))
-  expect(mockRouter.replace).toHaveBeenCalledWith('/live-requests')
+  expect(mockRouter.back).toHaveBeenCalled()
 })
 
-test('disables tab navigation while submitting', async () => {
+test('blocks leaving while submitting', async () => {
   let rejectSubmit: (error: Error) => void = () => {
     throw new Error('Submission was not started')
   }
@@ -563,9 +558,7 @@ test('disables tab navigation while submitting', async () => {
   await fireEvent.press(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }))
   await screen.findByText('Có thể gửi yêu cầu. Máy chủ sẽ kiểm tra lại khi gửi.')
   await fireEvent.press(screen.getByRole('button', { name: 'Gửi yêu cầu' }))
-  await waitFor(() =>
-    expect(screen.getByRole('tab', { name: 'Mở mục Thông báo' }).props.accessibilityState.disabled).toBe(true)
-  )
+  await waitFor(() => expect(mockPreventRemove).toHaveBeenLastCalledWith(true, expect.any(Function)))
   const [prevent, callback] = mockPreventRemove.mock.calls[mockPreventRemove.mock.calls.length - 1]
   expect(prevent).toBe(true)
   await act(() => callback({ data: { action: { type: 'GO_BACK' } } }))

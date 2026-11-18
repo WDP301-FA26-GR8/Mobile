@@ -1,5 +1,5 @@
 import { Feather } from '@expo/vector-icons'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 
@@ -11,11 +11,15 @@ import { useMobileTheme } from '@/shared/theme/theme-provider'
 import { isNoDepartment, useRequestCatalog } from '../hooks/use-request-catalog'
 
 export function RequestCatalog({
+  getScrollY,
+  scrollTo,
   initialApplication,
   onSelect,
   onSearchChange
 }: {
   initialApplication?: { id: string; name: string }
+  getScrollY: () => number
+  scrollTo: (y: number, animated: boolean) => void
   onSelect: (plan: RequestablePlanPageResponseDtoDataItemsItem) => void
   onSearchChange: (hasSearch: boolean) => void
 }) {
@@ -30,8 +34,11 @@ export function RequestCatalog({
   const { department, applications, plans } = useRequestCatalog(mode, search.trim(), page, application?.id)
   const query = mode === 'department' ? department : mode === 'applications' ? applications : plans
 
+  const listPosition = useRef({ y: 0, page: 1 })
   function chooseApplication(id: string, name: string) {
     if (mode === 'plans') return
+    listPosition.current = { y: getScrollY(), page }
+    scrollTo(0, false)
     setOrigin(mode)
     setApplication({ id, name })
     setMode('plans')
@@ -93,7 +100,9 @@ export function RequestCatalog({
             accessibilityRole='button'
             onPress={() => {
               setMode(origin)
-              setPage(1)
+              setPage(listPosition.current.page)
+              const { y } = listPosition.current
+              setTimeout(() => scrollTo(y, false), 60)
             }}
             style={styles.action}
           >
@@ -145,7 +154,7 @@ export function RequestCatalog({
               style={styles.card}
             >
               <View style={styles.row}>
-                <SoftwareIcon name={item.applicationName} />
+                <SoftwareIcon name={item.applicationName} logoUrl={item.applicationLogoUrl} />
                 <View style={styles.copy}>
                   <Text style={styles.heading}>{item.applicationName}</Text>
                   {item.planName ? (
@@ -174,7 +183,7 @@ export function RequestCatalog({
               style={styles.card}
             >
               <View style={styles.row}>
-                <SoftwareIcon name={item.name} />
+                <SoftwareIcon name={item.name} logoUrl={item.logoUrl} />
                 <View style={styles.copy}>
                   <Text style={styles.heading}>{item.name}</Text>
                   {item.vendorName ? (

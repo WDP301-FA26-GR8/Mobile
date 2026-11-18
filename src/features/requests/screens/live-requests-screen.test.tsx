@@ -48,12 +48,6 @@ function renderScreen(element: ReactElement) {
   return render(<QueryClientProvider client={client}>{element}</QueryClientProvider>)
 }
 
-test('returns to the previous screen or personal software', async () => {
-  const screen = await renderScreen(<LiveRequestsScreen />)
-  await fireEvent.press(screen.getByRole('button', { name: 'Quay lại' }))
-  expect(mockRouter.replace).toHaveBeenCalledWith('/my-software')
-})
-
 beforeEach(async () => {
   await setAppLanguage('vi', false)
   jest.clearAllMocks()
@@ -175,8 +169,8 @@ test('lists server requests and opens their details', async () => {
     { view: 'open', involvement: 'ALL', page: 1, pageSize: 20 },
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
-  await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Tạo yêu cầu' }))
-  expect(mockRouter.replace).toHaveBeenCalledWith('/live-request-create')
+  await fireEvent.press(screen.getByRole('button', { name: 'Tạo yêu cầu' }))
+  expect(mockRouter.push).toHaveBeenCalledWith('/live-request-create')
   await fireEvent.press(screen.getByRole('button', { name: 'Xem yêu cầu cho Figma' }))
   expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/live-requests/[requestId]', params: { requestId: id } })
 })
@@ -359,8 +353,6 @@ test('blocks navigation and Android back during withdrawal', async () => {
     await waitFor(() => {
       expect(mockPreventRemove).toHaveBeenLastCalledWith(true)
       expect(back()).toBe(true)
-      expect(screen.getByRole('button', { name: 'Quay lại' }).props.accessibilityState.disabled).toBe(true)
-      expect(screen.getByRole('tab', { name: 'Mở mục Thông báo' }).props.accessibilityState.disabled).toBe(true)
       expect(screen.getByRole('button', { name: 'Xem yêu cầu cho Figma' }).props.accessibilityState.disabled).toBe(true)
     })
     await act(() => rejectWithdrawal(new Error('offline')))

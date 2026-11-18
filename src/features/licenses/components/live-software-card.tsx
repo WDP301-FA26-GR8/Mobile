@@ -31,7 +31,7 @@ export function LiveSoftwareCard({
   const content = (
     <View style={styles.card}>
       <View style={styles.row}>
-        <SoftwareIcon name={item.application.name} />
+        <SoftwareIcon name={item.application.name} logoUrl={item.application.logoUrl} />
         <View style={styles.copy}>
           <Text style={styles.name}>{item.application.name}</Text>
           <Text style={styles.secondary}>{t('licenses.live.plan', { plan: item.plan.name })}</Text>

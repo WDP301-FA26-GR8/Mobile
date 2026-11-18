@@ -6,17 +6,14 @@ import { useTranslation } from 'react-i18next'
 import { BackHandler, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-import { LiveInboxScreen } from '@/features/inbox'
 import type { NeedQueueResponseDtoDataItemsItem } from '@/shared/api/generated/contracts/need-decisions'
 import { useSession } from '@/shared/api/session-context'
 import { useAccountProfile } from '@/shared/api/use-account-profile'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
-import { PreferenceSwitches } from '@/shared/ui/preference-switches'
 import { ErrorReference } from '@/shared/ui/error-reference'
 
 import { ManagerGroupDecision } from '../components/manager-group-decision'
-import { ManagerLiveTabs } from '../components/manager-live-tabs'
 import { NeedQueueCard } from '../components/need-queue-card'
 import { SimilarSeats } from '../components/similar-seats'
 import { useLiveNeedApprovals, useNotificationNeedApproval } from '../hooks/use-live-need-approvals'
@@ -62,7 +59,6 @@ export function LiveNeedApprovalsScreen({
   const [response, setResponse] = useState<{ version: string; answers: Record<string, 'YES' | 'NO'> }>()
   const [reason, setReason] = useState('')
   const [validation, setValidation] = useState(false)
-  const [activeTab, setActiveTab] = useState<'queue' | 'team' | 'inbox'>('queue')
   const [loggingOut, setLoggingOut] = useState(false)
   const [groupBusy, setGroupBusy] = useState(false)
   const [groupDone, setGroupDone] = useState(false)
@@ -82,7 +78,6 @@ export function LiveNeedApprovalsScreen({
     if (
       !notification ||
       !hasScope ||
-      activeTab !== 'queue' ||
       selected ||
       notificationLookup.isFetching ||
       !notificationLookup.isSuccess ||
@@ -98,7 +93,6 @@ export function LiveNeedApprovalsScreen({
   }, [
     notification,
     hasScope,
-    activeTab,
     selected,
     notificationLookup.isFetching,
     notificationLookup.isSuccess,
@@ -225,100 +219,12 @@ export function LiveNeedApprovalsScreen({
       setLoggingOut(false)
     }
   }
-  function selectTab(tab: 'queue' | 'team' | 'inbox') {
-    if (inFlight || (sent.current && !decision.isError && !decision.isSuccess)) return
-    if (selected) closeDetails()
-    setActiveTab(tab)
-  }
   if (session.state === 'anonymous') return <Redirect href='/' />
   if (profile.data && !profile.isError && !isManager) return <Redirect href='/my-software' />
-  const tabs = <ManagerLiveTabs active={activeTab} disabled={inFlight} onSelect={selectTab} />
-  if (isManager && activeTab === 'inbox') return <LiveInboxScreen navigation={tabs} />
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.screen}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps='handled'>
-          {!selected && isManager && profile.data ? (
-            <View style={styles.profile}>
-              <Pressable
-                accessibilityRole='button'
-                accessibilityLabel={t('account.openProfile', { name: profile.data.employee.fullName })}
-                onPress={() => router.push('/profile')}
-                style={styles.profileIdentity}
-              >
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>
-                    {profile.data.employee.fullName.trim().slice(0, 1).toLocaleUpperCase()}
-                  </Text>
-                </View>
-                <View style={styles.headingCopy}>
-                  <Text numberOfLines={1} style={styles.name}>
-                    {profile.data.employee.fullName}
-                  </Text>
-                  <Text numberOfLines={1} style={styles.muted}>
-                    {profile.data.managerScope?.departmentName ?? t('licenses.live.noDepartment')}
-                  </Text>
-                </View>
-                <Feather
-                  accessibilityElementsHidden
-                  importantForAccessibility='no'
-                  name='chevron-right'
-                  size={16}
-                  color={mobileColors.muted}
-                />
-              </Pressable>
-              <PreferenceSwitches />
-            </View>
-          ) : null}
-          {!selected && isManager && profile.data ? (
-            <View style={styles.profileActions}>
-              <Pressable
-                accessibilityRole='button'
-                accessibilityLabel={t('navigation.home')}
-                onPress={() => router.push('/home')}
-                style={styles.iconButton}
-              >
-                <Feather
-                  accessibilityElementsHidden
-                  importantForAccessibility='no'
-                  name='home'
-                  size={18}
-                  color={mobileColors.primaryInk}
-                />
-              </Pressable>
-              <Pressable
-                accessibilityRole='button'
-                accessibilityLabel={t('manager.live.personal')}
-                onPress={() => router.push('/my-software')}
-                style={styles.personalButton}
-              >
-                <Feather
-                  accessibilityElementsHidden
-                  importantForAccessibility='no'
-                  name='user'
-                  size={18}
-                  color={mobileColors.primaryInk}
-                />
-                <Text style={styles.personalLabel}>{t('manager.live.personal')}</Text>
-              </Pressable>
-              <Pressable
-                accessibilityRole='button'
-                accessibilityLabel={t('licenses.live.logout')}
-                accessibilityState={{ disabled: loggingOut, busy: loggingOut }}
-                disabled={loggingOut}
-                onPress={() => void logout()}
-                style={styles.iconButton}
-              >
-                <Feather
-                  accessibilityElementsHidden
-                  importantForAccessibility='no'
-                  name='log-out'
-                  size={18}
-                  color={mobileColors.primaryInk}
-                />
-              </Pressable>
-            </View>
-          ) : null}
           {logoutError ? (
             <Text accessibilityRole='alert' style={styles.error}>
               {t('licenses.live.logoutError')}
@@ -359,35 +265,15 @@ export function LiveNeedApprovalsScreen({
               <Text style={styles.link}>{t('manager.live.backQueue')}</Text>
             </Pressable>
           ) : null}
-          {isManager && activeTab === 'team' ? (
-            <View style={styles.card}>
-              <Text accessibilityRole='header' style={styles.name}>
-                {t('manager.live.teamTitle')}
+          {isManager ? (
+            <View style={styles.titleBlock}>
+              <Text accessibilityRole='header' style={styles.pageTitle}>
+                {selected ? t('manager.live.details') : t('manager.live.title')}
               </Text>
-              <Text style={styles.muted}>{t('manager.live.teamWebOnly')}</Text>
+              <Text style={styles.muted}>{t('manager.live.scope')}</Text>
             </View>
           ) : null}
-          {isManager && activeTab === 'queue' ? (
-            <View style={styles.heading}>
-              <View style={styles.headingCopy}>
-                <Text style={styles.kicker}>{t('manager.live.kicker')}</Text>
-                <Text accessibilityRole='header' style={styles.title}>
-                  {selected ? t('manager.live.details') : t('manager.live.title')}
-                </Text>
-                <Text style={[styles.muted, styles.heroSubtitle]}>{t('manager.live.scope')}</Text>
-              </View>
-              <View style={styles.icon}>
-                <Feather
-                  accessibilityElementsHidden
-                  importantForAccessibility='no'
-                  name='check-square'
-                  size={22}
-                  color={mobileColors.primaryInk}
-                />
-              </View>
-            </View>
-          ) : null}
-          {isManager && activeTab === 'queue' && !selected ? (
+          {isManager && !selected ? (
             <>
               {hasScope && notification && notificationLookup.isFetching ? (
                 <Text accessibilityRole='progressbar' style={styles.muted}>
@@ -505,7 +391,7 @@ export function LiveNeedApprovalsScreen({
                 </View>
               ) : null}
             </>
-          ) : hasScope && activeTab === 'queue' && selected ? (
+          ) : hasScope && selected ? (
             <>
               {detail.isLoading ? (
                 <Text accessibilityRole='progressbar' style={styles.muted}>
@@ -742,7 +628,6 @@ export function LiveNeedApprovalsScreen({
             </>
           ) : null}
         </ScrollView>
-        {isManager ? tabs : null}
       </View>
     </SafeAreaView>
   )
@@ -760,6 +645,8 @@ function formatCost(value: { amount: string; currency: string } | null, locale: 
 
 const createStyles = (mobileColors: MobileColors) =>
   StyleSheet.create({
+    titleBlock: { gap: 4 },
+    pageTitle: { color: mobileColors.foreground, fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
     safe: { flex: 1, backgroundColor: mobileColors.background },
     screen: { flex: 1 },
     profile: {

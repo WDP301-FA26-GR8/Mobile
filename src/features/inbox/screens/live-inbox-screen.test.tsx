@@ -1,6 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native'
-import type { ReactNode } from 'react'
 import { Text } from 'react-native'
 
 import { LiveInboxScreen, NotificationReadErrorProvider } from '@/features/inbox'
@@ -38,24 +37,18 @@ jest.mock('@/shared/api/generated/api/notifications/notifications', () => ({
   notificationMarkAllRead: jest.fn()
 }))
 
-function renderScreen(navigation?: ReactNode) {
+function renderScreen() {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { retry: false, gcTime: 0 } }
   })
   return render(
     <QueryClientProvider client={client}>
       <NotificationReadErrorProvider>
-        <LiveInboxScreen navigation={navigation} />
+        <LiveInboxScreen />
       </NotificationReadErrorProvider>
     </QueryClientProvider>
   )
 }
-
-test('returns to the previous screen when opened from assigned approvals', async () => {
-  const screen = await renderScreen()
-  await fireEvent.press(screen.getByRole('button', { name: 'Quay lại' }))
-  expect(mockRouter.back).toHaveBeenCalled()
-})
 
 beforeEach(async () => {
   await setAppLanguage('vi', false)
@@ -127,13 +120,9 @@ test('shows real notifications and updates one using authenticated API', async (
       params: { requestId: '01234567-89ab-cdef-0123-456789abcdef' }
     })
   )
-  await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Yêu cầu' }))
-  expect(mockRouter.replace).toHaveBeenCalledWith('/live-requests')
-  await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Phần mềm' }))
-  expect(mockRouter.replace).toHaveBeenCalledWith('/my-software')
 })
 
-test('keeps manager navigation and distinguishes read notifications without marking on open', async () => {
+test('distinguishes read notifications without marking on open', async () => {
   const response = await jest.mocked(notificationList)()
   if (!response.data.data) throw new Error('Expected notifications')
   response.data.data.items.push({
@@ -142,12 +131,10 @@ test('keeps manager navigation and distinguishes read notifications without mark
     code: 'REQUEST_WITHDRAWN',
     readAt: '2026-11-09T01:00:00Z'
   })
-  const screen = await renderScreen(<Text>{i18n.t('navigation.tabs')}</Text>)
+  const screen = await renderScreen()
   await screen.findByText('Đã cấp quyền sử dụng')
-  screen.getByText('Điều hướng chính')
   screen.getByText('Chưa đọc')
   screen.getByText('Đã đọc')
-  expect(screen.queryByRole('tab', { name: 'Mở mục Phần mềm' })).toBeNull()
   await fireEvent.press(screen.getByRole('button', { name: 'Mở thông báo: Yêu cầu đã được rút' }))
   expect(notificationMarkRead).not.toHaveBeenCalled()
   expect(notificationMarkAllRead).not.toHaveBeenCalled()

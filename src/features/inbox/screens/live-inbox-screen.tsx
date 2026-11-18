@@ -1,25 +1,21 @@
 import { Feather } from '@expo/vector-icons'
 import { Redirect, useRouter } from 'expo-router'
-import { type ReactNode, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import type { NotificationListResponseDtoDataItemsItem } from '@/shared/api/generated/contracts/notifications'
-import { mayCreateRequest } from '@/shared/api/request-eligibility'
 import { useSession } from '@/shared/api/session-context'
 import { useAccountProfile } from '@/shared/api/use-account-profile'
-import { goBackOr } from '@/shared/lib/go-back-or'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
-import { PreferenceSwitches } from '@/shared/ui/preference-switches'
-import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
 
 import { useNotificationReadError } from '../components/notification-read-error-provider'
 import { useLiveInbox } from '../hooks/use-live-inbox'
 import { notificationDestination, type NotificationDestination } from '../model/notification-destination'
 
-export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {}) {
+export function LiveInboxScreen() {
   const { colors: mobileColors } = useMobileTheme()
   const styles = createStyles(mobileColors)
   const { t, i18n } = useTranslation()
@@ -80,31 +76,18 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
     <SafeAreaView style={styles.safe}>
       <View style={styles.screen}>
         <ScrollView contentContainerStyle={styles.content}>
-          {!navigation ? (
-            <Pressable
-              accessibilityRole='button'
-              onPress={() => goBackOr(router, '/my-software')}
-              style={styles.action}
-            >
-              <Text style={styles.actionText}>{t('common.back')}</Text>
-            </Pressable>
-          ) : null}
-          <View style={styles.header}>
-            <View style={styles.heading}>
-              <Text style={styles.kicker}>{t('licenses.live.kicker')}</Text>
-              <Text accessibilityRole='header' style={styles.title}>
-                {t('inbox.title')}
-              </Text>
-              <Text style={styles.headerSubtitle}>
-                {count.data !== undefined
-                  ? t('inbox.live.unreadCount', {
-                      count: count.data,
-                      formattedCount: new Intl.NumberFormat(i18n.language).format(count.data)
-                    })
-                  : t('inbox.live.countUnavailable')}
-              </Text>
-            </View>
-            <PreferenceSwitches />
+          <View style={styles.titleBlock}>
+            <Text accessibilityRole='header' style={styles.pageTitle}>
+              {t('inbox.title')}
+            </Text>
+            <Text style={styles.muted}>
+              {count.data !== undefined
+                ? t('inbox.live.unreadCount', {
+                    count: count.data,
+                    formattedCount: new Intl.NumberFormat(i18n.language).format(count.data)
+                  })
+                : t('inbox.live.countUnavailable')}
+            </Text>
           </View>
           {count.isError ? (
             <Pressable accessibilityRole='button' onPress={() => void count.refetch()} style={styles.action}>
@@ -264,48 +247,6 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
             </View>
           ) : null}
         </ScrollView>
-        {navigation ?? (
-          <MobileTabBar
-            accessibilityLabel={t('navigation.tabs')}
-            tabs={[
-              {
-                id: 'software',
-                label: t('navigation.software'),
-                icon: 'grid',
-                selected: false,
-                accessibilityLabel: t('navigation.openTab', { tab: t('navigation.software') }),
-                onPress: () => router.replace('/my-software')
-              },
-              ...(!profile.isError && mayCreateRequest(profile.data)
-                ? [
-                    {
-                      id: 'create',
-                      label: t('navigation.createRequest'),
-                      icon: 'plus-circle' as const,
-                      selected: false,
-                      accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
-                      onPress: () => router.replace('/live-request-create')
-                    }
-                  ]
-                : []),
-              {
-                id: 'requests',
-                label: t('navigation.requests'),
-                icon: 'clock',
-                selected: false,
-                accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') }),
-                onPress: () => router.replace('/live-requests')
-              },
-              {
-                id: 'inbox',
-                label: t('navigation.inbox'),
-                icon: 'bell',
-                selected: true,
-                accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') })
-              }
-            ]}
-          />
-        )}
       </View>
     </SafeAreaView>
   )
@@ -313,6 +254,8 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
 
 const createStyles = (mobileColors: MobileColors) =>
   StyleSheet.create({
+    titleBlock: { gap: 4 },
+    pageTitle: { color: mobileColors.foreground, fontSize: 26, fontWeight: '800', letterSpacing: -0.4 },
     safe: { flex: 1, backgroundColor: mobileColors.background },
     screen: { flex: 1 },
     content: { padding: 20, gap: 14, paddingBottom: 24 },

@@ -230,10 +230,6 @@ beforeEach(async () => {
 test('loads only assigned individual grants and opens real details', async () => {
   const screen = await renderScreen()
   await screen.findByText('Figma')
-  screen.getByText('Manager An')
-  screen.getByText('Phòng IT')
-  await fireEvent.press(screen.getByRole('button', { name: 'Mở thông tin tài khoản của Manager An' }))
-  expect(mockRouter.push).toHaveBeenCalledWith('/profile')
   expect(needDecisionList).toHaveBeenCalledWith(
     { page: 1, pageSize: 20 },
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
@@ -336,23 +332,6 @@ test('does not fall back to request detail when checking the assigned queue fail
   expect(accessRequestGet).not.toHaveBeenCalled()
 })
 
-test('uses manager tabs and links to personal software', async () => {
-  const screen = await renderScreen()
-  await screen.findByText('Manager An')
-  expect(screen.queryByRole('tab', { name: 'Mở mục Phần mềm' })).toBeNull()
-  await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Đội ngũ phòng' }))
-  screen.getByText('Quản lý đội ngũ thực hiện trên web. Mobile hỗ trợ duyệt nhu cầu được giao.')
-  await fireEvent.press(screen.getByRole('button', { name: 'Phần mềm và yêu cầu của tôi' }))
-  expect(mockRouter.push).toHaveBeenCalledWith('/my-software')
-  await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Hàng đợi' }))
-  await screen.findByText('Figma')
-  await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Thông báo' }))
-  await waitFor(() => expect(notificationList).toHaveBeenCalled())
-  expect(screen.queryByRole('tab', { name: 'Mở mục Phần mềm' })).toBeNull()
-  await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Hàng đợi' }))
-  await screen.findByText('Figma')
-})
-
 test('employee cannot enter the manager workspace or load its queue', async () => {
   const response = await jest.mocked(meGet)()
   if (!response.data.data) throw new Error('Expected account')
@@ -385,17 +364,6 @@ test('explains a missing manager assignment rather than displaying a fabricated 
     'Tài khoản chưa có phạm vi trưởng phòng đang hiệu lực. Hãy tải lại hoặc liên hệ quản trị viên.'
   )
   expect(needDecisionList).not.toHaveBeenCalled()
-  await fireEvent.press(screen.getByRole('button', { name: 'Phần mềm và yêu cầu của tôi' }))
-  expect(mockRouter.push).toHaveBeenCalledWith('/my-software')
-})
-
-test('allows manager to sign out and reports sign-out failures', async () => {
-  mockSession.logout.mockRejectedValueOnce(new Error('offline'))
-  const screen = await renderScreen()
-  await screen.findByText('Manager An')
-  await fireEvent.press(screen.getByRole('button', { name: 'Đăng xuất' }))
-  await screen.findByText('Chưa thể xác nhận đăng xuất với máy chủ. Vui lòng kiểm tra kết nối và thử lại.')
-  expect(mockSession.logout).toHaveBeenCalledTimes(1)
 })
 
 test('shows similar access returned by the backend and supports pagination', async () => {
@@ -447,7 +415,6 @@ test('waits for a verified manager profile before loading assigned approvals', a
   await screen.findByText('Không thể tải thông tin tài khoản. Vui lòng thử lại.')
   expect(needDecisionList).not.toHaveBeenCalled()
   await fireEvent.press(screen.getByRole('button', { name: 'Thử lại' }))
-  await screen.findByText('Manager An')
   await screen.findByText('Figma')
 })
 
@@ -562,7 +529,6 @@ test('blocks navigation and Android system exit while a decision is in flight', 
       expect(screen.getByRole('button', { name: 'Về danh sách được giao' }).props.accessibilityState.disabled).toBe(
         true
       )
-      expect(screen.getByRole('tab', { name: 'Mở mục Thông báo' }).props.accessibilityState.disabled).toBe(true)
     })
     await act(() => rejectDecision(new Error('offline')))
     await screen.findByText('Chưa thể xác nhận quyết định. Hãy quay lại danh sách và kiểm tra trước khi thử lại.')

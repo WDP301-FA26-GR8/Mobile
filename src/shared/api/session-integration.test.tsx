@@ -124,11 +124,8 @@ test('signs in, loads account rights with bearer auth, and logs out', async () =
   await fireEvent.changeText(screen.getByLabelText('Email công ty'), 'person@example.test')
   await fireEvent.changeText(screen.getByLabelText('Mật khẩu'), 'password')
   await fireEvent.press(screen.getByRole('button', { name: 'Đăng nhập' }))
-  await screen.findByText('Nguyễn An')
   await screen.findByText('Bạn chưa có quyền phần mềm hiện tại.')
   expect(mockStoredToken).toBe('refresh-test')
-  await fireEvent.press(screen.getByRole('button', { name: 'Mở thông tin tài khoản của Nguyễn An' }))
-  expect(mockRouter.push).toHaveBeenCalledWith('/profile')
   await screen.rerender(
     <QueryClientProvider client={client}>
       <SessionProvider>
