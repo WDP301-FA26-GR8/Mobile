@@ -17,6 +17,7 @@ import type { PreviewResponseDtoDataPreviewExistingAccess } from './previewRespo
 import type { PreviewResponseDtoDataPreviewLimitExemption } from './previewResponseDtoDataPreviewLimitExemption'
 import type { PreviewResponseDtoDataPreviewLimits } from './previewResponseDtoDataPreviewLimits'
 import type { PreviewResponseDtoDataPreviewPlan } from './previewResponseDtoDataPreviewPlan'
+import type { PreviewResponseDtoDataPreviewPriceSource } from './previewResponseDtoDataPreviewPriceSource'
 import type { PreviewResponseDtoDataPreviewPricing } from './previewResponseDtoDataPreviewPricing'
 import type { PreviewResponseDtoDataPreviewSpendSubmission } from './previewResponseDtoDataPreviewSpendSubmission'
 import type { PreviewResponseDtoDataPreviewTermRefusal } from './previewResponseDtoDataPreviewTermRefusal'
@@ -52,6 +53,8 @@ export type PreviewResponseDtoDataPreview = {
    */
   budgetYear: number | null
   pricing: PreviewResponseDtoDataPreviewPricing
+  /** @nullable */
+  priceSource: PreviewResponseDtoDataPreviewPriceSource
   /** @nullable */
   cost: PreviewResponseDtoDataPreviewCost
   /** @nullable */

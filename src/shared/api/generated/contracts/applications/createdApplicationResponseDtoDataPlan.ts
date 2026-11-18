@@ -8,6 +8,7 @@
 import type { CreatedApplicationResponseDtoDataPlanControlLevel } from './createdApplicationResponseDtoDataPlanControlLevel'
 import type { CreatedApplicationResponseDtoDataPlanPricingModel } from './createdApplicationResponseDtoDataPlanPricingModel'
 import type { CreatedApplicationResponseDtoDataPlanProvisioningType } from './createdApplicationResponseDtoDataPlanProvisioningType'
+import type { CreatedApplicationResponseDtoDataPlanReferencePrice } from './createdApplicationResponseDtoDataPlanReferencePrice'
 import type { CreatedApplicationResponseDtoDataPlanSeatTracking } from './createdApplicationResponseDtoDataPlanSeatTracking'
 import type { CreatedApplicationResponseDtoDataPlanSharingPolicy } from './createdApplicationResponseDtoDataPlanSharingPolicy'
 
@@ -30,6 +31,11 @@ export type CreatedApplicationResponseDtoDataPlan = {
   /** @nullable */
   sharingPolicy: CreatedApplicationResponseDtoDataPlanSharingPolicy
   hasAdminConsole: boolean
+  /**
+   * The reference price in dong before tax, or null when none is entered.
+   * @nullable
+   */
+  referencePrice: CreatedApplicationResponseDtoDataPlanReferencePrice
   seatTracking: CreatedApplicationResponseDtoDataPlanSeatTracking
   createdAt: string
   updatedAt: string

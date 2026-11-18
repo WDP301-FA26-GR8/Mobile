@@ -8,6 +8,7 @@
 import type { UpdatePlanBodyDtoControlLevel } from './updatePlanBodyDtoControlLevel'
 import type { UpdatePlanBodyDtoPricingModel } from './updatePlanBodyDtoPricingModel'
 import type { UpdatePlanBodyDtoProvisioningType } from './updatePlanBodyDtoProvisioningType'
+import type { UpdatePlanBodyDtoReferencePrice } from './updatePlanBodyDtoReferencePrice'
 import type { UpdatePlanBodyDtoSharingPolicy } from './updatePlanBodyDtoSharingPolicy'
 
 export interface UpdatePlanBodyDto {
@@ -27,4 +28,9 @@ export interface UpdatePlanBodyDto {
   /** @nullable */
   sharingPolicy?: UpdatePlanBodyDtoSharingPolicy
   hasAdminConsole?: boolean
+  /**
+   * The reference price; null clears it. Moving the plan to K5, or between K1/K2 and K4, clears it too.
+   * @nullable
+   */
+  referencePrice?: UpdatePlanBodyDtoReferencePrice
 }

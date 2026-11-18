@@ -29,6 +29,8 @@ export type DepartmentResponseDtoData = {
   itAdmin: DepartmentResponseDtoDataItAdmin
   /** @nullable */
   head: DepartmentResponseDtoDataHead
+  /** @nullable */
+  avatarUrl: string | null
   /**
    * @minimum 0
    * @maximum 9007199254740991

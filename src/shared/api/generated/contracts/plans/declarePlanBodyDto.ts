@@ -8,6 +8,7 @@
 import type { DeclarePlanBodyDtoControlLevel } from './declarePlanBodyDtoControlLevel'
 import type { DeclarePlanBodyDtoPricingModel } from './declarePlanBodyDtoPricingModel'
 import type { DeclarePlanBodyDtoProvisioningType } from './declarePlanBodyDtoProvisioningType'
+import type { DeclarePlanBodyDtoReferencePrice } from './declarePlanBodyDtoReferencePrice'
 import type { DeclarePlanBodyDtoSharingPolicy } from './declarePlanBodyDtoSharingPolicy'
 
 export interface DeclarePlanBodyDto {
@@ -25,4 +26,6 @@ export interface DeclarePlanBodyDto {
   dataLossOnRemoval?: boolean
   sharingPolicy?: DeclarePlanBodyDtoSharingPolicy
   hasAdminConsole?: boolean
+  /** The price before tax in dong, a decimal string in major units, currency VND: K1/K2, one seat for one month (a yearly price over 12); K4, one purchase. Used by a request when no subscription of the plan has a price. K5 has none. */
+  referencePrice?: DeclarePlanBodyDtoReferencePrice
 }

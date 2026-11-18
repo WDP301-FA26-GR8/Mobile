@@ -26,6 +26,9 @@ import type {
   ClearSuccessorBodyDto,
   CreateDepartmentBodyDto,
   DeactivateDepartmentBodyDto,
+  DepartmentAvatarDelete200,
+  DepartmentAvatarPut200,
+  DepartmentAvatarPutBody,
   DepartmentCreate201,
   DepartmentDeactivate200,
   DepartmentGet200,
@@ -771,6 +774,304 @@ export const useDepartmentUpdate = <
   TContext
 > => {
   return useMutation(getDepartmentUpdateMutationOptions(options), queryClient)
+}
+export type departmentAvatarPutResponse200 = {
+  data: DepartmentAvatarPut200
+  status: 200
+}
+
+export type departmentAvatarPutResponse400 = {
+  data: ErrorEnvelopeDto
+  status: 400
+}
+
+export type departmentAvatarPutResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type departmentAvatarPutResponse403 = {
+  data: ErrorEnvelopeDto
+  status: 403
+}
+
+export type departmentAvatarPutResponse404 = {
+  data: ErrorEnvelopeDto
+  status: 404
+}
+
+export type departmentAvatarPutResponse409 = {
+  data: ErrorEnvelopeDto
+  status: 409
+}
+
+export type departmentAvatarPutResponse413 = {
+  data: ErrorEnvelopeDto
+  status: 413
+}
+
+export type departmentAvatarPutResponse415 = {
+  data: ErrorEnvelopeDto
+  status: 415
+}
+
+export type departmentAvatarPutResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type departmentAvatarPutResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type departmentAvatarPutResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type departmentAvatarPutResponseSuccess = departmentAvatarPutResponse200 & {
+  headers: Headers
+}
+export type departmentAvatarPutResponseError = (
+  | departmentAvatarPutResponse400
+  | departmentAvatarPutResponse401
+  | departmentAvatarPutResponse403
+  | departmentAvatarPutResponse404
+  | departmentAvatarPutResponse409
+  | departmentAvatarPutResponse413
+  | departmentAvatarPutResponse415
+  | departmentAvatarPutResponse422
+  | departmentAvatarPutResponse429
+  | departmentAvatarPutResponse503
+) & {
+  headers: Headers
+}
+
+export const getDepartmentAvatarPutUrl = (id: string) => {
+  return `${env.API_BASE_URL}/api/v1/departments/${id}/avatar`
+}
+
+/**
+ * @summary Set the picture of a department
+ */
+export const departmentAvatarPut = async (
+  id: string,
+  departmentAvatarPutBody: DepartmentAvatarPutBody,
+  options?: RequestInit
+): Promise<departmentAvatarPutResponseSuccess> => {
+  const formData = new FormData()
+  formData.append(`file`, departmentAvatarPutBody.file)
+
+  const res = await fetch(getDepartmentAvatarPutUrl(id), {
+    ...options,
+    method: 'PUT',
+    body: formData
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: departmentAvatarPutResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: departmentAvatarPutResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: departmentAvatarPutResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as departmentAvatarPutResponseSuccess
+}
+
+export const getDepartmentAvatarPutMutationOptions = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof departmentAvatarPut>>,
+    TError,
+    { id: string; data: DepartmentAvatarPutBody },
+    TContext
+  >
+  fetch?: RequestInit
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof departmentAvatarPut>>,
+  TError,
+  { id: string; data: DepartmentAvatarPutBody },
+  TContext
+> => {
+  const mutationKey = ['departmentAvatarPut']
+  const { mutation: mutationOptions, fetch: fetchOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, fetch: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof departmentAvatarPut>>,
+    { id: string; data: DepartmentAvatarPutBody }
+  > = (props) => {
+    const { id, data } = props ?? {}
+
+    return departmentAvatarPut(id, data, fetchOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type DepartmentAvatarPutMutationResult = NonNullable<Awaited<ReturnType<typeof departmentAvatarPut>>>
+export type DepartmentAvatarPutMutationBody = DepartmentAvatarPutBody
+export type DepartmentAvatarPutMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+/**
+ * @summary Set the picture of a department
+ */
+export const useDepartmentAvatarPut = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof departmentAvatarPut>>,
+      TError,
+      { id: string; data: DepartmentAvatarPutBody },
+      TContext
+    >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof departmentAvatarPut>>,
+  TError,
+  { id: string; data: DepartmentAvatarPutBody },
+  TContext
+> => {
+  return useMutation(getDepartmentAvatarPutMutationOptions(options), queryClient)
+}
+export type departmentAvatarDeleteResponse200 = {
+  data: DepartmentAvatarDelete200
+  status: 200
+}
+
+export type departmentAvatarDeleteResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type departmentAvatarDeleteResponse403 = {
+  data: ErrorEnvelopeDto
+  status: 403
+}
+
+export type departmentAvatarDeleteResponse404 = {
+  data: ErrorEnvelopeDto
+  status: 404
+}
+
+export type departmentAvatarDeleteResponse409 = {
+  data: ErrorEnvelopeDto
+  status: 409
+}
+
+export type departmentAvatarDeleteResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type departmentAvatarDeleteResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type departmentAvatarDeleteResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type departmentAvatarDeleteResponseSuccess = departmentAvatarDeleteResponse200 & {
+  headers: Headers
+}
+export type departmentAvatarDeleteResponseError = (
+  | departmentAvatarDeleteResponse401
+  | departmentAvatarDeleteResponse403
+  | departmentAvatarDeleteResponse404
+  | departmentAvatarDeleteResponse409
+  | departmentAvatarDeleteResponse422
+  | departmentAvatarDeleteResponse429
+  | departmentAvatarDeleteResponse503
+) & {
+  headers: Headers
+}
+
+export const getDepartmentAvatarDeleteUrl = (id: string) => {
+  return `${env.API_BASE_URL}/api/v1/departments/${id}/avatar`
+}
+
+/**
+ * @summary Remove the picture of a department
+ */
+export const departmentAvatarDelete = async (
+  id: string,
+  options?: RequestInit
+): Promise<departmentAvatarDeleteResponseSuccess> => {
+  const res = await fetch(getDepartmentAvatarDeleteUrl(id), {
+    ...options,
+    method: 'DELETE'
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: departmentAvatarDeleteResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: departmentAvatarDeleteResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: departmentAvatarDeleteResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as departmentAvatarDeleteResponseSuccess
+}
+
+export const getDepartmentAvatarDeleteMutationOptions = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<Awaited<ReturnType<typeof departmentAvatarDelete>>, TError, { id: string }, TContext>
+  fetch?: RequestInit
+}): UseMutationOptions<Awaited<ReturnType<typeof departmentAvatarDelete>>, TError, { id: string }, TContext> => {
+  const mutationKey = ['departmentAvatarDelete']
+  const { mutation: mutationOptions, fetch: fetchOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, fetch: undefined }
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof departmentAvatarDelete>>, { id: string }> = (props) => {
+    const { id } = props ?? {}
+
+    return departmentAvatarDelete(id, fetchOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type DepartmentAvatarDeleteMutationResult = NonNullable<Awaited<ReturnType<typeof departmentAvatarDelete>>>
+
+export type DepartmentAvatarDeleteMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+/**
+ * @summary Remove the picture of a department
+ */
+export const useDepartmentAvatarDelete = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(
+  options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof departmentAvatarDelete>>, TError, { id: string }, TContext>
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseMutationResult<Awaited<ReturnType<typeof departmentAvatarDelete>>, TError, { id: string }, TContext> => {
+  return useMutation(getDepartmentAvatarDeleteMutationOptions(options), queryClient)
 }
 export type departmentDeactivateResponse200 = {
   data: DepartmentDeactivate200

@@ -157,3 +157,15 @@ test('offers to request again after a rejection and opens the same application',
     params: { applicationId: id, applicationName: 'Figma' }
   })
 })
+
+test('explains a refused withdrawal after a decision', async () => {
+  mockRequest('PENDING')
+  jest.mocked(accessRequestWithdraw).mockRejectedValue({
+    status: 409,
+    info: { error: { code: 'ACCESS_REQUEST.WITHDRAWAL_AFTER_DECISION', requestId: 'r1' } }
+  })
+  const screen = await renderScreen()
+  await fireEvent.press(await screen.findByRole('button', { name: 'Rút yêu cầu' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Xác nhận rút' }))
+  await screen.findByText('Yêu cầu đã có quyết định nên không rút được nữa.')
+})

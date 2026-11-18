@@ -158,6 +158,7 @@ beforeEach(async () => {
         preview: {
           plan: { planId: id, planName: 'Pro', applicationId: id, applicationName: 'Figma' },
           branch: 'PAID_IN_CATALOG',
+          priceSource: 'SUBSCRIPTION',
           termMonths: null,
           termRefusal: null,
           department: { id, code: 'IT', name: 'IT' },

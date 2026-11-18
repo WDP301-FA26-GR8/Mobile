@@ -10,6 +10,7 @@ import { faker } from '@faker-js/faker'
 import type {
   EmployeeCreate201,
   EmployeeFirstPlacement201,
+  EmployeeFirstPlacementCorrect200,
   EmployeeGet200,
   EmployeeList200,
   EmployeeUpdateOfficialFields200
@@ -23,6 +24,11 @@ import {
 } from '../../contracts/index.faker'
 
 export const getEmployeeFirstPlacementResponseMock = (): EmployeeFirstPlacement201 => ({
+  ...{ ...getEmployeeResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
+export const getEmployeeFirstPlacementCorrectResponseMock = (): EmployeeFirstPlacementCorrect200 => ({
   ...{ ...getEmployeeResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })

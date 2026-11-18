@@ -8,6 +8,7 @@
 import type { PlanPageResponseDtoDataItemsItemControlLevel } from './planPageResponseDtoDataItemsItemControlLevel'
 import type { PlanPageResponseDtoDataItemsItemPricingModel } from './planPageResponseDtoDataItemsItemPricingModel'
 import type { PlanPageResponseDtoDataItemsItemProvisioningType } from './planPageResponseDtoDataItemsItemProvisioningType'
+import type { PlanPageResponseDtoDataItemsItemReferencePrice } from './planPageResponseDtoDataItemsItemReferencePrice'
 import type { PlanPageResponseDtoDataItemsItemSeatTracking } from './planPageResponseDtoDataItemsItemSeatTracking'
 import type { PlanPageResponseDtoDataItemsItemSharingPolicy } from './planPageResponseDtoDataItemsItemSharingPolicy'
 
@@ -30,6 +31,11 @@ export type PlanPageResponseDtoDataItemsItem = {
   /** @nullable */
   sharingPolicy: PlanPageResponseDtoDataItemsItemSharingPolicy
   hasAdminConsole: boolean
+  /**
+   * The reference price in dong before tax, or null when none is entered.
+   * @nullable
+   */
+  referencePrice: PlanPageResponseDtoDataItemsItemReferencePrice
   seatTracking: PlanPageResponseDtoDataItemsItemSeatTracking
   createdAt: string
   updatedAt: string

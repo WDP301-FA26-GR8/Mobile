@@ -7,6 +7,7 @@
  */
 import type { CreateApplicationBodyDtoPlanControlLevel } from './createApplicationBodyDtoPlanControlLevel'
 import type { CreateApplicationBodyDtoPlanProvisioningType } from './createApplicationBodyDtoPlanProvisioningType'
+import type { CreateApplicationBodyDtoPlanReferencePrice } from './createApplicationBodyDtoPlanReferencePrice'
 import type { CreateApplicationBodyDtoPlanSharingPolicy } from './createApplicationBodyDtoPlanSharingPolicy'
 
 export type CreateApplicationBodyDtoPlan = {
@@ -22,4 +23,6 @@ export type CreateApplicationBodyDtoPlan = {
   dataLossOnRemoval?: boolean
   sharingPolicy?: CreateApplicationBodyDtoPlanSharingPolicy
   hasAdminConsole?: boolean
+  /** The price before tax in dong, a decimal string in major units, currency VND: K1/K2, one seat for one month (a yearly price over 12); K4, one purchase. Used by a request when no subscription of the plan has a price. K5 has none. */
+  referencePrice?: CreateApplicationBodyDtoPlanReferencePrice
 }

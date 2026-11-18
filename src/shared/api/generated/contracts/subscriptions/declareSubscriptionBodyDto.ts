@@ -13,7 +13,6 @@ import type { DeclareSubscriptionBodyDtoUnitPrice } from './declareSubscriptionB
 
 export interface DeclareSubscriptionBodyDto {
   planId: string
-  ownerDepartmentId?: string
   kind: DeclareSubscriptionBodyDtoKind
   /**
    * @minimum 0

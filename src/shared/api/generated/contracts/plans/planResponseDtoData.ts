@@ -8,6 +8,7 @@
 import type { PlanResponseDtoDataControlLevel } from './planResponseDtoDataControlLevel'
 import type { PlanResponseDtoDataPricingModel } from './planResponseDtoDataPricingModel'
 import type { PlanResponseDtoDataProvisioningType } from './planResponseDtoDataProvisioningType'
+import type { PlanResponseDtoDataReferencePrice } from './planResponseDtoDataReferencePrice'
 import type { PlanResponseDtoDataSeatTracking } from './planResponseDtoDataSeatTracking'
 import type { PlanResponseDtoDataSharingPolicy } from './planResponseDtoDataSharingPolicy'
 
@@ -33,6 +34,11 @@ export type PlanResponseDtoData = {
   /** @nullable */
   sharingPolicy: PlanResponseDtoDataSharingPolicy
   hasAdminConsole: boolean
+  /**
+   * The reference price in dong before tax, or null when none is entered.
+   * @nullable
+   */
+  referencePrice: PlanResponseDtoDataReferencePrice
   seatTracking: PlanResponseDtoDataSeatTracking
   createdAt: string
   updatedAt: string

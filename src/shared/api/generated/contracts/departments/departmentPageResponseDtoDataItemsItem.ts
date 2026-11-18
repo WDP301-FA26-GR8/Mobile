@@ -24,6 +24,8 @@ export type DepartmentPageResponseDtoDataItemsItem = {
   itAdmin: DepartmentPageResponseDtoDataItemsItemItAdmin
   /** @nullable */
   head: DepartmentPageResponseDtoDataItemsItemHead
+  /** @nullable */
+  avatarUrl: string | null
   /**
    * @minimum 0
    * @maximum 9007199254740991

@@ -58,4 +58,6 @@ export interface UpdateSubscriptionBodyDto {
    */
   vendorMinimumSeats?: number | null
   isPrimaryForPlan?: boolean
+  /** The updatedAt of the subscription as the client read it. When it is not the current one the change is refused (SUBSCRIPTION.STALE) and nothing is written; leave it out to change without the check. */
+  expectedUpdatedAt?: string
 }

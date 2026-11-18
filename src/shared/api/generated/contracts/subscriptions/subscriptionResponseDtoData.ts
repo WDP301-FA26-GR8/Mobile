@@ -31,8 +31,6 @@ export type SubscriptionResponseDtoData = {
   id: string
   planId: string
   planName: string
-  /** @nullable */
-  ownerDepartmentId: string | null
   applicationId: string
   applicationName: string
   /**

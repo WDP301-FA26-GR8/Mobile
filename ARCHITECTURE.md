@@ -337,6 +337,7 @@ whole snapshot was reimported from the same backend export
 (`BE/openapi.json`, SHA-256 `6d0d216b619da6aaaf094f73bb58bed7273fe0ced88634e3fccc39843ea4e200`),
 which adds the profile operations (`meProfilePatch`, `meAvatarPut`, `meAvatarDelete`,
 `employeeProfileLookup`). Contract shape alone does not prove
+On 2026-11-18 (late evening) the snapshot was reimported again from BE `origin/main` (QĐ-113): for the operations mobile uses, the only contract changes are the required `priceSource` on the request preview (`PLAN_REFERENCE` shows a reference-price notice) and the 409 `ACCESS_REQUEST.WITHDRAWAL_AFTER_DECISION` on withdrawal. Export file SHA-256 `8B0F4F7BA42D7F864A975853411050410A8A80F273533B9D2DBA87AA3E61D101` (as written by PowerShell, with BOM).
 the deployed backend's behavior.
 The import adds missing top-level tag declarations and request/response aliases
 to satisfy the mobile naming conventions without renaming the backend DTOs. It also

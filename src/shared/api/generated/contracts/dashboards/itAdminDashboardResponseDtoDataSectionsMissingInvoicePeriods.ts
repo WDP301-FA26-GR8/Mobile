@@ -9,7 +9,7 @@ import type { ItAdminDashboardResponseDtoDataSectionsMissingInvoicePeriodsReason
 import type { ItAdminDashboardResponseDtoDataSectionsMissingInvoicePeriodsState } from './itAdminDashboardResponseDtoDataSectionsMissingInvoicePeriodsState'
 
 /**
- * The periods of a right paid by the month or the year whose invoice has not been submitted five working days after the payment day, in the departments of the caller: the total of the list of them (`purchaseInvoiceMissingPeriodList`).
+ * The periods of a right paid by the month or the year whose invoice has not been submitted five working days after the payment day, in the requests of the departments of the caller and the subscriptions the caller answers for: the total of the list of them (`purchaseInvoiceMissingPeriodList`).
  */
 export type ItAdminDashboardResponseDtoDataSectionsMissingInvoicePeriods = {
   /** COUNTED: count is how many, in the scope of the caller. AT_SOURCE: the rows are listed by sourceOperationId in the same scope and are not counted here. NOT_AVAILABLE: the data has no source yet; reason says why. A section that is not counted is never shown as zero. */

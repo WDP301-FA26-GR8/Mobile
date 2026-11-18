@@ -1802,7 +1802,7 @@ export const getAccessRequestWithdrawUrl = (id: string) => {
 }
 
 /**
- * @summary Withdraw a request that is still waiting
+ * @summary Withdraw a request nobody has decided yet
  */
 export const accessRequestWithdraw = async (
   id: string,
@@ -1870,7 +1870,7 @@ export type AccessRequestWithdrawMutationBody = WithdrawBodyDto
 export type AccessRequestWithdrawMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
 
 /**
- * @summary Withdraw a request that is still waiting
+ * @summary Withdraw a request nobody has decided yet
  */
 export const useAccessRequestWithdraw = <
   TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },

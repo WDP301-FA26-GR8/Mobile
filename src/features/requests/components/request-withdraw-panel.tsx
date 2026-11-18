@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BackHandler, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 
+import { apiErrorInfo } from '@/shared/api/api-error'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
 import { ErrorReference } from '@/shared/ui/error-reference'
@@ -45,7 +46,11 @@ export function RequestWithdrawPanel({ requestId }: { requestId: string }) {
       {withdrawal.isError ? (
         <>
           <Text accessibilityRole='alert' style={styles.error}>
-            {t('requests.createLive.withdrawError')}
+            {t(
+              apiErrorInfo(withdrawal.error).code === 'ACCESS_REQUEST.WITHDRAWAL_AFTER_DECISION'
+                ? 'requests.createLive.withdrawAfterDecision'
+                : 'requests.createLive.withdrawError'
+            )}
           </Text>
           <ErrorReference error={withdrawal.error} />
         </>

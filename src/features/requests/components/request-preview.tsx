@@ -73,6 +73,11 @@ export function RequestPreview({
       <Text accessibilityRole='header' style={styles.heading}>
         {t('requests.createLive.reviewDetails.priceTitle')}
       </Text>
+      {preview.priceSource === 'PLAN_REFERENCE' ? (
+        <Text accessibilityRole='alert' style={styles.text}>
+          {t('requests.createLive.reviewDetails.referencePrice')}
+        </Text>
+      ) : null}
       {preview.pricing.status === 'MISSING' ? (
         <Text style={styles.text}>{t('requests.createLive.reviewDetails.priceMissing')}</Text>
       ) : null}

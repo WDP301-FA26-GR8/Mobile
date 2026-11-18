@@ -22,9 +22,11 @@ import type {
 } from '@tanstack/react-query'
 
 import type {
+  CorrectFirstPlacementBodyDto,
   CreateEmployeeBodyDto,
   EmployeeCreate201,
   EmployeeFirstPlacement201,
+  EmployeeFirstPlacementCorrect200,
   EmployeeGet200,
   EmployeeList200,
   EmployeeListParams,
@@ -220,6 +222,178 @@ export const useEmployeeFirstPlacement = <
   TContext
 > => {
   return useMutation(getEmployeeFirstPlacementMutationOptions(options), queryClient)
+}
+export type employeeFirstPlacementCorrectResponse200 = {
+  data: EmployeeFirstPlacementCorrect200
+  status: 200
+}
+
+export type employeeFirstPlacementCorrectResponse400 = {
+  data: ErrorEnvelopeDto
+  status: 400
+}
+
+export type employeeFirstPlacementCorrectResponse401 = {
+  data: ErrorEnvelopeDto
+  status: 401
+}
+
+export type employeeFirstPlacementCorrectResponse403 = {
+  data: ErrorEnvelopeDto
+  status: 403
+}
+
+export type employeeFirstPlacementCorrectResponse404 = {
+  data: ErrorEnvelopeDto
+  status: 404
+}
+
+export type employeeFirstPlacementCorrectResponse409 = {
+  data: ErrorEnvelopeDto
+  status: 409
+}
+
+export type employeeFirstPlacementCorrectResponse413 = {
+  data: ErrorEnvelopeDto
+  status: 413
+}
+
+export type employeeFirstPlacementCorrectResponse415 = {
+  data: ErrorEnvelopeDto
+  status: 415
+}
+
+export type employeeFirstPlacementCorrectResponse422 = {
+  data: ErrorEnvelopeDto
+  status: 422
+}
+
+export type employeeFirstPlacementCorrectResponse429 = {
+  data: ErrorEnvelopeDto
+  status: 429
+}
+
+export type employeeFirstPlacementCorrectResponse503 = {
+  data: ErrorEnvelopeDto
+  status: 503
+}
+
+export type employeeFirstPlacementCorrectResponseSuccess = employeeFirstPlacementCorrectResponse200 & {
+  headers: Headers
+}
+export type employeeFirstPlacementCorrectResponseError = (
+  | employeeFirstPlacementCorrectResponse400
+  | employeeFirstPlacementCorrectResponse401
+  | employeeFirstPlacementCorrectResponse403
+  | employeeFirstPlacementCorrectResponse404
+  | employeeFirstPlacementCorrectResponse409
+  | employeeFirstPlacementCorrectResponse413
+  | employeeFirstPlacementCorrectResponse415
+  | employeeFirstPlacementCorrectResponse422
+  | employeeFirstPlacementCorrectResponse429
+  | employeeFirstPlacementCorrectResponse503
+) & {
+  headers: Headers
+}
+
+export const getEmployeeFirstPlacementCorrectUrl = (id: string) => {
+  return `${env.API_BASE_URL}/api/v1/employees/${id}/first-placement`
+}
+
+/**
+ * @summary Correct the first placement of an employee
+ */
+export const employeeFirstPlacementCorrect = async (
+  id: string,
+  correctFirstPlacementBodyDto: CorrectFirstPlacementBodyDto,
+  options?: RequestInit
+): Promise<employeeFirstPlacementCorrectResponseSuccess> => {
+  const res = await fetch(getEmployeeFirstPlacementCorrectUrl(id), {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(correctFirstPlacementBodyDto)
+  })
+
+  const body = [204, 205, 304].includes(res.status) ? null : await res.text()
+  if (!res.ok) {
+    const err: globalThis.Error & { info?: employeeFirstPlacementCorrectResponseError['data']; status?: number } =
+      new globalThis.Error()
+    const data: employeeFirstPlacementCorrectResponseError['data'] = body ? JSON.parse(body) : {}
+    err.info = data
+    err.status = res.status
+    throw err
+  }
+  const data: employeeFirstPlacementCorrectResponseSuccess['data'] = body ? JSON.parse(body) : {}
+  return { data, status: res.status, headers: res.headers } as employeeFirstPlacementCorrectResponseSuccess
+}
+
+export const getEmployeeFirstPlacementCorrectMutationOptions = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof employeeFirstPlacementCorrect>>,
+    TError,
+    { id: string; data: CorrectFirstPlacementBodyDto },
+    TContext
+  >
+  fetch?: RequestInit
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof employeeFirstPlacementCorrect>>,
+  TError,
+  { id: string; data: CorrectFirstPlacementBodyDto },
+  TContext
+> => {
+  const mutationKey = ['employeeFirstPlacementCorrect']
+  const { mutation: mutationOptions, fetch: fetchOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, fetch: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof employeeFirstPlacementCorrect>>,
+    { id: string; data: CorrectFirstPlacementBodyDto }
+  > = (props) => {
+    const { id, data } = props ?? {}
+
+    return employeeFirstPlacementCorrect(id, data, fetchOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type EmployeeFirstPlacementCorrectMutationResult = NonNullable<
+  Awaited<ReturnType<typeof employeeFirstPlacementCorrect>>
+>
+export type EmployeeFirstPlacementCorrectMutationBody = CorrectFirstPlacementBodyDto
+export type EmployeeFirstPlacementCorrectMutationError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number }
+
+/**
+ * @summary Correct the first placement of an employee
+ */
+export const useEmployeeFirstPlacementCorrect = <
+  TError = globalThis.Error & { info?: ErrorEnvelopeDto; status?: number },
+  TContext = unknown
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof employeeFirstPlacementCorrect>>,
+      TError,
+      { id: string; data: CorrectFirstPlacementBodyDto },
+      TContext
+    >
+    fetch?: RequestInit
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof employeeFirstPlacementCorrect>>,
+  TError,
+  { id: string; data: CorrectFirstPlacementBodyDto },
+  TContext
+> => {
+  return useMutation(getEmployeeFirstPlacementCorrectMutationOptions(options), queryClient)
 }
 export type employeeCreateResponse201 = {
   data: EmployeeCreate201

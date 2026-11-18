@@ -28,8 +28,6 @@ export type SubscriptionPageResponseDtoDataItemsItem = {
   id: string
   planId: string
   planName: string
-  /** @nullable */
-  ownerDepartmentId: string | null
   applicationId: string
   applicationName: string
   /**

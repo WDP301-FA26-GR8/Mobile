@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 
+export * from './correctFirstPlacementBodyDto'
 export * from './createEmployeeBodyDto'
 export * from './createEmployeeBodyDtoEmploymentType'
 export * from './employeeCreate201'
@@ -22,6 +23,7 @@ export * from './employeeDetailResponseDtoDataPlacementsItemDepartment'
 export * from './employeeDetailResponseDtoDataStatus'
 export * from './employeeDetailResponseDtoDataWorkState'
 export * from './employeeFirstPlacement201'
+export * from './employeeFirstPlacementCorrect200'
 export * from './employeeGet200'
 export * from './employeeList200'
 export * from './employeeListEmploymentType'

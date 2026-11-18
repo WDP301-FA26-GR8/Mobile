@@ -5,6 +5,8 @@
  * Internal software license and technology cost API. A text field whose description says it is trimmed has its leading and trailing whitespace removed before it is checked; for the other text fields the description makes no such promise.
  * OpenAPI spec version: 1.0
  */
+import type { SubscriptionRenewalPageResponseDtoDataItemsItemSubscriptionProvisioningType } from './subscriptionRenewalPageResponseDtoDataItemsItemSubscriptionProvisioningType'
+import type { SubscriptionRenewalPageResponseDtoDataItemsItemSubscriptionResponsibleItAdmin } from './subscriptionRenewalPageResponseDtoDataItemsItemSubscriptionResponsibleItAdmin'
 
 export type SubscriptionRenewalPageResponseDtoDataItemsItemSubscription = {
   id: string
@@ -12,6 +14,11 @@ export type SubscriptionRenewalPageResponseDtoDataItemsItemSubscription = {
   planName: string
   applicationId: string
   applicationName: string
-  /** @nullable */
-  ownerDepartmentId: string | null
+  /** K1 is a plan of personal seats; K2 and K4 are shared pools (a workspace, a key pool). */
+  provisioningType: SubscriptionRenewalPageResponseDtoDataItemsItemSubscriptionProvisioningType
+  /**
+   * The IT Admin who answers for the subscription, by name; null when none is named.
+   * @nullable
+   */
+  responsibleItAdmin: SubscriptionRenewalPageResponseDtoDataItemsItemSubscriptionResponsibleItAdmin
 }

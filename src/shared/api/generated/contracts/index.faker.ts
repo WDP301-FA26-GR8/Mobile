@@ -177,6 +177,8 @@ import type {
   ContractSubscriptionResponseDtoResponse,
   ControlledWaitListResponseDto,
   ControlledWaitListResponseDtoResponse,
+  CorrectFirstPlacementBodyDto,
+  CorrectFirstPlacementRequest,
   CostCenterEmployeesResponseDto,
   CostCenterEmployeesResponseDtoResponse,
   CostCenterPageResponseDto,
@@ -1226,6 +1228,15 @@ export const getEmployeeResponseDtoMock = (
   ...overrideResponse
 })
 
+export const getCorrectFirstPlacementBodyDtoMock = (
+  overrideResponse: Partial<CorrectFirstPlacementBodyDto> = {}
+): CorrectFirstPlacementBodyDto => ({
+  departmentId: faker.helpers.arrayElement([faker.string.uuid(), undefined]),
+  effectiveFrom: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 10), undefined]),
+  reason: faker.string.alpha({ length: { min: 1, max: 500 } }),
+  ...overrideResponse
+})
+
 export const getCreateEmployeeBodyDtoMock = (
   overrideResponse: Partial<CreateEmployeeBodyDto> = {}
 ): CreateEmployeeBodyDto => ({
@@ -1592,6 +1603,7 @@ export const getDepartmentPageResponseDtoMock = (
             ]),
             null
           ]),
+          avatarUrl: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
           memberCount: faker.number.int({ min: 0, max: 9007199254740991 }),
           warnings: faker.helpers.arrayElements(['MISSING_HEAD', 'MISSING_IT_ADMIN', 'MISSING_COST_CENTER'] as const),
           effectiveFrom: faker.date.past().toISOString().slice(0, 10),
@@ -1675,6 +1687,7 @@ export const getDepartmentResponseDtoMock = (
           ]),
           null
         ]),
+        avatarUrl: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
         memberCount: faker.number.int({ min: 0, max: 9007199254740991 }),
         warnings: faker.helpers.arrayElements(['MISSING_HEAD', 'MISSING_IT_ADMIN', 'MISSING_COST_CENTER'] as const),
         effectiveFrom: faker.date.past().toISOString().slice(0, 10),
@@ -4319,7 +4332,14 @@ export const getCreateApplicationBodyDtoMock = (
       faker.helpers.arrayElement(['ALLOWED', 'NOT_ALLOWED'] as const),
       undefined
     ]),
-    hasAdminConsole: faker.helpers.arrayElement([faker.datatype.boolean(), undefined])
+    hasAdminConsole: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+    referencePrice: faker.helpers.arrayElement([
+      {
+        amount: faker.string.alpha({ length: { min: 10, max: 40 } }),
+        currency: faker.helpers.fromRegExp('^[A-Z]{3}$')
+      },
+      undefined
+    ])
   },
   ...overrideResponse
 })
@@ -4394,6 +4414,16 @@ export const getCreatedApplicationResponseDtoMock = (
             null
           ]),
           hasAdminConsole: faker.datatype.boolean(),
+          referencePrice: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+              {
+                amount: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                currency: faker.string.alpha({ length: { min: 10, max: 20 } })
+              },
+              null
+            ]),
+            null
+          ]),
           seatTracking: faker.helpers.arrayElement(['APPLICABLE', 'NOT_APPLICABLE'] as const),
           createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
           updatedAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
@@ -4506,6 +4536,16 @@ export const getPlanPageResponseDtoMock = (
             null
           ]),
           hasAdminConsole: faker.datatype.boolean(),
+          referencePrice: faker.helpers.arrayElement([
+            faker.helpers.arrayElement([
+              {
+                amount: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                currency: faker.string.alpha({ length: { min: 10, max: 20 } })
+              },
+              null
+            ]),
+            null
+          ]),
           seatTracking: faker.helpers.arrayElement(['APPLICABLE', 'NOT_APPLICABLE'] as const),
           createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
           updatedAt: faker.date.past().toISOString().slice(0, 19) + 'Z'
@@ -4546,6 +4586,10 @@ export const getDeclarePlanBodyDtoMock = (overrideResponse: Partial<DeclarePlanB
     undefined
   ]),
   hasAdminConsole: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  referencePrice: faker.helpers.arrayElement([
+    { amount: faker.string.alpha({ length: { min: 10, max: 40 } }), currency: faker.helpers.fromRegExp('^[A-Z]{3}$') },
+    undefined
+  ]),
   ...overrideResponse
 })
 
@@ -4575,6 +4619,16 @@ export const getPlanResponseDtoMock = (overrideResponse: Partial<PlanResponseDto
           null
         ]),
         hasAdminConsole: faker.datatype.boolean(),
+        referencePrice: faker.helpers.arrayElement([
+          faker.helpers.arrayElement([
+            {
+              amount: faker.string.alpha({ length: { min: 10, max: 20 } }),
+              currency: faker.string.alpha({ length: { min: 10, max: 20 } })
+            },
+            null
+          ]),
+          null
+        ]),
         seatTracking: faker.helpers.arrayElement(['APPLICABLE', 'NOT_APPLICABLE'] as const),
         createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
         updatedAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
@@ -4615,6 +4669,16 @@ export const getPlanDetailResponseDtoMock = (
           null
         ]),
         hasAdminConsole: faker.datatype.boolean(),
+        referencePrice: faker.helpers.arrayElement([
+          faker.helpers.arrayElement([
+            {
+              amount: faker.string.alpha({ length: { min: 10, max: 20 } }),
+              currency: faker.string.alpha({ length: { min: 10, max: 20 } })
+            },
+            null
+          ]),
+          null
+        ]),
         seatTracking: faker.helpers.arrayElement(['APPLICABLE', 'NOT_APPLICABLE'] as const),
         createdAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
         updatedAt: faker.date.past().toISOString().slice(0, 19) + 'Z',
@@ -4707,6 +4771,16 @@ export const getUpdatePlanBodyDtoMock = (overrideResponse: Partial<UpdatePlanBod
     undefined
   ]),
   hasAdminConsole: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  referencePrice: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      {
+        amount: faker.string.alpha({ length: { min: 10, max: 40 } }),
+        currency: faker.helpers.fromRegExp('^[A-Z]{3}$')
+      },
+      null
+    ]),
+    undefined
+  ]),
   ...overrideResponse
 })
 
@@ -5179,7 +5253,6 @@ export const getSubscriptionPageResponseDtoMock = (
           id: faker.string.uuid(),
           planId: faker.string.uuid(),
           planName: faker.string.alpha({ length: { min: 10, max: 20 } }),
-          ownerDepartmentId: faker.helpers.arrayElement([faker.string.uuid(), null]),
           applicationId: faker.string.uuid(),
           applicationName: faker.string.alpha({ length: { min: 10, max: 20 } }),
           logoUrl: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
@@ -5359,7 +5432,6 @@ export const getDeclareSubscriptionBodyDtoMock = (
   overrideResponse: Partial<DeclareSubscriptionBodyDto> = {}
 ): DeclareSubscriptionBodyDto => ({
   planId: faker.string.uuid(),
-  ownerDepartmentId: faker.helpers.arrayElement([faker.string.uuid(), undefined]),
   kind: faker.helpers.arrayElement(['TERM', 'PERPETUAL'] as const),
   purchasedQuantity: faker.helpers.arrayElement([faker.number.int({ min: 0, max: 1000000000 }), undefined]),
   unitPrice: faker.helpers.arrayElement([
@@ -5401,7 +5473,6 @@ export const getSubscriptionResponseDtoMock = (
         id: faker.string.uuid(),
         planId: faker.string.uuid(),
         planName: faker.string.alpha({ length: { min: 10, max: 20 } }),
-        ownerDepartmentId: faker.helpers.arrayElement([faker.string.uuid(), null]),
         applicationId: faker.string.uuid(),
         applicationName: faker.string.alpha({ length: { min: 10, max: 20 } }),
         logoUrl: faker.helpers.arrayElement([faker.string.alpha({ length: { min: 10, max: 20 } }), null]),
@@ -5608,6 +5679,7 @@ export const getUpdateSubscriptionBodyDtoMock = (
     undefined
   ]),
   isPrimaryForPlan: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]),
+  expectedUpdatedAt: faker.helpers.arrayElement([faker.date.past().toISOString().slice(0, 19) + 'Z', undefined]),
   ...overrideResponse
 })
 
@@ -8078,7 +8150,18 @@ export const getSubscriptionRenewalPageResponseDtoMock = (
             planName: faker.string.alpha({ length: { min: 10, max: 20 } }),
             applicationId: faker.string.uuid(),
             applicationName: faker.string.alpha({ length: { min: 10, max: 20 } }),
-            ownerDepartmentId: faker.helpers.arrayElement([faker.string.uuid(), null])
+            provisioningType: faker.helpers.arrayElement(['K1', 'K2', 'K3', 'K4', 'K5'] as const),
+            responsibleItAdmin: faker.helpers.arrayElement([
+              faker.helpers.arrayElement([
+                {
+                  employeeId: faker.string.uuid(),
+                  employeeCode: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                  fullName: faker.string.alpha({ length: { min: 10, max: 20 } })
+                },
+                null
+              ]),
+              null
+            ])
           },
           milestone: {
             basis: faker.helpers.arrayElement([
@@ -8197,7 +8280,18 @@ export const getSubscriptionRenewalResponseDtoMock = (
             planName: faker.string.alpha({ length: { min: 10, max: 20 } }),
             applicationId: faker.string.uuid(),
             applicationName: faker.string.alpha({ length: { min: 10, max: 20 } }),
-            ownerDepartmentId: faker.helpers.arrayElement([faker.string.uuid(), null])
+            provisioningType: faker.helpers.arrayElement(['K1', 'K2', 'K3', 'K4', 'K5'] as const),
+            responsibleItAdmin: faker.helpers.arrayElement([
+              faker.helpers.arrayElement([
+                {
+                  employeeId: faker.string.uuid(),
+                  employeeCode: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                  fullName: faker.string.alpha({ length: { min: 10, max: 20 } })
+                },
+                null
+              ]),
+              null
+            ])
           },
           milestone: {
             basis: faker.helpers.arrayElement([
@@ -8474,7 +8568,18 @@ export const getSubscriptionDeadlineEventPageResponseDtoMock = (
             planName: faker.string.alpha({ length: { min: 10, max: 20 } }),
             applicationId: faker.string.uuid(),
             applicationName: faker.string.alpha({ length: { min: 10, max: 20 } }),
-            ownerDepartmentId: faker.helpers.arrayElement([faker.string.uuid(), null])
+            provisioningType: faker.helpers.arrayElement(['K1', 'K2', 'K3', 'K4', 'K5'] as const),
+            responsibleItAdmin: faker.helpers.arrayElement([
+              faker.helpers.arrayElement([
+                {
+                  employeeId: faker.string.uuid(),
+                  employeeCode: faker.string.alpha({ length: { min: 10, max: 20 } }),
+                  fullName: faker.string.alpha({ length: { min: 10, max: 20 } })
+                },
+                null
+              ]),
+              null
+            ])
           },
           kind: faker.helpers.arrayElement(['AUTO_RENEWAL_INCIDENT', 'EXPIRY_MARKED'] as const),
           milestoneDate: faker.string.alpha({ length: { min: 10, max: 20 } }),
@@ -9608,6 +9713,10 @@ export const getPreviewResponseDtoMock = (overrideResponse: Partial<PreviewRespo
               null
             ])
           },
+          priceSource: faker.helpers.arrayElement([
+            faker.helpers.arrayElement(['SUBSCRIPTION', 'PLAN_REFERENCE'] as const),
+            null
+          ]),
           cost: faker.helpers.arrayElement([
             faker.helpers.arrayElement([
               {
@@ -23641,6 +23750,10 @@ export const getFirstPlacementRequestMock = (): FirstPlacementRequest => ({ ...g
 
 export const getEmployeeResponseDtoResponseMock = (): EmployeeResponseDtoResponse => ({
   ...getEmployeeResponseDtoMock()
+})
+
+export const getCorrectFirstPlacementRequestMock = (): CorrectFirstPlacementRequest => ({
+  ...getCorrectFirstPlacementBodyDtoMock()
 })
 
 export const getCreateEmployeeRequestMock = (): CreateEmployeeRequest => ({ ...getCreateEmployeeBodyDtoMock() })

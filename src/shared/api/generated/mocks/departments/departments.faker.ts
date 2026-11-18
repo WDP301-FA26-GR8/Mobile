@@ -8,6 +8,8 @@
 import { faker } from '@faker-js/faker'
 
 import type {
+  DepartmentAvatarDelete200,
+  DepartmentAvatarPut200,
   DepartmentCreate201,
   DepartmentDeactivate200,
   DepartmentGet200,
@@ -54,6 +56,16 @@ export const getDepartmentGetResponseMock = (): DepartmentGet200 => ({
 })
 
 export const getDepartmentUpdateResponseMock = (): DepartmentUpdate200 => ({
+  ...{ ...getDepartmentResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
+export const getDepartmentAvatarPutResponseMock = (): DepartmentAvatarPut200 => ({
+  ...{ ...getDepartmentResponseDtoResponseMock() },
+  ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
+})
+
+export const getDepartmentAvatarDeleteResponseMock = (): DepartmentAvatarDelete200 => ({
   ...{ ...getDepartmentResponseDtoResponseMock() },
   ...{ message: faker.string.alpha({ length: { min: 10, max: 20 } }) }
 })

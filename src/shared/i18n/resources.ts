@@ -646,6 +646,8 @@ export const resources = {
             limit: 'Open new requests this week: {{count}}/{{max}}. Resets on {{date}}.',
             priceTitle: 'Pricing',
             priceMissing: 'Pricing is not available yet.',
+            referencePrice:
+              'This price is the plan reference price, not a purchased subscription price. The final cost is confirmed later.',
             priceNotApplicable: 'Pricing does not apply.',
             amountUnavailable: 'Amount unavailable',
             blockedSpending: 'Spending approvers cannot submit this request.',
@@ -718,6 +720,7 @@ export const resources = {
           withdrawSuccess: 'Withdrawal recorded. Check the current request status; it may still be waiting for IT.',
           withdrawResultState: 'Status returned by the server:',
           withdrawError: 'The result could not be confirmed. Check the refreshed request status before trying again.',
+          withdrawAfterDecision: 'A decision was already made on this request, so it can no longer be withdrawn.',
           search: 'Search software or plans',
           term: 'Duration in months (1–12)',
           previewError: 'Could not check the request. Please try again.',
@@ -1493,6 +1496,8 @@ export const resources = {
             limit: 'Yêu cầu cấp mới đang xử lý trong tuần: {{count}}/{{max}}. Đếm lại từ {{date}}.',
             priceTitle: 'Thông tin giá',
             priceMissing: 'Chưa đủ dữ liệu giá.',
+            referencePrice:
+              'Đây là giá tham chiếu của gói, chưa phải giá của gói đã mua. Chi phí cuối cùng sẽ được xác nhận sau.',
             priceNotApplicable: 'Không áp dụng giá.',
             amountUnavailable: 'Không thể hiển thị số tiền',
             blockedSpending: 'Người duyệt chi không thể gửi yêu cầu này.',
@@ -1565,6 +1570,7 @@ export const resources = {
           withdrawResultState: 'Trạng thái máy chủ trả về:',
           withdrawError:
             'Chưa thể xác nhận kết quả. Hãy kiểm tra trạng thái yêu cầu sau khi tải lại trước khi thử lại.',
+          withdrawAfterDecision: 'Yêu cầu đã có quyết định nên không rút được nữa.',
           search: 'Tìm phần mềm hoặc gói',
           term: 'Thời hạn theo tháng (1–12)',
           previewError: 'Không thể kiểm tra yêu cầu. Vui lòng thử lại.',

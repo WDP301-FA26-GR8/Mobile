@@ -6,12 +6,17 @@
  * OpenAPI spec version: 1.0
  */
 import type { SubscriptionRenewalListLate } from './subscriptionRenewalListLate'
+import type { SubscriptionRenewalListMine } from './subscriptionRenewalListMine'
 import type { SubscriptionRenewalListState } from './subscriptionRenewalListState'
 
 export type SubscriptionRenewalListParams = {
   state?: SubscriptionRenewalListState
   subscriptionId?: string
   late?: SubscriptionRenewalListLate
+  /**
+   * true lists only the renewals of the subscriptions the caller answers for as their IT Admin; false or absent lists them all.
+   */
+  mine?: SubscriptionRenewalListMine
   /**
    * @maximum 9007199254740991
    * @exclusiveMinimum 0
