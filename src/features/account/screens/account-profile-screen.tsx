@@ -10,6 +10,7 @@ import { useAccountProfile } from '@/shared/api/use-account-profile'
 import { goBackOr } from '@/shared/lib/go-back-or'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
+import { PreferenceSwitches } from '@/shared/ui/preference-switches'
 
 export function AccountProfileScreen() {
   const { t } = useTranslation()
@@ -57,21 +58,24 @@ export function AccountProfileScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Pressable
-          accessibilityRole='button'
-          accessibilityLabel={t('common.back')}
-          onPress={() => goBackOr(router, '/')}
-          style={styles.back}
-        >
-          <Feather
-            accessibilityElementsHidden
-            importantForAccessibility='no'
-            name='arrow-left'
-            size={20}
-            color={colors.foreground}
-          />
-          <Text style={styles.backText}>{t('common.back')}</Text>
-        </Pressable>
+        <View style={styles.topRow}>
+          <Pressable
+            accessibilityRole='button'
+            accessibilityLabel={t('common.back')}
+            onPress={() => goBackOr(router, '/')}
+            style={styles.back}
+          >
+            <Feather
+              accessibilityElementsHidden
+              importantForAccessibility='no'
+              name='arrow-left'
+              size={20}
+              color={colors.foreground}
+            />
+            <Text style={styles.backText}>{t('common.back')}</Text>
+          </Pressable>
+          <PreferenceSwitches />
+        </View>
         <View style={styles.heading}>
           <Text accessibilityRole='header' style={styles.title}>
             {t('account.title')}
@@ -186,6 +190,7 @@ const createStyles = (colors: MobileColors) =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: colors.background },
     content: { padding: 20, paddingBottom: 36, gap: 20 },
+    topRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
     back: { alignSelf: 'flex-start', alignItems: 'center', flexDirection: 'row', gap: 8, minHeight: 44 },
     backText: { color: colors.foreground, fontSize: 14, fontWeight: '600' },
     heading: { gap: 5 },
