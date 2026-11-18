@@ -29,8 +29,8 @@ and Android system back on the last route are blocked while a decision is in fli
 On an explicit policy-version conflict, the user may reload the policy, request and
 group lines; a different version and the same pending step are required before
 answering again. Neither this recovery nor uncertain writes automatically retry.
-Prototype request and Manager-demo components remain available to tests but their
-legacy routes redirect to live screens. Contract availability alone does not resolve
+The former prototype request, Manager-demo, Spending-demo, inbox-demo and password-recovery screens
+and the in-memory `demo-requests` store were removed; their legacy routes redirect to live screens. Contract availability alone does not resolve
 the differences between the current backend and newer proposed business decisions.
 The authenticated landing loads `/me` and opens `/home`, which shows self-service
 shortcuts and the live Manager or Spending Approver queue only to the matching role.
@@ -131,25 +131,9 @@ listed in the four mobile MVP tasks and requires Owner confirmation of its scope
 Employee self-service opens a confirmation before signing out from the account
 screen; the profile remains reachable when account loading fails. The software list
 uses local brand icons where available, with a generic fallback for other names.
-The manager demo uses bottom tabs for assigned approvals, department-visible context,
-and the shared in-app inbox. The spending demo uses assigned decisions, session-only
-decision history, and the shared in-app inbox; budget snapshots remain inside the
-relevant request detail and are not a separate tab.
-Approver inbox tabs stay within their respective demo screens and do not display the
-employee's notifications. Prototype events produce role-specific in-app notices.
-Detail screens use a route fallback when opened without navigation history.
-Shared demo request state is owned by `src/entities/demo-requests` and attached at the
-root route layout. Navigation between the separate demo routes shares request status,
-decisions, timelines, and role-scoped notification/read state; reloading or restarting
-resets it. This is not authentication or backend authorization.
-
-The demo advances an approved employee need to awaiting web submission and an approved
-Slack spending decision to awaiting IT. It does not simulate web batch submission,
-Finance review, or IT actions. The manager's DataDog self-request has its need step
-decided by the spending approver, with the result visible in department context;
-subsequent steps are not simulated. Notifications describe historical events, while
-request details show current status. All transitions are prototype assumptions to be
-replaced with the backend contract and enforced authorization.
+The Manager and Spending Approver workspaces, inbox and software screens are all API-backed;
+no demo or session-only request state remains. Detail screens use a route fallback when opened
+without navigation history.
 The authenticated software list is paginated, supports current and ended access, and
 displays the backend's seven-day expiring flag. The dashboard supplies the overall
 expiring count; the filter explicitly applies only to the current page. Software
@@ -196,16 +180,15 @@ src/
   providers/               application-wide framework providers
   features/
     account/                read-only signed-in account information
-    auth/                   backend login and inactive prototype password recovery
-    inbox/                  authenticated and prototype in-app notifications
+    auth/                   backend login
+    inbox/                  authenticated in-app notifications
     licenses/               employee software screens and models
-    manager/                department need-approval demo presentation
+    manager/                live need-approval workspace
     policy/                 pending policy acknowledgement gate
     spending-approval/      per-item spending queue and budget snapshots
     requests/               employee request screens and session mocks
     <capability>/           screens, components, hooks, feature-local tests/models
   entities/
-    demo-requests/          in-memory request, decision, and inbox state
     <domain-concept>/       reusable domain presentation logic, only when needed
   shared/
     api/

@@ -1,7 +1,6 @@
 import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 
-import { RequestsProvider } from '@/entities/demo-requests'
 import { NotificationReadErrorProvider } from '@/features/inbox'
 import { PolicyGate } from '@/features/policy'
 import { AppProviders } from '@/providers/app-providers'
@@ -18,7 +17,7 @@ export default function RootLayout() {
 function RootNavigator() {
   const { dark } = useMobileTheme()
   return (
-    <RequestsProvider>
+    <>
       <PolicyGate>
         <NotificationReadErrorProvider>
           <Stack screenOptions={{ headerShown: false }}>
@@ -27,6 +26,6 @@ function RootNavigator() {
         </NotificationReadErrorProvider>
       </PolicyGate>
       <StatusBar style={dark ? 'light' : 'dark'} />
-    </RequestsProvider>
+    </>
   )
 }
