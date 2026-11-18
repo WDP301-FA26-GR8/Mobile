@@ -11,7 +11,7 @@ import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
 import { EmployeeProfileHeader } from '@/shared/ui/employee-profile-header'
 import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
-import { ThemeSwitch } from '@/shared/ui/theme-switch'
+import { PreferenceSwitches } from '@/shared/ui/preference-switches'
 
 import { LiveSoftwareCard } from '../components/live-software-card'
 import { useMySoftware } from '../hooks/use-my-software'
@@ -72,7 +72,7 @@ export function MySoftwareScreen() {
                   </Pressable>
                 ) : null}
               </View>
-              <ThemeSwitch />
+              <PreferenceSwitches />
               <Pressable
                 accessibilityRole='button'
                 accessibilityLabel={t('navigation.openTab', { tab: t('navigation.inbox') })}
@@ -350,7 +350,7 @@ export function MySoftwareScreen() {
                     icon: 'plus-circle' as const,
                     selected: false,
                     accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
-                    onPress: () => router.push('/live-request-create')
+                    onPress: () => router.replace('/live-request-create')
                   }
                 ]
               : []),
@@ -360,7 +360,7 @@ export function MySoftwareScreen() {
               icon: 'clock',
               selected: false,
               accessibilityLabel: t('navigation.openTab', { tab: t('navigation.requests') }),
-              onPress: () => router.push('/live-requests')
+              onPress: () => router.replace('/live-requests')
             },
             {
               id: 'inbox',
@@ -368,7 +368,7 @@ export function MySoftwareScreen() {
               icon: 'bell',
               selected: false,
               accessibilityLabel: t('navigation.openTab', { tab: t('navigation.inbox') }),
-              onPress: () => router.push('/live-inbox')
+              onPress: () => router.replace('/live-inbox')
             }
           ]}
         />

@@ -81,3 +81,21 @@ test('does not guess a role when account loading fails', async () => {
   await fireEvent.press(screen.getByRole('button', { name: 'Thử lại' }))
   expect(mockProfile.refetch).toHaveBeenCalled()
 })
+
+test('toggles password visibility with a localized accessible control', async () => {
+  const screen = await render(<LoginScreen />)
+  const input = screen.getByLabelText('Mật khẩu')
+  expect(input.props.secureTextEntry).toBe(true)
+  await fireEvent.press(screen.getByRole('button', { name: 'Hiện mật khẩu' }))
+  expect(screen.getByLabelText('Mật khẩu').props.secureTextEntry).toBe(false)
+  await fireEvent.press(screen.getByRole('button', { name: 'Ẩn mật khẩu' }))
+  expect(screen.getByLabelText('Mật khẩu').props.secureTextEntry).toBe(true)
+})
+
+test('switches the language from the login screen', async () => {
+  const screen = await render(<LoginScreen />)
+  await fireEvent.press(screen.getByRole('button', { name: /Chuyển sang/ }))
+  await waitFor(() => screen.getByRole('button', { name: 'Show password' }))
+  await fireEvent.press(screen.getByRole('button', { name: /Switch to/ }))
+  await waitFor(() => screen.getByRole('button', { name: 'Hiện mật khẩu' }))
+})

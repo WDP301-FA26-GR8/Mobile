@@ -89,6 +89,8 @@ export const resources = {
         loginSubtitle: 'Access your software and follow your requests in one place.',
         password: 'Password',
         passwordPlaceholder: 'Enter your password',
+        showPassword: 'Show password',
+        hidePassword: 'Hide password',
         recovery: {
           backToLogin: 'Back to sign in',
           done: {
@@ -1272,6 +1274,8 @@ export const resources = {
         loginSubtitle: 'Xem phần mềm và theo dõi yêu cầu của bạn tại một nơi.',
         password: 'Mật khẩu',
         passwordPlaceholder: 'Nhập mật khẩu',
+        showPassword: 'Hiện mật khẩu',
+        hidePassword: 'Ẩn mật khẩu',
         recovery: {
           backToLogin: 'Về đăng nhập',
           done: {

@@ -16,7 +16,8 @@ const mockSession = {
 }
 
 const mockPush = jest.fn()
-jest.mock('expo-router', () => ({ Redirect: () => null, useRouter: () => ({ push: mockPush }) }))
+const mockReplace = jest.fn()
+jest.mock('expo-router', () => ({ Redirect: () => null, useRouter: () => ({ push: mockPush, replace: mockReplace }) }))
 jest.mock('@/shared/api/session-context', () => ({ useSession: () => mockSession }))
 jest.mock('@/shared/api/generated/api/me/me', () => ({ meGet: jest.fn(), meSoftwareRightList: jest.fn() }))
 jest.mock('@/shared/api/generated/api/dashboards/dashboards', () => ({ employeeDashboardGet: jest.fn() }))
@@ -115,7 +116,7 @@ test('shows only server account and rights, without invented license keys', asyn
   expect(screen.queryByText('Không gian nhân viên · demo')).toBeNull()
   expect(screen.queryByRole('button', { name: 'Trang trước' })).toBeNull()
   await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Tạo yêu cầu' }))
-  expect(mockPush).toHaveBeenCalledWith('/live-request-create')
+  expect(mockReplace).toHaveBeenCalledWith('/live-request-create')
   await fireEvent.press(screen.getByRole('button', { name: 'Mở mục Thông báo' }))
   expect(mockPush).toHaveBeenCalledWith('/live-inbox')
   await fireEvent.press(screen.getByRole('button', { name: 'Mở thông tin tài khoản của Nguyễn An' }))
@@ -269,7 +270,7 @@ test('shows live software and unavailable navigation in English', async () => {
   await screen.findByText('Figma')
   screen.getByText('My workspace')
   await fireEvent.press(screen.getByRole('tab', { name: 'Open Requests' }))
-  expect(mockPush).toHaveBeenCalledWith('/live-requests')
+  expect(mockReplace).toHaveBeenCalledWith('/live-requests')
 })
 
 test('shows errors and retries without falling back to mock data', async () => {

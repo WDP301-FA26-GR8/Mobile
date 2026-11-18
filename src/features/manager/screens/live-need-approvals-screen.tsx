@@ -12,7 +12,7 @@ import { useSession } from '@/shared/api/session-context'
 import { useAccountProfile } from '@/shared/api/use-account-profile'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
-import { ThemeSwitch } from '@/shared/ui/theme-switch'
+import { PreferenceSwitches } from '@/shared/ui/preference-switches'
 
 import { ManagerLiveTabs } from '../components/manager-live-tabs'
 import { SimilarSeats } from '../components/similar-seats'
@@ -250,7 +250,7 @@ export function LiveNeedApprovalsScreen({
                   color={mobileColors.muted}
                 />
               </Pressable>
-              <ThemeSwitch />
+              <PreferenceSwitches />
             </View>
           ) : null}
           {!selected && isManager && profile.data ? (

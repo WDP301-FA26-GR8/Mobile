@@ -115,6 +115,11 @@ Manager group request creation and spend-batch submission remain web-only; a GH-
 is not shown because the current detail contract does not expose it. The mobile app
 does not assume the newer proposed one-step manager-self-request routing has been
 implemented by the backend.
+Sibling tabs (software, create request, requests, inbox) switch with `router.replace`, so
+Back from any tab returns to the screen that opened it (normally Home) instead of walking
+through previously visited tabs. Header and card shortcuts still use `push`. The login and
+authenticated headers share `PreferenceSwitches` (language VI/EN toggle persisted in
+AsyncStorage plus theme); the login password field has a show/hide control.
 Password recovery on the login screen directs the
 user to web until the real reset-link flow is implemented. Its former prototype
 route redirects to login and cannot simulate a successful password change.

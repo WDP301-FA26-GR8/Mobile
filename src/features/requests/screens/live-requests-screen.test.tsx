@@ -176,7 +176,7 @@ test('lists server requests and opens their details', async () => {
     expect.objectContaining({ headers: { Authorization: 'Bearer test-token' } })
   )
   await fireEvent.press(screen.getByRole('tab', { name: 'Mở mục Tạo yêu cầu' }))
-  expect(mockRouter.push).toHaveBeenCalledWith('/live-request-create')
+  expect(mockRouter.replace).toHaveBeenCalledWith('/live-request-create')
   await fireEvent.press(screen.getByRole('button', { name: 'Xem yêu cầu cho Figma' }))
   expect(mockRouter.push).toHaveBeenCalledWith({ pathname: '/live-requests/[requestId]', params: { requestId: id } })
 })

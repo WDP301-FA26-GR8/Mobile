@@ -291,7 +291,7 @@ export function LiveInboxScreen({ navigation }: { navigation?: ReactNode } = {})
                       icon: 'plus-circle' as const,
                       selected: false,
                       accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
-                      onPress: () => router.push('/live-request-create')
+                      onPress: () => router.replace('/live-request-create')
                     }
                   ]
                 : []),

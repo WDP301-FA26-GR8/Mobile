@@ -1,3 +1,4 @@
+import { Feather } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -9,7 +10,7 @@ import { InvalidApiOriginError } from '@/shared/api/secure-origin'
 import { useAccountProfile } from '@/shared/api/use-account-profile'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
-import { ThemeSwitch } from '@/shared/ui/theme-switch'
+import { PreferenceSwitches } from '@/shared/ui/preference-switches'
 
 export function LoginScreen() {
   const { colors: mobileColors } = useMobileTheme()
@@ -18,6 +19,7 @@ export function LoginScreen() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [passwordVisible, setPasswordVisible] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<'credentials' | 'rateLimit' | 'general' | 'configuration'>()
   const session = useSession()
@@ -98,7 +100,7 @@ export function LoginScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps='handled'>
         <View style={styles.toolbar}>
-          <ThemeSwitch />
+          <PreferenceSwitches />
         </View>
         <View style={styles.brandMark}>
           <Text style={styles.brandInitial}>{t('common.brandInitial')}</Text>
@@ -126,16 +128,33 @@ export function LoginScreen() {
           </View>
           <View style={styles.field}>
             <Text style={styles.label}>{t('auth.password')}</Text>
-            <TextInput
-              accessibilityLabel={t('auth.password')}
-              autoComplete='password'
-              onChangeText={setPassword}
-              placeholder={t('auth.passwordPlaceholder')}
-              placeholderTextColor={mobileColors.muted}
-              secureTextEntry
-              style={styles.input}
-              value={password}
-            />
+            <View style={styles.passwordRow}>
+              <TextInput
+                accessibilityLabel={t('auth.password')}
+                autoComplete='password'
+                onChangeText={setPassword}
+                placeholder={t('auth.passwordPlaceholder')}
+                placeholderTextColor={mobileColors.muted}
+                secureTextEntry={!passwordVisible}
+                style={[styles.input, styles.passwordInput]}
+                value={password}
+              />
+              <Pressable
+                accessibilityLabel={t(passwordVisible ? 'auth.hidePassword' : 'auth.showPassword')}
+                accessibilityRole='button'
+                accessibilityState={{ checked: passwordVisible }}
+                onPress={() => setPasswordVisible((visible) => !visible)}
+                style={styles.eyeButton}
+              >
+                <Feather
+                  accessibilityElementsHidden
+                  color={mobileColors.muted}
+                  importantForAccessibility='no'
+                  name={passwordVisible ? 'eye-off' : 'eye'}
+                  size={20}
+                />
+              </Pressable>
+            </View>
           </View>
 
           <Text style={styles.forgotLabel}>{t('auth.recoveryUnavailable')}</Text>
@@ -222,6 +241,16 @@ const createStyles = (mobileColors: MobileColors) =>
       fontSize: 15,
       minHeight: 52,
       paddingHorizontal: 15
+    },
+    passwordRow: { justifyContent: 'center' },
+    passwordInput: { paddingRight: 52 },
+    eyeButton: {
+      alignItems: 'center',
+      height: 52,
+      justifyContent: 'center',
+      position: 'absolute',
+      right: 0,
+      width: 48
     },
     label: {
       color: mobileColors.foreground,

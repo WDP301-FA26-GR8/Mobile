@@ -20,7 +20,7 @@ import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
 import { EmployeeProfileHeader } from '@/shared/ui/employee-profile-header'
 import { MobileTabBar } from '@/shared/ui/mobile-tab-bar'
-import { ThemeSwitch } from '@/shared/ui/theme-switch'
+import { PreferenceSwitches } from '@/shared/ui/preference-switches'
 
 import { LiveSpendingApprovalCard } from '../components/live-spending-approval-card'
 import { LiveSpendingBudgetSnapshot } from '../components/live-spending-budget-snapshot'
@@ -344,7 +344,7 @@ export function LiveSpendingApprovalsScreen({ requestId }: { requestId?: string 
                 />
               ) : null}
             </View>
-            <ThemeSwitch />
+            <PreferenceSwitches />
           </View>
 
           {profile.isError ? (

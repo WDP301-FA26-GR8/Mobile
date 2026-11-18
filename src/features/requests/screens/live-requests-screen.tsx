@@ -288,7 +288,7 @@ export function LiveRequestsScreen() {
                     disabled: inFlight,
                     accessibilityLabel: t('navigation.openTab', { tab: t('navigation.createRequest') }),
                     onPress: () => {
-                      if (!withdrawing.current) router.push('/live-request-create')
+                      if (!withdrawing.current) router.replace('/live-request-create')
                     }
                   }
                 ]

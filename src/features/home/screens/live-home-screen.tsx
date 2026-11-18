@@ -12,7 +12,7 @@ import { useAccountProfile } from '@/shared/api/use-account-profile'
 import type { MobileColors } from '@/shared/theme/colors'
 import { useMobileTheme } from '@/shared/theme/theme-provider'
 import { EmployeeProfileHeader } from '@/shared/ui/employee-profile-header'
-import { ThemeSwitch } from '@/shared/ui/theme-switch'
+import { PreferenceSwitches } from '@/shared/ui/preference-switches'
 
 export function LiveHomeScreen() {
   const { t, i18n } = useTranslation()
@@ -52,7 +52,7 @@ export function LiveHomeScreen() {
                   onOpenProfile={() => router.push('/profile')}
                 />
               </View>
-              <ThemeSwitch />
+              <PreferenceSwitches />
             </View>
             <View style={styles.hero}>
               <Text style={styles.eyebrow}>{t('home.live.eyebrow')}</Text>
